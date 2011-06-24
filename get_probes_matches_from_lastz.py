@@ -100,7 +100,7 @@ def main():
                     diff = end - start
                     # ensure our range is less than N(probes) * probe_length - this
                     # still gives us a little wiggle room because probes are ~ 2X tiled
-                    if diff < (probes[k] * 120):
+                    if diff > (probes[k] * 120):
                         skip = True
                         if args.verbose:
                             print "range longer than expected"
