@@ -38,6 +38,7 @@ def get_args():
     parser.add_argument('--name-components', dest = 'components', help = 'number of parts in the name', default = 2, type = int)
     parser.add_argument('--splitchar', help = 'The name character on which to split', default = "_", type = str)
     parser.add_argument('--dupefile', help='The path to a lastz file of lastz-against-self results')
+    parser.add_argument('--fish', help='If running against fish probes', action='store_true')
     return parser.parse_args()
 
 def run_checks(k, v, probes, verbose = True):
@@ -53,7 +54,7 @@ def run_checks(k, v, probes, verbose = True):
         if verbose:print "\t\tExpected hits: {0}\n\t\tObserved Hits: {1}\n\t\t\t{2}".format(probes[k], len(v), '\n\t\t\t'.join(result_string))
         return False
 
-def get_matches(lastz_file, splitchar, components):
+def get_matches(lastz_file, splitchar, components, fish = False):
     matches = defaultdict(list)
     probes = defaultdict(int)
     for lz in lastz.Reader(lastz_file, long_format = True):
@@ -61,8 +62,14 @@ def get_matches(lastz_file, splitchar, components):
         if "hap" in lz.name1:
             print "Skipping: ", lz.name1
         else:
-            uce_name = get_name(lz.name2, "|", 1)
-            probe_number = int(lz.name2.split(':')[-1])
+            if not fish:
+                uce_name = get_name(lz.name2, "|", 1)
+                probe_number = int(lz.name2.split(':')[-1])
+            else:
+                uce_name = get_name(lz.name2, "_", 1)
+                # add 1 because fish probe indexing starts @ 0
+                probe_number = int(lz.name2.split('|')[1].split('_')[1]) + 1
+            #pdb.set_trace()
             if probe_number > probes[uce_name]:
                 probes[uce_name] = probe_number
             matches[uce_name].append([get_name(lz.name1, splitchar = splitchar, items = components), lz.strand2, lz.zstart1, lz.end1])
@@ -74,7 +81,7 @@ def main():
         dupes = get_dupes(args.dupefile)
     else:
         dupes = None
-    matches, probes = get_matches(args.lastz, args.splitchar, args.components)
+    matches, probes = get_matches(args.lastz, args.splitchar, args.components, args.fish)
     #unique_matches = sum([1 for uce, map_pos in matches.iteritems() if len(map_pos) == probes[uce]])
     if args.fasta:
         tb = bx.seq.twobit.TwoBitFile(file(args.genome))
