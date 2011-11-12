@@ -25,7 +25,9 @@ Note
 
 Users, of this code should be aware that we will or already have split
 portions of the code within this repository into separate repositories 
-and/or packages for official distribution.
+and/or packages for official distribution.  Similarly, parts of the code
+within may already be part of existing, official repositories - we have
+put everything together here to provide a cohesive whole.
 
 We will make an attempt to list those repositories below:
 
