@@ -36,8 +36,6 @@ We will make an attempt to list those repositories below:
 Citation
 --------
 
-If you use portions of this code in your own work, please contact the
-author(s) to ensure there is not a newer, officially packaged version.
-
-If there is not, please cite the manuscript listed above as the source
-of this computer code.
+If you use portions of this code in your own work, please contact the author(s)
+to ensure there is not a newer, officially packaged version.  If there is not,
+please cite the manuscript listed above as the source of this computer code.
