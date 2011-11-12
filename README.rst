@@ -33,6 +33,24 @@ We will make an attempt to list those repositories below:
 
 - no other repositories at present
 
+Dependencies
+------------
+
+This list may not be complete.
+
+Python
+``````
+
+- `Biopython <http://biopython.org>`_
+- `bx-python <https://bitbucket.org/james_taylor/bx-python/wiki/Home>`_
+- `numpy <http://numpy.scipy.org>`_
+
+External
+````````
+
+- `Jim Kent Source Tree <http://genome.ucsc.edu/admin/git.html>`_
+- `mraic_mod.pl <https://gist.github.com/192d709da33b23dedbe4>`_
+
 Citation
 --------
 
