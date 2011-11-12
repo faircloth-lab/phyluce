@@ -9,7 +9,7 @@ This repository contains code specifically used in::
 
 Data files generated as part of this manuscript are located at:
 
-- `<doi:10.5061/dryad.64dv0tg1>`_
+- `<http://dx.doi.org/10.5061/dryad.64dv0tg1>`_
 
 The code within should be functional and steps followed during data collection
 and analysis are available from:
