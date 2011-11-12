@@ -20,6 +20,10 @@ These steps generally apply to the computer code within this repository.
 However, pathnames within the notes are unlikely to be equivalent to
 pathnames on your system.
 
+To generate species trees from gene trees, we used:
+
+- `<https://github.com/ngcrawford/CloudForest>`_
+
 Note
 ----
 
