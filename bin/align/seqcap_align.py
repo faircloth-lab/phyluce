@@ -36,7 +36,7 @@ import optparse
 import tempfile
 import subprocess
 import multiprocessing
-import lib.muscle
+import phyluce.muscle
 from Bio import AlignIO, SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC, Gapped
