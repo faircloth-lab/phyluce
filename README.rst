@@ -1,16 +1,6 @@
 Introduction
 ************
 
-This repository contains code specifically used in::
-
-    BC Faircloth, JE McCormack, NG Crawford, MG Harvey, RT Brumfield, TC Glenn.  
-    Ultraconserved elements anchor thousands of genetic markers for target enrichment
-    spanning multiple time scales.  Syst Biol.
-
-Data files generated as part of this manuscript are located at:
-
-- `<http://dx.doi.org/10.5061/dryad.64dv0tg1>`_
-
 The code within should be functional and steps followed during data collection
 and analysis are available from:
 
@@ -23,19 +13,6 @@ pathnames on your system.
 To generate species trees from gene trees, we used:
 
 - `<https://github.com/ngcrawford/CloudForest>`_
-
-Note
-----
-
-Users, of this code should be aware that we will or already have split
-portions of the code within this repository into separate repositories 
-and/or packages for official distribution.  Similarly, parts of the code
-within may already be part of existing, official repositories - we have
-put everything together here to provide a cohesive whole.
-
-We will make an attempt to list those repositories below:
-
-- no other repositories at present
 
 Dependencies
 ------------
@@ -60,4 +37,8 @@ Citation
 
 If you use portions of this code in your own work, please contact the author(s)
 to ensure there is not a newer, officially packaged version.  If there is not,
-please cite the manuscript listed above as the source of this computer code.
+please cite the following manuscript:
+
+    Faircloth BC, McCormack JE, Crawford NG, Harvey MG, Brumfield RT, Glenn TC:
+    Ultraconserved Elements Anchor Thousands of Genetic Markers Spanning Multiple
+    Evolutionary Timescales. Systematic Biol. 2012.
