@@ -16,7 +16,7 @@ import optparse
 import tempfile
 import subprocess
 import bx.seq.twobit
-from lib import lastz
+from phyluce import lastz
 
 
 def interface():
