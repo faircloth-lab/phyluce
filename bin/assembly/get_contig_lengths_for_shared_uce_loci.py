@@ -12,7 +12,7 @@ import os
 import sys
 import argparse
 from collections import defaultdict
-from tools.sequence import fasta
+from seqtools.sequence import fasta
 
 import pdb
 
