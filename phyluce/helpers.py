@@ -95,3 +95,48 @@ def get_matches(lastz_file, splitchar, components, fish = False):
                 probes[uce_name] = probe_number
             matches[uce_name].append([get_name(lz.name1, splitchar = splitchar, items = components), lz.strand2, lz.zstart1, lz.end1])
     return matches, probes
+
+def get_xml_data(xml, prnt = False):
+    xml = etree.parse(xml)
+    dbsnp = namedtuple('dbsnp', "rsid,type,genotype,het_type,het_value,het_std_error,freq_allele,freq_freq,"+ \
+        "freq_sample_size,val_hapmap,val_other_pop,val_freq,val_2hit,val_cluster,"+ \
+        "val_1000G,val_suspect")
+    validity_terms = set(['byHapMap', 'byOtherPop', 'suspect', 'byFrequency', 
+        'by1000G', 'by2Hit2Allele', 'byCluster'])
+    if prnt:
+        print "rsid,type,genotype,het-type,het-value,het-std-error,freq-allele,freq-freq,"+ \
+            "freq-sample-size,val-hapmap,val-other-pop,val-freq,val-2hit,val-cluster,"+ \
+            "val-1000G,val-suspect"
+    snps = {}
+    for cnt, t in enumerate(xml.getiterator( '{http://www.ncbi.nlm.nih.gov/SNP/docsum}Rs' )):
+        rsid = t.get('rsId')
+        typ  = t.get('snpType')
+        geno = t.get('genotype')
+        h = t.find('{http://www.ncbi.nlm.nih.gov/SNP/docsum}Het')
+        if h is not None:
+            het = h.attrib
+        else:
+            het = {'type': None, 'value': None, 'stdError': None}
+        f = t.find('{http://www.ncbi.nlm.nih.gov/SNP/docsum}Frequency')
+        if f is not None:
+            freq = f.attrib
+        else:
+            freq = {'allele': None, 'freq': None, 'sampleSize': None}
+        validity = dict(t.find('{http://www.ncbi.nlm.nih.gov/SNP/docsum}Validation').attrib)
+        for missing in validity_terms.difference(set(validity.keys())):
+            validity[missing] = None
+        metadata = [
+                rsid, typ, geno, het['type'],het['value'],het['stdError'], freq['allele'],freq['freq'],
+                freq['sampleSize'],validity['byHapMap'],validity['byOtherPop'],
+                validity['byFrequency'],validity['by2Hit2Allele'],validity['byCluster'],
+                validity['by1000G'],validity['suspect']
+                ]
+        if prnt:
+            print "rs{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}".format(rsid, typ, geno, 
+                het['type'],het['value'],het['stdError'], freq['allele'],freq['freq'],
+                freq['sampleSize'],validity['byHapMap'],validity['byOtherPop'],
+                validity['byFrequency'],validity['by2Hit2Allele'],validity['byCluster'],
+                validity['by1000G'],validity['suspect'])
+        else:
+            snps[rsid] = dbsnp._make(metadata)
+    return snps

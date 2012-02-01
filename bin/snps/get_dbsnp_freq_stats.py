@@ -14,8 +14,7 @@ import sys
 import copy
 import numpy
 import argparse
-from uce_helpers import get_dupes
-from parse_dbsnp_xml import get_xml_data
+from phyluce.helpers import get_dupes, get_xml_data
 
 import pdb
 
