@@ -16,15 +16,11 @@ import sqlite3
 import argparse
 import textwrap
 import bx.seq.twobit
-from seqcap.lib import lastz
 from operator import itemgetter
-from tools.sequence import fasta
 from collections import defaultdict
-from tools.sequence import transform
-from uce_helpers import get_name
-from uce_helpers import get_dupes
-from get_fake_velvet_contigs_from_genomes import get_matches
-from get_fake_velvet_contigs_from_genomes import run_checks
+from seqtools.sequence import fasta, transform
+from phyluce import lastz
+from phyluce.helpers import get_name, get_dupes, get_matches, run_checks
 
 import pdb
 
