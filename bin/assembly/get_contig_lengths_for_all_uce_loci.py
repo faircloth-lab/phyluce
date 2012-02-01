@@ -14,9 +14,9 @@ import sqlite3
 import argparse
 import ConfigParser
 from collections import defaultdict
-from uce_helpers import is_dir
-from uce_helpers import get_names_from_config
-from tools.sequence import fasta
+from phyluce.helpers import is_dir
+from phyluce.helpers import get_names_from_config
+from seqtools.sequence import fasta
 
 import pdb
 
