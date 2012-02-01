@@ -11,11 +11,11 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 import os
 import sys
 import argparse
-from seqcap.lib import lastz
+from phyluce import lastz
 from operator import itemgetter
 from collections import defaultdict
-from uce_helpers import get_name
-from uce_helpers import get_dupes
+from phyluce.helpers import get_name
+from phyluce.helpers import get_dupes
 
 def get_args():
     parser = argparse.ArgumentParser(description='Screen a lastz file of self-to-self matches for dupes')

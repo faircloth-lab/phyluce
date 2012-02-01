@@ -49,8 +49,8 @@ import shutil
 import argparse
 import multiprocessing
 from collections import Counter
-from tools.sequence import fastq
-from tools.sequence import transform
+from seqtools.sequence import fastq
+from seqtools.sequence import transform
 
 import pdb
 

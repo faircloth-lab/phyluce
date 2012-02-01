@@ -2,8 +2,8 @@ import pdb
 import sys
 import argparse
 from Levenshtein import hamming
-from tools.sequence import fastq
-from tools.sequence import transform
+from seqtools.sequence import fastq
+from seqtools.sequence import transform
 from collections import Counter
 
 def get_args():

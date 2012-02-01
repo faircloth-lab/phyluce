@@ -14,9 +14,9 @@ import glob
 import copy
 import sqlite3
 import argparse
-from seqcap.lib import lastz
+from phyluce import lastz
 from collections import defaultdict
-from tools.sequence import fasta
+from seqtools.sequence import fasta
 
 import pdb
 

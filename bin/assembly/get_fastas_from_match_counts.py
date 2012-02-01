@@ -13,11 +13,11 @@ import sys
 import sqlite3
 import argparse
 import ConfigParser
-from tools.sequence import fasta
-from tools.sequence import transform
-from match_contigs_to_probes import is_dir
-from match_contigs_to_probes import get_name
-from get_match_counts import get_names_from_config
+from seqtools.sequence import fasta
+from seqtools.sequence import transform
+from phyluce.helpers import is_dir
+from phyluce.helpers import get_name
+from phyluce.helpers import get_names_from_config
 
 import pdb
 
