@@ -11,6 +11,7 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 import os
 import sys
 import argparse
+import ConfigParser
 from seqcap.lib import lastz
 from operator import itemgetter
 from collections import defaultdict
