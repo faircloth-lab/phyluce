@@ -17,6 +17,7 @@ import pdb
 import os
 import sys
 import glob
+import math
 import numpy as np
 import optparse
 from Bio import AlignIO
@@ -98,7 +99,14 @@ def main():
         except ZeroDivisionError:
             ignore.append(p)
         if p not in ignore:
-            outp.write('{0},{1},{2},{3},{4},{5},{6}\n'.format(p, np.mean(differences[p]), 1.96 * np.std(differences[p]), one_diff, four_diff, greater_than_one_diff, total))
+            outp.write('{0},{1},{2},{3},{4},{5},{6}\n'.format(p,
+                np.mean(differences[p]), 
+                1.96 * np.std(differences[p])/math.sqrt(len(differences[p]),
+                one_diff,
+                four_diff,
+                greater_than_one_diff,
+                total
+            ))
     if options.output:
         outp.close()
 
