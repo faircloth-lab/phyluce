@@ -109,9 +109,23 @@ def add_mr_bayes_params(metadata, outfile, partition_fully, partition_name = 'fu
     o.write('end;')
     o.close()
 
+def check_for_missing_models(metadata, aligns):
+    aln = set([os.path.splitext(os.path.basename(name))[0] 
+            for name in glob.glob(os.path.join(aligns, '*.nex'))])
+    model = set([y for v in metadata.values() for y in v.keys()])
+    missing = aln.difference(model)
+    if missing:
+        print "Models were not estimated for:\n"
+        print "\t{}".format('\n\t'.join(list(missing)))
+        proceed = raw_input("\nProceed [Y/n]?")
+        if not proceed.upper() == 'Y':
+            sys.exit()
+    return
+
 def fully_partition(metadata, aligns):
     to_combine = []
     start = 1
+    check_for_missing_models(metadata, aligns)
     for model in metadata:
         for locus in metadata[model]:
             nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nex".format(locus))))
@@ -127,6 +141,7 @@ def model_partition(metadata, aligns):
     to_combine = []
     start = 1
     end = 0
+    check_for_missing_models(metadata, aligns)
     new_metadata = OrderedDict()
     for model in metadata:
         for locus in metadata[model]:
