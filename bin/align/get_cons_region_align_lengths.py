@@ -63,6 +63,7 @@ def main():
     #pdb.set_trace()
     l = numpy.array([l[0] for l in align_lengths])
     #pdb.set_trace()
+    print "Total length: ", sum(l)
     print "Average length: ", numpy.mean(l)
     print "95 CI length: ", 1.96 * (numpy.std(l, ddof=1)/numpy.sqrt(len(l)))
     if options.verbose:
