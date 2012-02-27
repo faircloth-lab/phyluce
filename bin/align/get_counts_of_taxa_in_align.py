@@ -22,13 +22,15 @@ import argparse
 from Bio import AlignIO
 from phyluce.helpers import is_dir
 
+from collections import Counter
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
     parser.add_argument('nexus', help='The directory containing the nexus files', type=is_dir)
+    parser.add_argument('--min-taxa', help='''The minimum number of taxa to
+            count''', type=int)
     return parser.parse_args()
-
 
 def get_files(input_dir):
     return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
@@ -37,20 +39,20 @@ def main():
     args = get_args()
     # iterate through all the files to determine the longest alignment
     files = get_files(args.nexus)
-    #align_lengths = [[AlignIO.read(f, 'nexus').get_alignment_length(),os.path.split(f)[1]] \
-    #                        for f in files]
     counts = []
-    frac = []
     for f in files:
         aln = AlignIO.read(f, 'nexus')
-        counts.append(len(aln))
+        if args.min_taxa:
+            if len(aln) >= args.min_taxa:
+                counts.append(len(aln))
+        else:
+             counts.append(len(aln))
     print "Average: {}".format(sum(counts)/float(len(counts)))
     ci = 1.96 * numpy.std(numpy.array(counts), ddof=1)/numpy.sqrt(len(counts))
     print "95 CI: {}".format(ci)
     print "(min): {}".format(min(counts))
     print "(max): {}".format(max(counts))
-    print counts
-    #pdb.set_trace()
+    print "Count: {}".format(dict(Counter(counts)))
 
 if __name__ == '__main__':
     main()
