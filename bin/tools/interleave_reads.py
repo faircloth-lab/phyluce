@@ -36,8 +36,8 @@ def main():
         outfile.write(r1)
         outfile.write(r2)
         if rc != 0 and rc % 10000 == 0:
-                sys.stdout.write(".")
-                sys.stdout.flush()
+            sys.stdout.write(".")
+            sys.stdout.flush()
         rc += 1
     outfile.close()
     r1.close()
