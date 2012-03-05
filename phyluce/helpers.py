@@ -12,7 +12,7 @@ import os
 import sys
 import argparse
 import ConfigParser
-from seqcap.lib import lastz
+from phyluce import lastz
 from operator import itemgetter
 from collections import defaultdict
 
@@ -25,17 +25,17 @@ def get_name(header, splitchar = "_", items = 2):
     else:
         return header.lstrip('>')
         
-def get_matches(lastz_file, splitchar = "|", pos = 1):
+def get_dupe_matches(lastz_file, splitchar = "|", pos = 1, longfile = False):
     matches = defaultdict(list)
-    for lz in lastz.Reader(lastz_file):
+    for lz in lastz.Reader(lastz_file, longfile):
         target_name = get_name(lz.name1, splitchar, pos)
         query_name = get_name(lz.name2, splitchar, pos)
         matches[target_name].append(query_name)
     return matches
 
-def get_dupes(lastz_file, splitchar = "|", pos = 1):
+def get_dupes(lastz_file, splitchar = "|", pos = 1, longfile = False):
     dupes = set()
-    matches = get_matches(lastz_file, splitchar, pos)
+    matches = get_dupe_matches(lastz_file, splitchar, pos, longfile)
     # see if one probe matches any other probes
     # other than the children of the locus
     for k,v in matches.iteritems():
@@ -65,8 +65,7 @@ def get_names_from_config(config, group):
 
 def run_checks(k, v, probes, verbose = True):
     try:
-        # make sure we have as many matches as probes
-        assert len(v) == probes[k]              # more matches than expected
+        assert probes[k] >= len(v)              # don't allow more matches than expected
         assert len(set([i[0] for i in v])) == 1 # matches to more than one chromosome
         assert len(set([i[1] for i in v])) == 1 # multiple match directions
         return True
