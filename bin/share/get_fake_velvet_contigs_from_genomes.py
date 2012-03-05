@@ -43,7 +43,7 @@ def get_args():
 def main():
     args = get_args()
     if args.dupefile:
-        dupes = get_dupes(args.dupefile)
+        dupes = get_dupes(args.dupefile, longfile=False)
     else:
         dupes = None
     matches, probes = get_matches(args.lastz, args.splitchar, args.components, args.fish)
@@ -77,6 +77,7 @@ def main():
             chromo, strand, start, end = v[0]
         if not skip and args.fasta:
             # slice out region + flank
+            chromo=chromo.lstrip('>')
             try:
                 slc = tb[chromo][start - args.flank:end + args.flank]
             except:
