@@ -27,28 +27,22 @@ python seqcapAlign.py --input=all.fa --output=output/ \
 import pdb
 import sys
 import os
-import re
-import glob
-import time
 import shutil
-import pickle
 import optparse
 import tempfile
-import subprocess
 import multiprocessing
 import phyluce.muscle
-from Bio import AlignIO, SeqIO
+from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC, Gapped
 from Bio.Align.Generic import Alignment
-from Bio.Align.Applications import MuscleCommandline
 
 class ConcatenatedAlignment(Alignment):
     '''A child class of the biopython alignment class, created so that we could
     add the concat method to concatenate multiple alignments'''
     def __init__(self):
         Alignment.__init__(self, Gapped(IUPAC.unambiguous_dna, '-'))
-    
+
     def concat(self, alignment):
         '''concatenate alignment objects (on a per SeqRecord basis)'''
         #pdb.set_trace()
@@ -220,7 +214,7 @@ def singleAlign(locus_name, sequences, probe, options):
         sequences.formatSequences()
         # create a tempfile to feed to muscle and feed it
         sequences.createTempFile()
-        muscle       = seqcap.lib.muscle.Align(sequences.tempFile)
+        muscle       = phyluce.muscle.Align(sequences.tempFile)
         muscle.run_alignment(consensus=False)
         muscle.get_probe_location()
         muscle.trim_alignment(method='trim', probe = 'remove')
@@ -235,21 +229,21 @@ def singleAlign(locus_name, sequences, probe, options):
         sequences.formatSequences()
         # create a tempfile to feed to muscle and feed it
         sequences.createTempFile()
-        muscle       = seqcap.lib.muscle.Align(sequences.tempFile)
+        muscle       = phyluce.muscle.Align(sequences.tempFile)
         muscle.run_alignment(consensus=False)
         muscle.trim_alignment(method='running-probe', window_size = 20, threshold = 0.5)
     elif options.trimrunning:
         #print sequences
         sequences.formatSequences()
         sequences.createTempFile()
-        muscle       = seqcap.lib.muscle.Align(sequences.tempFile)
+        muscle       = phyluce.muscle.Align(sequences.tempFile)
         muscle.run_alignment(consensus=False)
         muscle.trim_alignment(method='running', window_size = 20, threshold = 0.5)
     else:
         #print sequences
         sequences.formatSequences()
         sequences.createTempFile()
-        muscle       = seqcap.lib.muscle.Align(sequences.tempFile)
+        muscle       = phyluce.muscle.Align(sequences.tempFile)
         muscle.run_alignment(consensus=False)
         muscle.trim_alignment(method='notrim')
     if options.trim_ambiguous:
