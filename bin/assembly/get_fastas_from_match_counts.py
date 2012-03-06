@@ -102,7 +102,7 @@ def main():
                 reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fasta')
                 node_dict, missing = get_nodes_for_uces(c, organism, uces)
         for read in fasta.FastaReader(reads):
-            name = get_name(read.identifier)
+            name = get_name(read.identifier).lower()
             coverage = get_coverage(read.identifier)
             if name in node_dict.keys():
                 uce_seq = fasta.FastaSequence()
