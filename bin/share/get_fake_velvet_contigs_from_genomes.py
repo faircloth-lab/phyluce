@@ -9,36 +9,55 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 """
 
 
-import os
 import re
-import sys
-import glob
 import argparse
 import textwrap
 import bx.seq.twobit
 from operator import itemgetter
-from collections import defaultdict
 from seqtools.sequence import transform
-from phyluce import lastz
-from phyluce.helpers import get_name, get_dupes, get_matches, run_checks
+from phyluce.helpers import get_dupes, get_matches, run_checks
 
 import pdb
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
-    parser.add_argument('lastz', help='The lastz output')
-    parser.add_argument('genome', help='The 2bit genome file')
-    parser.add_argument('--fasta', help='The file in which to store the fasta output',
-        type=argparse.FileType('w'))
-    parser.add_argument('--bed', help = 'Return a BED file of the matching regions ± 500 bp flank',
-        type=argparse.FileType('w'))
-    parser.add_argument('--flank', help = 'The flank length to add', default = 500, type = int)
-    parser.add_argument('--name-components', dest = 'components', help = 'number of parts in the name', default = 2, type = int)
-    parser.add_argument('--splitchar', help = 'The name character on which to split', default = "_", type = str)
-    parser.add_argument('--dupefile', help='The path to a lastz file of lastz-against-self results')
-    parser.add_argument('--fish', help='If running against fish probes', action='store_true', default = False)
-    parser.add_argument('--verbose', action='store_true', default = False)
+    parser.add_argument('lastz',
+            help='The lastz output')
+    parser.add_argument('genome',
+            help='The 2bit genome file')
+    parser.add_argument('--fasta',
+            help='The file in which to store the fasta output',
+            type=argparse.FileType('w')
+        )
+    parser.add_argument('--bed',
+            help='Return a BED file of the matching regions ± 500 bp flank',
+            type=argparse.FileType('w')
+        )
+    parser.add_argument('--flank',
+            help='The flank length to add',
+            default=500,
+            type=int
+        )
+    parser.add_argument('--name-components',
+            dest='components',
+            help='number of parts in the name',
+            default=2,
+            type=int
+        )
+    parser.add_argument('--splitchar',
+            default="_",
+            type=str,
+            help='The name character on which to split'
+        )
+    parser.add_argument('--dupefile',
+            help='The path to a lastz file of lastz-against-self results')
+    parser.add_argument('--fish',
+            default=False,
+            help='If running against fish probes', action='store_true')
+    parser.add_argument('--verbose',
+            default=False,
+            action='store_true')
     return parser.parse_args()
 
 
