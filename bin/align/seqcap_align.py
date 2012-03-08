@@ -150,9 +150,9 @@ def interface():
         default=False, help='Take faircloth+stephens probe names')
 
     p.add_option('--verbose', dest='verbose', action='store_true', \
-        default=False, help='List locus names while processing.') 
-    
-    (options,arg) = p.parse_args()
+        default=False, help='List locus names while processing.')
+
+    (options, arg) = p.parse_args()
     if not options.species:
         interfaceWarnings(p, "You must provide an expected species count per alignment")
     if options.processors < 1:
@@ -242,6 +242,7 @@ def singleAlign(locus_name, sequences, probe, options):
     else:
         return locus_name, muscle.trimmed_alignment
 
+
 def q_runner(n_procs, loci, probes, options, function, *args):
     '''generic function used to start worker processes'''
     task_queue = multiprocessing.Queue()
@@ -295,7 +296,7 @@ def ambiguousBaseChecker(loci, locus, record):
         loci = buildLocusDict(loci, locus, record)
     else:
         print 'Skipping {0} because it contains ambiguous bases'.format(record.id)
-    return loci       
+    return loci
 
 
 def buildLocusDict(loci, locus, record):
