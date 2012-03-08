@@ -24,16 +24,36 @@ import pdb
 
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
-    parser.add_argument('contigs', help='The directory containing the contigs to match against probes', type=is_dir)
-    parser.add_argument('db', help='The database holding the match and match_map tables from match_contigs_to_probes.py')
-    parser.add_argument('config', help='The config file holding the organismal group whose fastas we want')
-    parser.add_argument('--output', help='The output file')
-    parser.add_argument('--extend-db', dest = 'extend_db', help='The match database to add as an extension')
-    parser.add_argument('--extend-dir', dest = 'extend_dir', help='The directory holding extension fastas/contigs')
-    parser.add_argument('--notstrict', help = 'The outfile for notstrict data', type=argparse.FileType('w'), default=False)
+    parser.add_argument('contigs',
+            help='The directory containing the contigs to match against probes',
+            type=is_dir
+        )
+    parser.add_argument('db',
+            help='The database holding the match and match_map tables from match_contigs_to_probes.py'
+        )
+    parser.add_argument('config',
+            help='The config file holding the organismal group whose fastas we want'
+        )
+    parser.add_argument('--output',
+            help='The output file'
+        )
+    parser.add_argument('--extend-db',
+            dest='extend_db',
+            help='The match database to add as an extension'
+        )
+    parser.add_argument('--extend-dir',
+            dest='extend_dir',
+            help='The directory holding extension fastas/contigs'
+        )
+    parser.add_argument('--notstrict',
+            help='The outfile for notstrict data',
+            type=argparse.FileType('w'),
+            default=False
+        )
     return parser.parse_args()
 
-def get_nodes_for_uces(c, organism, uces, extend = False, notstrict = False):
+
+def get_nodes_for_uces(c, organism, uces, extend=False, notstrict=False):
     # get only those UCEs we know are in the set
     uces = [("\'{0}\'").format(u) for u in uces]
     if not extend:
@@ -48,9 +68,11 @@ def get_nodes_for_uces(c, organism, uces, extend = False, notstrict = False):
     else:
         missing = None
     return node_dict, missing
-    
+
+
 def get_coverage(header):
     return '_'.join(header.split('_')[-2:])
+
 
 def main():
     args = get_args()
@@ -72,7 +94,7 @@ def main():
         if args.notstrict:
             if not organism.endswith('*'):
                 reads = os.path.join(args.contigs, organism.replace('_', '-') + '.contigs.fasta')
-                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend = False, notstrict = True)
+                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=False, notstrict=True)
             elif args.extend_dir:
                 # remove the asterisk
                 organism = organism.rstrip('*')
@@ -82,7 +104,7 @@ def main():
                 except AssertionError:
                     reads = os.path.join(args.extend_dir, organism.replace('_', '-') + '.fasta')
                     assert os.path.exists(reads)
-                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend = True, notstrict = True)
+                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=True, notstrict=True)
         else:
             if not organism.endswith('*'):
                 reads = os.path.join(args.contigs, organism.replace('_', '-') + '.contigs.fasta')
@@ -96,7 +118,7 @@ def main():
                 except AssertionError:
                     reads = os.path.join(args.extend_dir, organism.replace('_', '-') + '.fasta')
                     assert os.path.exists(reads)
-                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend = True)
+                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=True)
             else:
                 organism = organism.rstrip('*')
                 reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fasta')
@@ -125,7 +147,6 @@ def main():
                 written.append(name)
         assert set(written) == set(uces), "UCE names do not match"
         #assert set(written) == set(uces), pdb.set_trace()
-        
     uce_fasta_out.close()
 
 if __name__ == '__main__':
