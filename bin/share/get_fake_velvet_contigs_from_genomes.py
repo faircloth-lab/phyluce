@@ -98,7 +98,6 @@ def snip_if_many_N_bases(regex, chromo, seq, uce):
     slicing reads from these genomes, sometimes these slices contains
     giant runs of Ns.  Remove these by finding the UCE and trimming out
     from the middle to retain the UCE while removing the Ns"""
-    pdb.set_trace() 
     # find uce in seq
     uce_start = seq.find(uce)
     uce_end = uce_start + len(uce)
