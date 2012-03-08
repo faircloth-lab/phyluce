@@ -93,24 +93,35 @@ def quality_control_matches(matches, probes, dupes, k, v, verbose=False):
     return chromo, strand, start, end, skip
 
 
-def snip_if_many_N_bases(regex, chromo, seq):
+def snip_if_many_N_bases(regex, chromo, seq, uce):
     """Some genome builds contain long runs of Ns.  Since we're
     slicing reads from these genomes, sometimes these slices contains
-    giant runs of Ns.  Remove these by identifying and taking the longer of
-    the two sequence fragments that results"""
-    result = regex.search(seq)
-    if result:
-        # if Ns are before middle, trim end of N-run => end seq
-        front_length = len(seq) - result.start()
-        back_length = len(seq) - result.end()
-        if back_length > front_length:
-            seq = seq[result.end():]
-        else:
-            # else trim beginning N-run => end seq
-            seq = seq[:result.start()]
-        # make sure we hit multiple trims if needed
-        seq = snip_if_many_N_bases(regex, chromo, seq)
-        print "{0} trimmed for > 20 N bases".format(chromo)
+    giant runs of Ns.  Remove these by finding the UCE and trimming out
+    from the middle to retain the UCE while removing the Ns"""
+    pdb.set_trace() 
+    # find uce in seq
+    uce_start = seq.find(uce)
+    uce_end = uce_start + len(uce)
+    # slice front
+    seq_slice = seq[:uce_start]
+    # reverse it - we want first occurence moving 5'
+    # from uce start (so first going backwards)
+    seq_slice = seq_slice[::-1]
+    # search for Ns
+    r = regex.search(seq_slice)
+    if r:
+        new_start = len(seq_slice) - r.start()
+    else:
+        new_start = 0
+    # slice rear
+    seq_slice = seq[uce_end:]
+    r = regex.search(seq_slice)
+    if r:
+        new_end = uce_end + r.start()
+    else:
+        new_end = len(seq)
+    seq = seq[new_start:new_end]
+    print "{0} trimmed for > 20 N bases".format(chromo)
     return seq
 
 
@@ -125,7 +136,10 @@ def prep_and_write_fasta(tb, regex, fasta, chromo, strand, start, end, count, fl
     # strip Ns from both ends
     slc = slc.strip('N')
     # deal with large N insertions
-    slc = snip_if_many_N_bases(regex, chromo, slc)
+    result = regex.search(slc)
+    if result:
+        uce_slice = tb[chromo][start:end]
+        slc = snip_if_many_N_bases(regex, chromo, slc, uce_slice)
     # reverse any strands where necessary
     if not strand == '+':
         slc = transform.DNA_reverse_complement(slc)
