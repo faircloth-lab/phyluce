@@ -10,6 +10,7 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 
 
 import os
+import re
 import sys
 import glob
 import argparse
@@ -40,8 +41,82 @@ def get_args():
     parser.add_argument('--verbose', action='store_true', default = False)
     return parser.parse_args()
 
+
+def quality_control_matches(matches, probes, dupes, k, v, verbose=False):
+    """check to make sure we don't get any more matches than expected
+    and that matches are reasonably close to each other on their respective
+    chromos"""
+    skip = False
+    chromo, strand, start, end = None, None, None, None
+    if len(v) > 1:
+        if run_checks(k, v, probes):
+            # sort by match position
+            v_sort = sorted(v, key=itemgetter(2))
+            start, end = v_sort[0][2], v_sort[-1][3]
+            diff = end - start
+            # ensure our range is less than N(probes) * probe_length - this
+            # still gives us a little wiggle room because probes are ~ 2X tiled
+            if diff > (probes[k] * 140):
+                skip = True
+                if verbose:
+                    print "range longer than expected"
+            else:
+                chromo = v[0][0]
+                strand = v[0][1]
+        else:
+            skip = True
+
+    elif k in dupes:
+        skip = True
+        print "{0} is in dupefile".format(k)
+    else:
+        chromo, strand, start, end = v[0]
+    return chromo, strand, start, end, skip
+
+
+def snip_if_many_N_bases(regex, chromo, seq):
+    """Some genome builds contain long runs of Ns.  Since we're
+    slicing reads from these genomes, sometimes these slices contains
+    giant runs of Ns.  Remove these by identifying and taking the longer of
+    the two sequence fragments that results"""
+    result = regex.search(seq)
+    if result:
+        # if Ns are before middle, trim end of N-run => end seq
+        front_length = len(seq) - result.start()
+        back_length = len(seq) - result.end()
+        if back_length > front_length:
+            seq = seq[result.end():]
+        else:
+            # else trim beginning N-run => end seq
+            seq = seq[:result.start()]
+        # make sure we hit multiple trims if needed
+        seq = snip_if_many_N_bases(regex, chromo, seq)
+        print "{0} trimmed for > 20 N bases".format(chromo)
+    return seq
+
+
+def prep_and_write_fasta(tb, regex, fasta, chromo, strand, start, end, count, flank=500):
+    """write out our sliced sequences to fasta"""
+    # slice out region + flank
+    chromo = chromo.lstrip('>')
+    try:
+        slc = tb[chromo][start - flank:end + flank]
+    except:
+        pdb.set_trace()
+    # strip Ns from both ends
+    slc = slc.strip('N')
+    # deal with large N insertions
+    slc = snip_if_many_N_bases(regex, chromo, slc)
+    # reverse any strands where necessary
+    if not strand == '+':
+        slc = transform.DNA_reverse_complement(slc)
+    if len(slc) != 0:
+        fasta.write(">Node_{0}_length_{1}_cov_100\n{2}\n".format(count, len(slc), '\n'.join(textwrap.wrap(slc))))
+
+
 def main():
     args = get_args()
+    regex = re.compile("[N,n]{20,}")
     if args.dupefile:
         dupes = get_dupes(args.dupefile, longfile=False)
     else:
@@ -51,49 +126,16 @@ def main():
     if args.fasta:
         tb = bx.seq.twobit.TwoBitFile(file(args.genome))
     count = 0
-    for k,v in matches.iteritems():
-        skip = False
-        if len(v) > 1:
-            if run_checks(k, v, probes):
-                # sort by match position
-                v_sort = sorted(v, key = itemgetter(2))
-                start, end = v_sort[0][2], v_sort[-1][3]
-                diff = end - start
-                # ensure our range is less than N(probes) * probe_length - this
-                # still gives us a little wiggle room because probes are ~ 2X tiled
-                if diff > (probes[k] * 140):
-                    skip = True
-                    if args.verbose:
-                        print "range longer than expected"
-                else:
-                    chromo = v[0][0]
-                    strand = v[0][1]
-            else:
-                skip = True
-        elif k in dupes:
-            skip = True
-            print "{0} is in dupefile".format(k)
-        else:
-            chromo, strand, start, end = v[0]
+    for k, v in matches.iteritems():
+        chromo, strand, start, end, skip = quality_control_matches(matches, probes, dupes, k, v, args.verbose)
         if not skip and args.fasta:
-            # slice out region + flank
-            chromo=chromo.lstrip('>')
-            try:
-                slc = tb[chromo][start - args.flank:end + args.flank]
-            except:
-                pdb.set_trace()
-            # strip Ns from both ends
-            slc = slc.strip('N')
-            # reverse any strands where necessary
-            if not strand == '+':
-                slc = transform.DNA_reverse_complement(slc)
-            if len(slc) != 0:
-                args.fasta.write(">Node_{0}_length_{1}_cov_100\n{2}\n".format(count, len(slc), '\n'.join(textwrap.wrap(slc))))
+            prep_and_write_fasta(tb, regex, args.fasta, chromo, strand, start, end, count, args.flank)
         if not skip and args.bed:
             args.bed.write("{0} {1} {2} {3} 1000 {4}\n".format(chromo, start - args.flank, end + args.flank, k, strand))
         count += 1
         #pdb.set_trace()
-        
+    args.fasta.close()
+
 
 if __name__ == '__main__':
     main()
