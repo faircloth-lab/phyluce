@@ -9,6 +9,7 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 """
 
 import os
+import re
 import sys
 import sqlite3
 import argparse
@@ -87,8 +88,9 @@ def main():
     uces = get_names_from_config(config, 'Loci')
     #pdb.set_trace()
     uce_fasta_out = fasta.FastaWriter(args.output)
+    regex = re.compile("[N,n]{1,21}")
     for organism in organisms:
-        print "\tGetting {0} reads...".format(organism)
+        print "Getting {0} reads...".format(organism)
         written = []
         # going to need to do something more generic w/ suffixes
         if args.notstrict:
@@ -135,6 +137,10 @@ def main():
                     uce_seq.sequence = transform.DNA_reverse_complement(read.sequence)
                 else:
                     uce_seq.sequence = read.sequence
+                # replace any occurrences of <21 Ns
+                if regex.search(uce_seq.sequence):
+                    uce_seq.sequence = re.sub(regex, "", uce_seq.sequence)
+                    print "\tReplaced < 20 ambiguous bases in {0}".format(uce_seq.identifier.split(' ')[0])
                 uce_fasta_out.write(uce_seq)
                 written.append(str(node_dict[name][0]))
             else:
