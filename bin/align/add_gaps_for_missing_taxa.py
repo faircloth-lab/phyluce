@@ -80,7 +80,6 @@ def main():
     notstrict.read(args.notstrict)
     missing = get_missing_loci_from_conf_file(notstrict)
     organisms = get_names_from_config(config, 'Organisms')
-    #pdb.set_trace()
     for count, nex in enumerate(glob.glob(os.path.join(args.input, '*.nex'))):
         align = AlignIO.parse(nex, "nexus")
         new_align = add_gaps_to_align(organisms, missing, align, args.genera,
