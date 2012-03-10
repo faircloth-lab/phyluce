@@ -44,6 +44,7 @@ class Align(GenericAlign):
         fasta = "{}.{}".format(aln, 'fa')
         # run MUSCLE on the temp file
         cmd = ["dialign2-2", "-fa", "-fn", aln, "-n", self.input]
+        # just pass all ENV params
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
