@@ -17,10 +17,10 @@ import copy
 import shutil
 import argparse
 import tempfile
+import multiprocessing
 from collections import defaultdict
 
 from seqtools.sequence import fasta
-from phyluce.dialign import Align
 
 import pdb
 
@@ -28,14 +28,21 @@ import pdb
 def get_args():
     parser = argparse.ArgumentParser(description="""Align records in a file of UCE fastas""")
     parser.add_argument('infile',
-            help='The file containing fasta reads associated with UCE loci')
+            help='The file containing fasta reads associated with UCE loci'
+        )
     parser.add_argument('outdir',
-            help='A directory for the output.')
+            help='A directory for the output.'
+        )
     parser.add_argument('species',
             type=int,
             default=None, \
             help='Number of species expected in each alignment.'
-    )
+        )
+    parser.add_argument('--aligner',
+            choices=['dialign', 'muscle', 'mafft'],
+            default='muscle',
+            help='The aligner to use.'
+        )
     parser.add_argument('--faircloth',
             action='store_true',
             default=False,
@@ -50,6 +57,11 @@ def get_args():
             action='store_true',
             default=False,
             help='Allow reads in alignments containing N-bases'
+        )
+    parser.add_argument('--multiprocessing',
+            action='store_true',
+            default=False,
+            help='Use multiple cores for alignment'
         )
     return parser.parse_args()
 
@@ -80,9 +92,10 @@ def align(locus, window=20, threshold=0.5):
     fasta = create_locus_specific_fasta(sequences)
     aln = Align(fasta)
     aln.run_alignment(consensus=False)
-    pdb.set_trace()
     aln.trim_alignment(method='running', window_size=window, threshold=threshold)
-    return name, aln
+    sys.stdout.write(".")
+    sys.stdout.flush()
+    return (name, aln)
 
 
 def get_fasta_dict(args):
@@ -139,26 +152,38 @@ def write_alignments_to_outdir(outdir, alignments, format='nexus'):
             'phylip': '.phylip',
             'stockholm': '.stockholm'
         }
-    print 'Writing output files...'
-    for locus, aln in alignments:
+    print '\nWriting output files...'
+    for tup in alignments:
+        locus, aln = tup
         outname = "{}{}".format(os.path.join(outdir, locus), formats[format])
         outf = open(outname, 'w')
         outf.write(aln.trimmed_alignment.format(format))
         outf.close()
 
-def main():
-    args = get_args()
+def main(args):
     create_output_dir(args.outdir)
     loci = get_fasta_dict(args)
     # test with single locus
-    single = loci.keys()[0]
-    loci2 = {}
-    loci2[single] = loci[single]
-    alignments = map(align, loci2.items())
-    pdb.set_trace()
+    #single = loci.keys()[0]
+    #loci2 = {}
+    #loci2[single] = loci[single]
+    sys.stdout.write("Aligning")
+    sys.stdout.flush()
+    if args.multiprocessing:
+        pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
+        alignments = pool.map(align, loci.items())
+    else:
+        alignments = map(align, loci.items())
     write_alignments_to_outdir(args.outdir, alignments)
 
 
 if __name__ == '__main__':
-    main()
-
+    args = get_args()
+    # globally import Align method
+    if args.aligner == 'muscle':
+        from phyluce.muscle import Align
+    elif args.aligner == 'mafft':
+        from phyluce.mafft import Align
+    elif args.aligner == 'dialign':
+        from phyluce.dialign import Align
+    main(args)
