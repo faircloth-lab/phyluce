@@ -7,7 +7,8 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 08 March 2012 11:03 PST (-0800)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description: Parallel aligner for UCE fasta files generated with
+assembly/get_fastas_from_match_counts.py
 
 """
 
@@ -26,7 +27,9 @@ import pdb
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description="""Align records in a file of UCE fastas""")
+    parser = argparse.ArgumentParser(
+            description="""Align records in a file of UCE fastas"""
+        )
     parser.add_argument('infile',
             help='The file containing fasta reads associated with UCE loci'
         )
@@ -52,6 +55,21 @@ def get_args():
             action='store_true',
             default=False,
             help='Allow alignments containing not all species'
+        )
+    parser.add_argument('--notrim',
+            action='store_true',
+            default=False,
+            help='Do not trim alignments'
+        )
+    parser.add_argument('--window',
+            type=int,
+            default=20,
+            help='Sliding window size for trimming'
+        )
+    parser.add_argument('--threshold',
+            type=float,
+            default=0.5,
+            help='Threshold cutoff for trimming'
         )
     parser.add_argument('--ambiguous',
             action='store_true',
@@ -87,12 +105,21 @@ def create_locus_specific_fasta(sequences):
     return fasta_file
 
 
-def align(locus, window=20, threshold=0.5):
+def align(locus, args):
     name, sequences = locus
+    # get additional params from params tuple
+    window, threshold, notrim = args
     fasta = create_locus_specific_fasta(sequences)
     aln = Align(fasta)
     aln.run_alignment(consensus=False)
-    aln.trim_alignment(method='running', window_size=window, threshold=threshold)
+    if notrim:
+        aln.trimmed_alignment = aln.alignment
+    else:
+        aln.trim_alignment(
+                method='running',
+                window_size=window,
+                threshold=threshold
+            )
     sys.stdout.write(".")
     sys.stdout.flush()
     return (name, aln)
@@ -119,15 +146,17 @@ def get_fasta_dict(args):
     for locus, data in snapshot.iteritems():
         if args.notstrict:
             if len(data) < 3:
-                t = "\tDropping Locus {0} because it has fewer than the minimum " + \
-                        "number of taxa for alignment (N < 2)"
+                t = "\tDropping Locus {0} because it has fewer " + \
+                        "than the minimum number " + \
+                        "of taxa for alignment (N < 2)"
                 print(t).format(locus)
                 del loci[locus]
         else:
             if len(data) < args.species:
                 del loci[locus]
-                t = "\tDropping Locus {0} because it has fewer than the minimum " + \
-                        "number of taxa for alignment (N < 2)"
+                t = "\tDropping Locus {0} because it has fewer " + \
+                        "than the minimum number " + \
+                        "of taxa for alignment (N < 2)"
                 print(t).format(locus)
     return loci
 
@@ -160,20 +189,19 @@ def write_alignments_to_outdir(outdir, alignments, format='nexus'):
         outf.write(aln.trimmed_alignment.format(format))
         outf.close()
 
+
 def main(args):
     create_output_dir(args.outdir)
     loci = get_fasta_dict(args)
-    # test with single locus
-    #single = loci.keys()[0]
-    #loci2 = {}
-    #loci2[single] = loci[single]
-    sys.stdout.write("Aligning")
+    sys.stdout.write("\nAligning with {}".format(str(args.aligner).upper()))
     sys.stdout.flush()
+    params = ((args.window, args.threshold, args.notrim) \
+            for i in range(len(loci)))
     if args.multiprocessing:
         pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
-        alignments = pool.map(align, loci.items())
+        alignments = pool.map(align, loci.items(), params)
     else:
-        alignments = map(align, loci.items())
+        alignments = map(align, loci.items(), params)
     write_alignments_to_outdir(args.outdir, alignments)
 
 
