@@ -33,8 +33,11 @@ class GenericAlign(object):
         self.perfect_trimmed_alignment = None
 
     def _clean(self, outtemp):
-        for f in outtemp:
-            os.remove(f)
+        if type(outtemp) is list:
+            for f in outtemp:
+                os.remove(f)
+        else:
+            os.remove(outtemp)
         # cleanup temp file
         try:
             os.remove(self.input)
@@ -42,8 +45,8 @@ class GenericAlign(object):
             pass
 
     def _find_ends(self, forward=True):
-        """determine the first (or last) position where all reads in an alignment
-        start/stop matching"""
+        """determine the first (or last) position where all reads in an 
+        alignment start/stop matching"""
         if forward:
             theRange = xrange(self.alignment.get_alignment_length())
         else:
