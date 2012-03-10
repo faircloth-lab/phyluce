@@ -34,6 +34,11 @@ def get_args():
             type=is_dir,
             help='The directory containing the nexus files'
         )
+    parser.add_argument(
+            '--min-taxa',
+            type=int,
+            help='The minimum number of taxa to count'
+        )
     return parser.parse_args()
 
 
