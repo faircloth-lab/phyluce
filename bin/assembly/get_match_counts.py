@@ -54,7 +54,7 @@ def get_uce_names(c):
 
 def get_names_from_config(config, group):
     try:
-        return [i[0] for i in config.items(group)]
+        return [i[0].replace('-', '_') for i in config.items(group)]
     except ConfigParser.NoSectionError:
         return None
 
