@@ -88,13 +88,14 @@ def get_matches(lastz_file, splitchar, components, fish = False):
         if "hap" in lz.name1:
             print "Skipping: ", lz.name1
         else:
-            if not fish:
-                uce_name = get_name(lz.name2, "|", 1)
-                probe_number = int(lz.name2.split(':')[-1])
-            else:
+            if fish:
                 uce_name = get_name(lz.name2, "_", 1)
                 # add 1 because fish probe indexing starts @ 0
                 probe_number = int(lz.name2.split('|')[1].split('_')[1]) + 1
+            else:
+                uce_name = get_name(lz.name2, "|", 1)
+                probe_number = int(lz.name2.split(':')[-1])
+
             #pdb.set_trace()
             if probe_number > probes[uce_name]:
                 probes[uce_name] = probe_number
