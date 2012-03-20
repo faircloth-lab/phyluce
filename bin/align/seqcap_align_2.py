@@ -105,10 +105,11 @@ def create_locus_specific_fasta(sequences):
     return fasta_file
 
 
-def align(locus, args):
+def align(params):
+    locus, opts = params
     name, sequences = locus
     # get additional params from params tuple
-    window, threshold, notrim = args
+    window, threshold, notrim = opts
     fasta = create_locus_specific_fasta(sequences)
     aln = Align(fasta)
     aln.run_alignment(consensus=False)
@@ -195,13 +196,15 @@ def main(args):
     loci = get_fasta_dict(args)
     sys.stdout.write("\nAligning with {}".format(str(args.aligner).upper()))
     sys.stdout.flush()
-    params = ((args.window, args.threshold, args.notrim) \
-            for i in range(len(loci)))
+    opts = [[args.window, args.threshold, args.notrim] \
+            for i in range(len(loci))]
+    params = zip(loci.items(), opts)
     if args.multiprocessing:
         pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
-        alignments = pool.map(align, loci.items(), params)
+
+        alignments = pool.map(align, params)
     else:
-        alignments = map(align, loci.items(), params)
+        alignments = map(align, params)
     write_alignments_to_outdir(args.outdir, alignments)
 
 
