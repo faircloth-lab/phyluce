@@ -93,9 +93,15 @@ def main():
         print "Getting {0} reads...".format(organism)
         written = []
         # going to need to do something more generic w/ suffixes
+        #pdb.set_trace()
         if args.notstrict:
             if not organism.endswith('*'):
-                reads = os.path.join(args.contigs, organism.replace('_', '-') + '.contigs.fasta')
+                try:
+                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fa')
+                    assert os.path.exists(reads)
+                except AssertionError:
+                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fasta')
+                    assert os.path.exists(reads)
                 node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=False, notstrict=True)
             elif args.extend_dir:
                 # remove the asterisk
@@ -109,7 +115,12 @@ def main():
                 node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=True, notstrict=True)
         else:
             if not organism.endswith('*'):
-                reads = os.path.join(args.contigs, organism.replace('_', '-') + '.contigs.fasta')
+                try:
+                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fa')
+                    assert os.path.exists(reads)
+                except AssertionError:
+                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fasta')
+                    assert os.path.exists(reads)
                 node_dict, missing = get_nodes_for_uces(c, organism, uces)
             elif args.extend_dir:
                 # remove the asterisk
