@@ -21,8 +21,9 @@ import sys
 import glob
 import optparse
 from Bio import AlignIO
+from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC, Gapped
-from Bio.Align.Generic import Alignment
+from Bio.Align import MultipleSeqAlignment as Alignment
 
 def interface():
     '''Command-line interface'''
@@ -58,22 +59,22 @@ def get_files(input_dir):
 def rename(align, first, second):
     for a in align:
         new_align = Alignment(Gapped(IUPAC.unambiguous_dna, "-"))
+        #pdb.set_trace()
         for seq in a:
             split_name = seq.id.split('_')
-            #pdb.set_trace()
-            if first and second:
+            if second:
                 new_seq_name = '_'.join([split_name[first][0:3], split_name[second][0:3]])
-            elif not second:
+            else:
                 new_seq_name = split_name[first]
-            new_align.add_sequence(new_seq_name, str(seq.seq))
+            seq.id, seq.name = new_seq_name, new_seq_name
+            new_align.append(seq)
         yield new_align
 
 def main():
     options, args = interface()
     # iterate through all the files to determine the longest alignment
     files = get_files(options.input)
-    if options.positions:
-        pos1, pos2 = [eval(i) for i in options.positions.strip().split(',')]
+    pos1, pos2 = [eval(i) for i in options.positions.strip().split(',')]
     for count, f in enumerate(files):
         align = AlignIO.parse(f, "nexus")
         #pdb.set_trace()
