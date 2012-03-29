@@ -21,12 +21,15 @@ import sqlite3
 import argparse
 from seqtools.sequence.fasta import FastaReader, FastaWriter
 
+import pdb
+
 def get_args():
     """get arguments (config file location)"""
     parser = argparse.ArgumentParser(description = """use fasta + sqlite to format files for NCBI""")
     parser.add_argument('fastas', help="The directory containing fasta files")
     parser.add_argument('db', help="The db containing UCE matches")
     parser.add_argument('outfile', help="The outfile fasta to hold results")
+    parser.add_argument('--fish', help="If working with fish data")
     return parser.parse_args()
 
 def main():
@@ -35,10 +38,12 @@ def main():
     outf = FastaWriter(args.outfile)
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
+    counter = 0
     for infile in glob.glob(pth):
         sp = os.path.basename(infile).split('.')[0].replace('-','_')
         species = sp.replace('_',' ').capitalize()
         print "Working on {}".format(species)
+        partial = species.split(' ')[0].lower()[:3]
         for read in FastaReader(infile):
             # check for header match, if match get locus name for header
             nn = read.identifier.split("_")[:2]
@@ -49,11 +54,16 @@ def main():
             #pdb.set_trace()
             if result:
                 assert len(result) == 1, "More than 1 result"
-                uce = result[0][0].split('_')[0]
-                read.identifier = """{0} ultra-conserved element locus {1} [organism={0}] [molecule=DNA] [moltype=genomic] [location=genomic] [note="ultra conserved element locus {1}"]""".format(species, uce)
+                #pdb.set_trace()
+                if args.fish:
+                    uce = result[0][0].split('_')[0]
+                else:
+                    uce = result[0][0]
+                read.identifier = """{3}{2} [organism={0}] [molecule=DNA] [moltype=genomic] [location=genomic] [note=ultra conserved element locus {1}] {0} ultra-conserved element locus {1}.""".format(species, uce, partial, counter)
                 # write all to a common fasta
                 outf.write(read)
-            # if not match, pass
+                # if not match, pass
+                counter += 1
             else:
                 pass
     outf.close()
