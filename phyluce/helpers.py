@@ -62,6 +62,13 @@ def is_dir(dirname):
     else:
         return dirname
 
+def is_file(filename):
+    if not os.path.isfile:
+        msg = "{0} is not a file".format(filename)
+        raise argparse.ArgumentTypeError(msg)
+    else:
+        return filename
+
 def get_names_from_config(config, group):
     try:
         return [i[0] for i in config.items(group)]
@@ -70,14 +77,19 @@ def get_names_from_config(config, group):
 
 def run_checks(k, v, probes, verbose = True):
     try:
-        assert probes[k] >= len(v)              # don't allow more matches than expected
-        assert len(set([i[0] for i in v])) == 1 # matches to more than one chromosome
-        assert len(set([i[1] for i in v])) == 1 # multiple match directions
+        assert probes[k] >= len(v)               # don't allow more matches than expected
+        assert len(set([i[0] for i in v])) == 1  # matches to more than one chromosome
+        assert len(set([i[1] for i in v])) == 1  # multiple match directions
         return True
     except AssertionError:
-        if verbose:print "Probe: ", k
-        result_string = ["{0}:{1}-{2}|{3}".format(i[0], i[2], i[3], i[1]) for i in v]
-        if verbose:print "\t\tExpected hits: {0}\n\t\tObserved Hits: {1}\n\t\t\t{2}".format(probes[k], len(v), '\n\t\t\t'.join(result_string))
+        if verbose:
+            print "Probe: ", k
+            result_string = ["{0}:{1}-{2}|{3}".format(i[0], i[2], i[3], i[1]) for i in v]
+            print "\t\tExpected hits: {0}\n\t\tObserved Hits: {1}\n\t\t\t{2}".format(
+                    probes[k],
+                    len(v),
+                    '\n\t\t\t'.join(result_string)
+                )
         return False
 
 def get_matches(lastz_file, splitchar, components, fish = False):
@@ -161,5 +173,36 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
-
     return None
+
+
+def snip_if_many_N_bases(regex, chromo, seq, uce, verbose = True):
+    """Some genome builds contain long runs of Ns.  Since we're
+    slicing reads from these genomes, sometimes these slices contains
+    giant runs of Ns.  Remove these by finding the UCE and trimming out
+    from the middle to retain the UCE while removing the Ns"""
+    # find uce in seq
+    uce_start = seq.find(uce)
+    uce_end = uce_start + len(uce)
+    # slice front
+    seq_slice = seq[:uce_start]
+    # reverse it - we want first occurence moving 5'
+    # from uce start (so first going backwards)
+    seq_slice = seq_slice[::-1]
+    # search for Ns
+    r = regex.search(seq_slice)
+    if r:
+        new_start = len(seq_slice) - r.start()
+    else:
+        new_start = 0
+    # slice rear
+    seq_slice = seq[uce_end:]
+    r = regex.search(seq_slice)
+    if r:
+        new_end = uce_end + r.start()
+    else:
+        new_end = len(seq)
+    seq = seq[new_start:new_end]
+    if verbose:
+        print "{0} trimmed for > 20 N bases".format(chromo)
+    return seq
