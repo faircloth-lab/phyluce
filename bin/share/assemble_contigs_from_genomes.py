@@ -260,10 +260,10 @@ def extend_probe_database(db, organisms):
 def main():
     args = get_args()
     # compile some regular expressions we'll use later
-    stripnum = re.compile("_[0-9]+$")
+    stripnum = re.compile("s_[0-9]+$")
     manyn = re.compile("[N,n]{20,}")
     # get names of loci and taxa
-    uces = get_uce_names_from_probes(args.probes, stripnum)
+    uces = get_uce_names_from_probes(args.probes, stripnum, 's')
     taxa = get_taxa_names_from_fastas(args.fasta)
     print "\n"
     if not args.extend:

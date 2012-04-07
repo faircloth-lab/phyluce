@@ -209,13 +209,13 @@ def snip_if_many_N_bases(regex, chromo, seq, uce, verbose = True):
     return seq
 
 
-def get_uce_names_from_probes(probes, regex=None):
+def get_uce_names_from_probes(probes, regex=None, repl=None):
     loci = []
     for line in open(probes, 'rU'):
         if line.startswith('>'):
             ls = line.strip().lstrip('>').split('|')
-            if regex:
-                locus = re.sub(regex, '', ls[0])
+            if regex and repl:
+                locus = re.sub(regex, repl, ls[0])
             else:
                 ls[0]
             loci.append(locus)
