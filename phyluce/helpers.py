@@ -43,7 +43,7 @@ def get_dupes(lastz_file, splitchar = "|", pos = 1, longfile = False):
     matches = get_dupe_matches(lastz_file, splitchar, pos, longfile)
     # see if one probe matches any other probes
     # other than the children of the locus
-    for k,v in matches.iteritems():
+    for k, v in matches.iteritems():
         # if the probe doesn't match itself, we have
         # problems
         if len(v) > 1:
@@ -56,7 +56,7 @@ def get_dupes(lastz_file, splitchar = "|", pos = 1, longfile = False):
     return dupes
 
 def is_dir(dirname):
-    if not os.path.isdir:
+    if not os.path.isdir(dirname):
         msg = "{0} is not a directory".format(dirname)
         raise argparse.ArgumentTypeError(msg)
     else:
