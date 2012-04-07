@@ -95,6 +95,8 @@ class Reader():
                 lastz_result_split[k] = int(v)
             elif '%' in v:
                 lastz_result_split[k] = float(v.strip('%'))
+        lastz_result_split[1] = lastz_result_split[1].lstrip('>')
+        lastz_result_split[6] = lastz_result_split[6].lstrip('>')
         return Lastz._make(lastz_result_split)
 
 if __name__ == '__main__':
