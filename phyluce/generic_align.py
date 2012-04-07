@@ -141,14 +141,14 @@ class GenericAlign(object):
             start_clip, end_clip = None, None
         return start_clip, end_clip
 
-    def trim_alignment(self, method='edges', remove_probe=None, bases=None, consensus=True, window_size=20, threshold=0.5):
+    def trim_alignment(self, method='edges', remove_probe=None, bases=None, consensus=True, window_size=20, threshold=0.5, proportion=0.3):
         """Trim the alignment"""
         if method == 'edges':
             # find edges of the alignment
             start = self._find_ends(forward=True)
             end = self._find_ends(forward=False)
         elif method == 'running':
-            start, end = self.running_average(window_size, threshold)
+            start, end = self.running_average(window_size, threshold, proportion=proportion)
         elif method == 'running-probe':
             # get position of probe
             for k, v in enumerate(self.alignment):
@@ -156,7 +156,7 @@ class GenericAlign(object):
                     break
                 else:
                     pass
-            start, end = self.running_average(window_size, threshold, k, True)
+            start, end = self.running_average(window_size, threshold, proportion, k, True)
         #pdb.set_trace()
         if method == 'notrim':
             self.trimmed_alignment = self.alignment

@@ -71,6 +71,11 @@ def get_args():
             default=0.5,
             help='Threshold cutoff for trimming'
         )
+    parser.add_argument('--proportion',
+            type=float,
+            default=0.3,
+            help='Proportional removal of gaps'
+        )
     parser.add_argument('--ambiguous',
             action='store_true',
             default=False,
@@ -109,7 +114,7 @@ def align(params):
     locus, opts = params
     name, sequences = locus
     # get additional params from params tuple
-    window, threshold, notrim = opts
+    window, threshold, notrim, proportion = opts
     fasta = create_locus_specific_fasta(sequences)
     aln = Align(fasta)
     aln.run_alignment(consensus=False)
@@ -119,7 +124,8 @@ def align(params):
         aln.trim_alignment(
                 method='running',
                 window_size=window,
-                threshold=threshold
+                threshold=threshold,
+                proportion=proportion
             )
     sys.stdout.write(".")
     sys.stdout.flush()
@@ -196,7 +202,7 @@ def main(args):
     loci = get_fasta_dict(args)
     sys.stdout.write("\nAligning with {}".format(str(args.aligner).upper()))
     sys.stdout.flush()
-    opts = [[args.window, args.threshold, args.notrim] \
+    opts = [[args.window, args.threshold, args.notrim, args.proportion] \
             for i in range(len(loci))]
     params = zip(loci.items(), opts)
     if args.multiprocessing:
