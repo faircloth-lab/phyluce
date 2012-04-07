@@ -75,6 +75,23 @@ def get_coverage(header):
     return '_'.join(header.split('_')[-2:])
 
 
+def find_file(contigs, name):
+    extensions = ['.fa', '.fasta', '.contigs.fasta', '.gz', '.fasta.gz', '.fa.gz']
+    for ext in extensions:
+            reads = os.path.join(contigs, name) + ext
+            if os.path.isfile(reads):
+                break
+            else:
+                reads = None
+    if reads is None:
+        raise ValueError("Cannot find the a fasta file for {} with any of the extensions ({}) ".format(
+                name,
+                ', '.join(extensions)
+            )
+        )
+    return reads
+
+
 def main():
     args = get_args()
     config = ConfigParser.RawConfigParser(allow_no_value=True)
@@ -94,48 +111,25 @@ def main():
         written = []
         # going to need to do something more generic w/ suffixes
         #pdb.set_trace()
+        name = organism.replace('_', '-')
         if args.notstrict:
             if not organism.endswith('*'):
-                try:
-                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fa')
-                    assert os.path.exists(reads)
-                except AssertionError:
-                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fasta')
-                    assert os.path.exists(reads)
+                reads = find_file(args.contigs, name)
                 node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=False, notstrict=True)
             elif args.extend_dir:
                 # remove the asterisk
-                organism = organism.rstrip('*')
-                try:
-                    reads = os.path.join(args.extend_dir, organism.replace('_', '-') + '.contigs.fasta')
-                    assert os.path.exists(reads)
-                except AssertionError:
-                    reads = os.path.join(args.extend_dir, organism.replace('_', '-') + '.fasta')
-                    assert os.path.exists(reads)
-                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=True, notstrict=True)
+                name = name.rstrip('*')
+                reads = find_file(args.extend_dir, name)
+                node_dict, missing = get_nodes_for_uces(c, organism.rstrip('*'), uces, extend=True, notstrict=True)
         else:
-            if not organism.endswith('*'):
-                try:
-                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fa')
-                    assert os.path.exists(reads)
-                except AssertionError:
-                    reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fasta')
-                    assert os.path.exists(reads)
+            if not name.endswith('*'):
+                reads = find_file(args.contigs, name)
                 node_dict, missing = get_nodes_for_uces(c, organism, uces)
-            elif args.extend_dir:
+            elif name.endswith('*') and args.extend_dir:
                 # remove the asterisk
-                organism = organism.rstrip('*')
-                try:
-                    reads = os.path.join(args.extend_dir, organism.replace('_', '-') + '.contigs.fasta')
-                    assert os.path.exists(reads)
-                except AssertionError:
-                    reads = os.path.join(args.extend_dir, organism.replace('_', '-') + '.fasta')
-                    assert os.path.exists(reads)
-                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=True)
-            else:
-                organism = organism.rstrip('*')
-                reads = os.path.join(args.contigs, organism.replace('_', '-') + '.fasta')
-                node_dict, missing = get_nodes_for_uces(c, organism, uces)
+                name = name.rstrip('*')
+                reads = find_file(args.extend_dir, name)
+                node_dict, missing = get_nodes_for_uces(c, organism.rstrip('*'), uces, extend=True)
         for read in fasta.FastaReader(reads):
             name = get_name(read.identifier).lower()
             coverage = get_coverage(read.identifier)
