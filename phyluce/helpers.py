@@ -9,6 +9,7 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 """
 
 import os
+import re
 import sys
 import argparse
 import ConfigParser
@@ -206,3 +207,17 @@ def snip_if_many_N_bases(regex, chromo, seq, uce, verbose = True):
     if verbose:
         print "{0} trimmed for > 20 N bases".format(chromo)
     return seq
+
+
+def get_uce_names_from_probes(probes, regex=None):
+    loci = []
+    for line in open(probes, 'rU'):
+        if line.startswith('>'):
+            ls = line.strip().lstrip('>').split('|')
+            if regex:
+                locus = re.sub(regex, '', ls[0])
+            else:
+                ls[0]
+            loci.append(locus)
+    # return unique set
+    return set(loci)

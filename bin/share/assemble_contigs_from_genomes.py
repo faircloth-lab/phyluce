@@ -24,7 +24,7 @@ from operator import itemgetter
 from phyluce.muscle import Align
 from collections import defaultdict
 from seqtools.sequence import fasta
-from phyluce.helpers import FullPaths, is_dir, is_file, get_dupes, get_name, run_checks, snip_if_many_N_bases
+from phyluce.helpers import FullPaths, is_dir, is_file, get_dupes, get_name, run_checks, snip_if_many_N_bases, get_uce_names_from_probes
 
 
 import pdb
@@ -84,17 +84,6 @@ def get_args():
             help='The path to a lastz file of lastz-against-self results'
         )
     return parser.parse_args()
-
-
-def get_uce_names_from_probes(probes, stripnum):
-    loci = []
-    for line in open(probes, 'rU'):
-        if line.startswith('>'):
-            ls = line.strip().lstrip('>').split('|')
-            locus = re.sub(stripnum, '', ls[0])
-            loci.append(locus)
-    # return unique set
-    return set(loci)
 
 
 def get_taxon_from_filename(filename):
@@ -277,7 +266,7 @@ def main():
     uces = get_uce_names_from_probes(args.probes, stripnum)
     taxa = get_taxa_names_from_fastas(args.fasta)
     print "\n"
-    if not args.extend: 
+    if not args.extend:
         if args.db is None:
             db = os.path.join(args.output, 'probe.matches.sqlite')
         else:
