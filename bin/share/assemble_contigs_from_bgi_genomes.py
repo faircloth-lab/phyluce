@@ -65,8 +65,24 @@ def get_args():
             default=500,
             type=int
         )
+    parser.add_argument(
+            "--db",
+            action=FullPaths,
+            type=is_file,
+            default=None,
+            help="""Add columns to existing database rather than starting over""",
+        )
+    parser.add_argument(
+            "--extend",
+            action="store_true",
+            default=False,
+            help="""Add columns to existing database rather than starting  over""",
+        )
     parser.add_argument('--dupefile',
-            help='The path to a lastz file of lastz-against-self results')
+            action=FullPaths,
+            type=is_file,
+            help='The path to a lastz file of lastz-against-self results'
+        )
     return parser.parse_args()
 
 
@@ -104,9 +120,9 @@ def create_bgi_name_map(xref, regex):
 
 
 def get_fasta_name_from_lastz_pth(lastz, fasta):
-    name = os.path.basename(lastz)
+    name = os.path.splitext(os.path.basename(lastz))[0]
     try:
-        for ext in ['', '.gz', '.fasta.gz', '.fa.gz']:
+        for ext in ['.fa', '.fasta', '.gz', '.fasta.gz', '.fa.gz']:
             tempname = os.path.join(fasta, os.path.splitext(name)[0]) + ext
             if os.path.isfile(tempname):
                 break
@@ -234,6 +250,24 @@ def create_probe_database(db, organisms, uces, genome=False):
     return conn, c
 
 
+def extend_probe_database(db, organisms):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    c.execute("PRAGMA foreign_keys = ON")
+    org_string = [org + ' text' for org in organisms]
+    for org in org_string:
+        for table in ["matches", "match_map"]:
+            try:
+                query = "ALTER TABLE {0} ADD COLUMN {1}".format(table, org)
+                c.execute(query)
+            except sqlite3.OperationalError, e:
+                if "duplicate column name" in e[0]:
+                    print "Resetting {} for {}".format(table, org)
+                    query = "UPDATE {0} SET {1} = NULL".format(table, org.strip(" text"))
+                    c.execute(query)
+    return conn, c
+
+
 def main():
     args = get_args()
     # compile some regular expressions we'll use later
@@ -243,13 +277,23 @@ def main():
     uces = get_uce_names_from_probes(args.probes, stripnum)
     taxa = get_taxa_names_from_fastas(args.fasta)
     print "\n"
-    # create db to hold results
-    conn, c = create_probe_database(
-            os.path.join(args.output, 'probe.matches.sqlite'),
-            taxa,
-            uces,
-            True
-        )
+    if not args.extend: 
+        if args.db is None:
+            db = os.path.join(args.output, 'probe.matches.sqlite')
+        else:
+            db = args.db
+        # create db to hold results
+        conn, c = create_probe_database(
+                db,
+                taxa,
+                uces,
+                True
+            )
+    else:
+        conn, c = extend_probe_database(
+                args.db,
+                taxa
+            )
     # get duplicate probe sequences for filtering
     if args.dupefile:
         print "Determining duplicate probes..."
@@ -298,6 +342,7 @@ def main():
         # when > 1 contig, assemble contigs across matches
         sys.stdout.write("\tWriting and Aligning/Assembling UCE loci with multiple probes (dot/1000 loci)")
         for k, v in seqdict.iteritems():
+            bad = False
             contig_names = []
             if count % 1000 == 0:
                 sys.stdout.write('.')
@@ -322,8 +367,6 @@ def main():
                         len(record.sequence)
                     )
                 fout.write(v[0])
-                # tracking "fake" contig number
-                count += 1
             else:
                 orient = list(set([m[1] for m in matches[k]]))
                 # skip any loci having matches of mixed orientation
@@ -361,21 +404,22 @@ def main():
                             len(record.sequence)
                         )
                     fout.write(record)
-                    # tracking "fake" contig number
-                    count += 1
                 else:
-                    print "\t{} matches had >1 orientations".format(k)
-            # track contig assembly and renaming data in db
-            q = "UPDATE matches SET {0} = 1 WHERE uce = '{1}'".format(taxon, k)
-            c.execute(q)
-            # generate db match and match map tables for data
-            orient_key = "node_{0}({1})".format(count, orient[0])
-            q = "UPDATE match_map SET {0} = '{1}' WHERE uce = '{2}'".format(taxon, orient_key, k)
-            c.execute(q)
-            # keep track of new name :: old name mapping
-            for old_name in contig_names:
-                q = "INSERT INTO contig_map VALUES ('{0}', '{1}', '{2}', '{3}')".format(taxon, k, old_name, record.identifier)
+                    bad = True
+            if not bad:
+                # track contig assembly and renaming data in db
+                q = "UPDATE matches SET {0} = 1 WHERE uce = '{1}'".format(taxon, k)
                 c.execute(q)
+                # generate db match and match map tables for data
+                orient_key = "node_{0}({1})".format(count, orient[0])
+                q = "UPDATE match_map SET {0} = '{1}' WHERE uce = '{2}'".format(taxon, orient_key, k)
+                c.execute(q)
+                # keep track of new name :: old name mapping
+                for old_name in contig_names:
+                    q = "INSERT INTO contig_map VALUES ('{0}', '{1}', '{2}', '{3}')".format(taxon, k, old_name, record.identifier)
+                    c.execute(q)
+            # tracking "fake" contig number
+            count += 1
         conn.commit()
         print "\n\t{0} loci of {1} matched ({2:.0f}%), {3} dupes dropped ({4:.0f}%)".format(
             count,
