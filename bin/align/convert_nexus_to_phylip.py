@@ -40,6 +40,10 @@ metavar='FILE')
     p.add_option('--shorten-name', dest = 'shorten_name', action='store_true', default=False, \
 help='Shorten long names.')
     p.add_option('--positions', dest = 'positions', action='store', default='0,1')
+    p.add_option('--format', dest='format', action='store', 
+type='string', default = 'phylip', help='The output format',)
+    p.add_option('--splitchar', dest="splitchar", action='store', 
+type='string', default = '_', help='The character to put between name components',)
 
     (options,arg) = p.parse_args()
     options.input = os.path.abspath(os.path.expanduser(options.input))
@@ -56,14 +60,17 @@ help='Shorten long names.')
 def get_files(input_dir):
     return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
 
-def rename(align, first, second):
+def rename(align, first, second, splitchar="_"):
     for a in align:
         new_align = Alignment(Gapped(IUPAC.unambiguous_dna, "-"))
         #pdb.set_trace()
         for seq in a:
             split_name = seq.id.split('_')
             if second:
-                new_seq_name = '_'.join([split_name[first][0:3], split_name[second][0:3]])
+                if splitchar == "_":
+                    new_seq_name = splitchar.join([split_name[first][0:3], split_name[second][0:3]])
+                else:
+                    new_seq_name = splitchar.join([split_name[first][0:3], split_name[second][0:3].title()])
             else:
                 new_seq_name = split_name[first]
             seq.id, seq.name = new_seq_name, new_seq_name
@@ -77,18 +84,13 @@ def main():
     pos1, pos2 = [eval(i) for i in options.positions.strip().split(',')]
     for count, f in enumerate(files):
         align = AlignIO.parse(f, "nexus")
-        #pdb.set_trace()
-        new_name = os.path.splitext(os.path.split(f)[1])[0] + '.phylip'
-        #pdb.set_trace()
+        new_name = os.path.splitext(os.path.split(f)[1])[0] + '.' + options.format
         outf = os.path.join(options.output, new_name)
-        #try:
         if options.shorten_name:
-            for item in rename(align, pos1, pos2):
-                AlignIO.write(item, open(outf, 'w'), 'phylip')
+            for item in rename(align, pos1, pos2, options.splitchar):
+                AlignIO.write(item, open(outf, 'w'), options.format)
         else:
-            AlignIO.write(align, open(outf, 'w'), 'phylip')
-        #except ValueError:
-            #pdb.set_trace()
+            AlignIO.write(align, open(outf, 'w'), options.format)
             
         print count
 
