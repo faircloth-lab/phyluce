@@ -81,6 +81,9 @@ def find_file(contigs, name):
             reads = os.path.join(contigs, name) + ext
             if os.path.isfile(reads):
                 break
+            elif os.path.isfile(reads.lower()):
+                reads = reads.lower()
+                break
             else:
                 reads = None
     if reads is None:
