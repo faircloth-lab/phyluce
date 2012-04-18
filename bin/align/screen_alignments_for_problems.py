@@ -44,6 +44,12 @@ def find_multiple_N_bases(regex, aln):
     return n
 
 
+def find_any_X_bases(f, aln):
+    for seq in list(aln):
+        if 'X' in str(seq.seq):
+            print "X-bases in ", os.path.basename(f)
+
+
 def main():
     args = get_args()
     # iterate through all the files to determine the longest alignment
@@ -53,6 +59,7 @@ def main():
     for f in files:
         aln = AlignIO.read(f, 'nexus')
         n = find_multiple_N_bases(n_bases, aln)
+        find_any_X_bases(f, aln)
         for name, count in n.iteritems():
             print "{0}\n\t{1}\n\t{2}".format(f, name, count)
 
