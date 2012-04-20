@@ -77,15 +77,15 @@ def compute_taxa(counts):
         pretty_printer(result)
 
 
-def compute_bases(bases):
+def compute_bases(bases, trimmed):
     print "\nBase composition\n-----"
     bssm = {base:sum(bases[base]) for base in bases}
     sm = ["Bases", bssm]
     al = ["Sum(all)", sum(bssm.values())]
-    nogp = ["Sum(nucleotide only)", \
-                sum([bssm[i] for i in ['A', 'C', 'G', 'T']])
-            ]
-    for result in [sm, al, nogp]:
+    nogpsm = sum([bssm[i] for i in ['A', 'C', 'G', 'T']])
+    nogp = ["Sum(nucleotide only)", nogpsm]
+    trim = ["Missing data from trim (%)", round(sum(trimmed) / float(sum(bssm.values())) * 100, 2)]
+    for result in [sm, al, nogp, trim]:
         pretty_printer(result)
 
 
@@ -95,6 +95,7 @@ def main():
     files = get_files(args.nexus)
     counts = []
     lengths = []
+    trimmed = []
     bases = defaultdict(list)
     for f in files:
         aln = AlignIO.read(f, 'nexus')
@@ -107,9 +108,14 @@ def main():
                 counts.append(len(aln))
         else:
             counts.append(len(aln))
+        for read in aln:
+            #pdb.set_trace()
+            left = len(read.seq) - len(str(read.seq).lstrip('-'))
+            right = len(read.seq) - len(str(read.seq).rstrip('-'))
+            trimmed.append(left + right)
     compute_lengths(lengths)
     compute_taxa(counts)
-    compute_bases(bases)
+    compute_bases(bases, trimmed)
 
 
 if __name__ == '__main__':

@@ -58,7 +58,7 @@ type='string', default = '_', help='The character to put between name components
     return options, arg
 
 def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
+    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex*'))
 
 def rename(align, first, second, splitchar="_"):
     for a in align:
