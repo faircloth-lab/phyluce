@@ -57,6 +57,9 @@ import pdb
 def get_args():
     parser = argparse.ArgumentParser(description='Parse fastq files and drop reads containing Ns.')
     parser.add_argument('input', help='the input directory containing the reads')
+    parser.add_argument('--nproc', default=multiprocessing.cpu_count(),
+                        help='set the number of processes to use (default: ' +
+                        '%(default)s)', type=int)
 
     required = parser.add_argument_group('required arguments')
     required.add_argument('--sample-map', required=True, dest='sample_map')
@@ -216,7 +219,7 @@ def main():
     args = get_args()
     # careful here w/ number of procs - zlib/gzip calls eat RAM
     # because file is read into RAM
-    pool = multiprocessing.Pool(6)
+    pool = multiprocessing.Pool(args.nproc)
     sample_map = get_tag_names_from_sample_file(args.sample_map)
     #pdb.set_trace()
     #make_dirs_and_rename_files(sample_map, args.input)
