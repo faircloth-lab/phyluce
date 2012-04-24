@@ -57,6 +57,9 @@ import pdb
 def get_args():
     parser = argparse.ArgumentParser(description='Parse fastq files and drop reads containing Ns.')
     parser.add_argument('input', help='the input directory containing the reads')
+    parser.add_argument('--initial', action='store_true', help='perform ' +
+                        'initial setup (rename .txt files to .fastq, create ' +
+                        'working directories)')
     parser.add_argument('--nproc', default=multiprocessing.cpu_count(),
                         help='set the number of processes to use (default: ' +
                         '%(default)s)', type=int)
@@ -79,15 +82,26 @@ def get_tag_names_from_sample_file(sample_directories):
     return sample_map
 
 def make_dirs_and_rename_files(sample_map, tld):
-    [os.system('mkdir -p {0}'.format(os.path.join(tld, i))) for i in ['raw', 'adapt-trim', 'qual-trim', 'n-less', 'stats']]
-    for name in glob.glob(os.path.join(tld,'*.txt')):
+    dirs = ['raw', 'adapt-trim', 'qual-trim', 'n-less', 'stats']
+    [os.system('mkdir -p {0}'.format(os.path.join(tld, i))) for i in dirs]
+
+    txts = glob.glob(os.path.join(tld, '*.txt'))
+    if len(txts) == 0:
+        raise Exception("no txt files found in {0}".format(tld))
+
+    for name in txts:
         #pdb.set_trace()
-        temp_bin, temp_name = os.path.split(name)
-        bin_num = temp_bin.split('_')[1]
+        temp_fulldir, temp_name = os.path.split(name)
+        temp_bin = temp_fulldir.split('/')[-1]
+        try:
+            bin_num = temp_bin.split('_')[1]
+        except IndexError:
+            raise Exception(('directory {0} needs an underscore between ' +
+                            'the bin name and bin number').format(temp_bin))
         lane_num = temp_name.split('_')[1]
         real_name = sample_map['_'.join((bin_num, lane_num))][1].replace(' ', '-') + '.fastq'
         #pdb.set_trace()
-        shutil.move(name, os.path.join(temp_bin, 'raw', real_name))
+        shutil.move(name, os.path.join(temp_fulldir, 'raw', real_name))
 
 def scythe_runner(reads):
     tld, filename, adapters = reads
@@ -222,7 +236,8 @@ def main():
     pool = multiprocessing.Pool(args.nproc)
     sample_map = get_tag_names_from_sample_file(args.sample_map)
     #pdb.set_trace()
-    #make_dirs_and_rename_files(sample_map, args.input)
+    if args.initial:
+        make_dirs_and_rename_files(sample_map, args.input)
     get_sequence_tags(pool, args.input)
     trim_adapter_sequences(pool, args.input, args.adapters)
     trim_low_qual_reads(pool, args.input)
@@ -230,7 +245,7 @@ def main():
     zip_shit_up(pool, args.input)
     get_read_length_stats(pool, args.input)
     print ""
-    
+
 if __name__ == '__main__':
     main()
 
