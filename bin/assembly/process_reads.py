@@ -57,8 +57,11 @@ import pdb
 def get_args():
     parser = argparse.ArgumentParser(description='Parse fastq files and drop reads containing Ns.')
     parser.add_argument('input', help='the input directory containing the reads')
-    parser.add_argument('--sample-map', required = True, dest = 'sample_map')
-    parser.add_argument('--adapters')
+
+    required = parser.add_argument_group('required arguments')
+    required.add_argument('--sample-map', required=True, dest='sample_map')
+    required.add_argument('--adapters', required=True)
+
     return parser.parse_args()
 
 def get_tag_names_from_sample_file(sample_directories):
