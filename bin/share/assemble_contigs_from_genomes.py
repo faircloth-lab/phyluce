@@ -124,7 +124,7 @@ def get_bgi_matches(lastz_file, stripnum):
     matches = defaultdict(list)
     probes = defaultdict(int)
     for lz in lastz.Reader(lastz_file, long_format=True):
-        uce_name = re.sub(stripnum, '', lz.name2).lower()
+        uce_name = re.sub(stripnum, 's', lz.name2).lower()
         probe_number = int(lz.name2.split('_')[-1])
         if probe_number > probes[uce_name]:
             probes[uce_name] = probe_number
@@ -263,7 +263,7 @@ def main():
     stripnum = re.compile("s_[0-9]+$")
     manyn = re.compile("[N,n]{20,}")
     # get names of loci and taxa
-    uces = get_uce_names_from_probes(args.probes, stripnum, 's')
+    uces = get_uce_names_from_probes(args.probes, regex=stripnum, repl='s', lower=True)
     taxa = get_taxa_names_from_fastas(args.fasta)
     print "\n"
     if not args.extend:
@@ -291,7 +291,7 @@ def main():
         dupes = None
     # because of structure, strip probe designation from dupes
     # leaving only locus name.  lowercase all.
-    dupes = set([re.sub(stripnum, '', d).lower() for d in dupes])
+    dupes = set([re.sub(stripnum, 's', d).lower() for d in dupes])
     # iterate over LASTZ files for each taxon
     for lz in glob.glob(os.path.join(args.lastz, '*')):
         # get taxon name from lastz file
@@ -318,7 +318,7 @@ def main():
             # make sure all names are lowercase
             contig.identifier = contig.identifier.lower()
             name = contig.identifier.split('|')[-3]
-            locus = re.sub(stripnum, '', name)
+            locus = re.sub(stripnum, 's', name)
             # skip what we identified as bad loci
             if locus not in loci_to_skip:
                 seqdict[locus].append(contig)
@@ -328,6 +328,8 @@ def main():
         fout = fasta.FastaWriter(fout_name)
         # this tracks "fake" contig number
         count = 0
+        # this tracks loci kept
+        kept = 0
         # when > 1 contig, assemble contigs across matches
         sys.stdout.write("\tWriting and Aligning/Assembling UCE loci with multiple probes (dot/1000 loci)")
         for k, v in seqdict.iteritems():
@@ -407,15 +409,18 @@ def main():
                 for old_name in contig_names:
                     q = "INSERT INTO contig_map VALUES ('{0}', '{1}', '{2}', '{3}')".format(taxon, k, old_name, record.identifier)
                     c.execute(q)
+                kept += 1
             # tracking "fake" contig number
             count += 1
         conn.commit()
-        print "\n\t{0} loci of {1} matched ({2:.0f}%), {3} dupes dropped ({4:.0f}%)".format(
+        print "\n\t{0} loci of {1} matched ({2:.0f}%), {3} dupes dropped ({4:.0f}%), {5} ({6:.0f}%) kept".format(
             count,
             len(uces),
             float(count) / len(uces) * 100,
             len(loci_to_skip),
-            float(len(loci_to_skip)) / len(uces) * 100
+            float(len(loci_to_skip)) / len(uces) * 100,
+            kept,
+            float(kept) / len(uces) * 100
             )
     #conn.commit()
     c.close()
