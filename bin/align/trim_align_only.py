@@ -24,7 +24,7 @@ import sys
 import glob
 import argparse
 import multiprocessing
-from phyluce.helpers import is_dir, FullPaths
+from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 from phyluce.generic_align import GenericAlign
 
 #import pdb
@@ -85,18 +85,6 @@ def get_args():
             help="""Use multiprocessing""",
             )
     return parser.parse_args()
-
-
-def get_file_extensions(ftype):
-    ext = {
-        'fasta': ('.fasta', '.fsa', '.aln', '.fa'),
-        'nexus': ('.nexus', '.nex'),
-        'phylip': ('.phylip', '.phy'),
-        'clustal': ('.clustal', '.clw'),
-        'emboss': ('.emboss'),
-        'stockholm': ('.stockholm')
-    }
-    return ext[ftype]
 
 
 def get_and_trim_alignments(params):
