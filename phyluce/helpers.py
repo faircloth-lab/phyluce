@@ -209,7 +209,7 @@ def snip_if_many_N_bases(regex, chromo, seq, uce, verbose = True):
     return seq
 
 
-def get_uce_names_from_probes(probes, regex=None, repl=None):
+def get_uce_names_from_probes(probes, regex=None, repl=None, lower=False):
     loci = []
     for line in open(probes, 'rU'):
         if line.startswith('>'):
@@ -218,6 +218,9 @@ def get_uce_names_from_probes(probes, regex=None, repl=None):
                 locus = re.sub(regex, repl, ls[0])
             else:
                 ls[0]
-            loci.append(locus)
+            if not lower:
+                loci.append(locus)
+            else:
+                loci.append(locus.lower())
     # return unique set
     return set(loci)
