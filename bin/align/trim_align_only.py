@@ -7,7 +7,15 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 06 May 2012 14:05 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description: Trim the edges of alignments files to remove nasties.
+
+Usage:
+
+    python ~/Git/brant/phyluce/bin/align/trim_align_only.py \
+        sate-fasta-untrimmed \
+        sate-nexus-trimmed \
+        --output-format nexus \
+        --multiprocessing
 
 """
 
@@ -19,7 +27,7 @@ import multiprocessing
 from phyluce.helpers import is_dir, FullPaths
 from phyluce.generic_align import GenericAlign
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -139,9 +147,15 @@ def main():
     alignments = []
     for ftype in get_file_extensions(args.input_format):
         alignments.extend(glob.glob(os.path.join(args.input, "*{}".format(ftype))))
-    params = zip([[args.input_format, args.window, args.threshold, args.proportion]] * len(alignments), alignments)
+    # package up needed arguments for map()
+    package = [args.input_format, args.window, args.threshold, args.proportion]
+    params = zip([package] * len(alignments), alignments)
+    # print some output for user
     sys.stdout.write('Trimming')
     sys.stdout.flush()
+    # if --multprocessing, use Pool.map(), else use map()
+    # can also extend to MPI map, but not really needed on multicore
+    # machine
     if args.multiprocessing:
         pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
         alignments = pool.map(get_and_trim_alignments, params)
