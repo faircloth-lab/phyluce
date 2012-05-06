@@ -224,3 +224,15 @@ def get_uce_names_from_probes(probes, regex=None, repl=None, lower=False):
                 loci.append(locus.lower())
     # return unique set
     return set(loci)
+
+
+def get_file_extensions(ftype):
+    ext = {
+        'fasta': ('.fasta', '.fsa', '.aln', '.fa'),
+        'nexus': ('.nexus', '.nex'),
+        'phylip': ('.phylip', '.phy'),
+        'clustal': ('.clustal', '.clw'),
+        'emboss': ('.emboss'),
+        'stockholm': ('.stockholm')
+    }
+    return ext[ftype]

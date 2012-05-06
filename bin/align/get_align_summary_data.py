@@ -20,7 +20,7 @@ import numpy
 import shutil
 import argparse
 from Bio import AlignIO
-from phyluce.helpers import is_dir
+from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
 from collections import Counter, defaultdict
 
@@ -30,20 +30,31 @@ def get_args():
             description="""Compute summary parameters for alignments"""
         )
     parser.add_argument(
-            'nexus',
+            'input',
             type=is_dir,
-            help='The directory containing the nexus files'
+            action=FullPaths,
+            help='The directory containing the alignment files'
         )
     parser.add_argument(
             '--min-taxa',
             type=int,
             help='The minimum number of taxa to count'
         )
+    parser.add_argument(
+            "--input-format",
+            dest="input_format",
+            choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
+            default='fasta',
+            help="""The input alignment format""",
+        )
     return parser.parse_args()
 
 
-def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
+def get_files(input_dir, input_format):
+    alignments = []
+    for ftype in get_file_extensions(input_format):
+        alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
+    return alignments
 
 
 def pretty_printer(result):
@@ -92,13 +103,13 @@ def compute_bases(bases, trimmed):
 def main():
     args = get_args()
     # iterate through all the files to determine the longest alignment
-    files = get_files(args.nexus)
+    files = get_files(args.input, args.input_format)
     counts = []
     lengths = []
     trimmed = []
     bases = defaultdict(list)
     for f in files:
-        aln = AlignIO.read(f, 'nexus')
+        aln = AlignIO.read(f, args.input_format)
         lengths.append(aln.get_alignment_length())
         for col in xrange(len(aln[0])):
             for base in aln[:, col]:
