@@ -109,21 +109,27 @@ def main():
     trimmed = []
     bases = defaultdict(list)
     for f in files:
-        aln = AlignIO.read(f, args.input_format)
-        lengths.append(aln.get_alignment_length())
-        for col in xrange(len(aln[0])):
-            for base in aln[:, col]:
-                bases[base.upper()].append(1)
-        if args.min_taxa:
-            if len(aln) >= args.min_taxa:
+        try:
+            aln = AlignIO.read(f, args.input_format)
+            lengths.append(aln.get_alignment_length())
+            for col in xrange(len(aln[0])):
+                for base in aln[:, col]:
+                    bases[base.upper()].append(1)
+            if args.min_taxa:
+                if len(aln) >= args.min_taxa:
+                    counts.append(len(aln))
+            else:
                 counts.append(len(aln))
-        else:
-            counts.append(len(aln))
-        for read in aln:
-            #pdb.set_trace()
-            left = len(read.seq) - len(str(read.seq).lstrip('-'))
-            right = len(read.seq) - len(str(read.seq).rstrip('-'))
-            trimmed.append(left + right)
+            for read in aln:
+                #pdb.set_trace()
+                left = len(read.seq) - len(str(read.seq).lstrip('-'))
+                right = len(read.seq) - len(str(read.seq).rstrip('-'))
+                trimmed.append(left + right)
+        except ValueError, e:
+            if e.message == 'No records found in handle':
+                print 'No records found in {0}'.format(name)
+            else:
+                raise ValueError('Something is wrong with alignment {0}'.format(name))
     compute_lengths(lengths)
     compute_taxa(counts)
     compute_bases(bases, trimmed)
