@@ -12,7 +12,6 @@ of alignments having more than "--percent" of "--taxa" taxa.
 """
 
 
-import pdb
 import os
 import sys
 import glob
@@ -20,9 +19,10 @@ import numpy
 import shutil
 import argparse
 from Bio import AlignIO
+from collections import Counter, defaultdict
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
-from collections import Counter, defaultdict
+#import pdb
 
 
 def get_args():
@@ -127,9 +127,9 @@ def main():
                 trimmed.append(left + right)
         except ValueError, e:
             if e.message == 'No records found in handle':
-                print 'No records found in {0}'.format(name)
+                print 'No records found in {0}'.format(os.path.basename(f))
             else:
-                raise ValueError('Something is wrong with alignment {0}'.format(name))
+                raise ValueError('Something is wrong with alignment {0}'.format(os.path.basename(f)))
     compute_lengths(lengths)
     compute_taxa(counts)
     compute_bases(bases, trimmed)
