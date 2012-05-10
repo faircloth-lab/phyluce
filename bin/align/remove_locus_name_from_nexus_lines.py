@@ -52,7 +52,7 @@ type='int', default = -2, help='The position of the name to keep')
     return options, arg
 
 def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
+    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex*'))
 
 def main():
     options, args = interface()
