@@ -14,6 +14,7 @@ Description:
 import os
 import re
 import numpy
+from Bio.Seq import Seq
 from Bio import AlignIO
 from Bio.Align import AlignInfo
 from Bio.SeqRecord import SeqRecord
@@ -139,7 +140,7 @@ class GenericAlign(object):
             start_clip, end_clip = good[0], good[-1] + window_size
         except IndexError:
             start_clip, end_clip = None, None
-        return start_clip, end_clip
+        return start_clip, end_clip, good
 
     def trim_alignment(self, method='edges', remove_probe=None, bases=None, consensus=True, window_size=20, threshold=0.5, proportion=0.3):
         """Trim the alignment"""
@@ -148,7 +149,7 @@ class GenericAlign(object):
             start = self._find_ends(forward=True)
             end = self._find_ends(forward=False)
         elif method == 'running':
-            start, end = self.running_average(window_size, threshold, proportion=proportion)
+            start, end, good = self.running_average(window_size, threshold, proportion=proportion)
         elif method == 'running-probe':
             # get position of probe
             for k, v in enumerate(self.alignment):
@@ -170,7 +171,21 @@ class GenericAlign(object):
                     # pass the Alignment object a name and str(sequence).  Given this
                     # level of retardation, we'll fudge and use their private method
                     if start >= 0 and end:
-                        self.trimmed_alignment.append(sequence[start:end])
+                        sl = []
+                        for k, v in enumerate(sequence.seq):
+                            if k in good:
+                                sl.append(v)
+                            else:
+                                sl.append('.')
+                        pdb.set_trace()
+                        # sequence to array
+                        seq_array = numpy.array(list(str(sequence.seq)))
+                        # reindex by good bases
+                        seq_array = seq_array[good]
+                        # convert to sequence object
+                        new_seq = Seq(seq_array.tostring(), IUPAC.ambiguous_dna)
+                        new_seq_record = SeqRecord(new_seq, id=sequence.id, name=sequence.name, description=sequence.description)
+                        self.trimmed_alignment.append(new_seq_record)
                     else:
                         self.trimmed_alignment = None
                         break
@@ -211,6 +226,7 @@ class GenericAlign(object):
                             )
                     else:
                         self.trimmed_alignment = None
+        pdb.set_trace()
         # build a dumb consensus
         if consensus and self.trimmed_alignment:
             self.trimmed_alignment_summary, self.trimmed_alignment_consensus = \
