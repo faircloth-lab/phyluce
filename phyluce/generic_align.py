@@ -176,14 +176,15 @@ class GenericAlign(object):
                             if k in good:
                                 sl.append(v)
                             else:
-                                sl.append('.')
-                        pdb.set_trace()
+                                sl.append('N')
+                        #pdb.set_trace()
                         # sequence to array
-                        seq_array = numpy.array(list(str(sequence.seq)))
+                        #seq_array = numpy.array(list(str(sequence.seq)))
                         # reindex by good bases
-                        seq_array = seq_array[good]
+                        #seq_array = seq_array[good]
                         # convert to sequence object
-                        new_seq = Seq(seq_array.tostring(), IUPAC.ambiguous_dna)
+                        #new_seq = Seq(seq_array.tostring(), IUPAC.ambiguous_dna)
+                        new_seq = Seq(''.join(sl), IUPAC.ambiguous_dna)
                         new_seq_record = SeqRecord(new_seq, id=sequence.id, name=sequence.name, description=sequence.description)
                         self.trimmed_alignment.append(new_seq_record)
                     else:
@@ -226,7 +227,7 @@ class GenericAlign(object):
                             )
                     else:
                         self.trimmed_alignment = None
-        pdb.set_trace()
+        #pdb.set_trace()
         # build a dumb consensus
         if consensus and self.trimmed_alignment:
             self.trimmed_alignment_summary, self.trimmed_alignment_consensus = \
