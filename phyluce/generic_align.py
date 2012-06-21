@@ -216,7 +216,7 @@ class GenericAlign(object):
             self.trimmed_alignment_summary, self.trimmed_alignment_consensus = \
                 self._alignment_summary(self.trimmed_alignment)
         if not self.trimmed_alignment:
-            print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description.split('|')[1])
+            print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description)
 
     def trim_ambiguous_bases(self):
         """snip ambiguous bases from a trimmed_alignment"""
