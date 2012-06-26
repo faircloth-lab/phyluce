@@ -21,15 +21,41 @@ from Bio.Align.Generic import Alignment
 
 import pdb
 
+
 def get_args():
     parser = argparse.ArgumentParser(description='Parse fastq files and drop reads containing Ns.')
-    parser.add_argument('input', help = "Alignment files to process")
-    parser.add_argument('output', nargs='?', default=sys.stdout, help = "Output dir for alignment files")
-    parser.add_argument('config', help='The config file containing match information')
-    parser.add_argument('notstrict', help = "Name of conf file containing notstrict species and data")
-    parser.add_argument('--genera', dest='genera', action='append', help = "Name of conf file containing notstrict species and data")
-    parser.add_argument('--min-taxa', dest='min_taxa', help='''The minimum number of taxa to keep
-    (default = 3)''', default = 3, type = int)
+    parser.add_argument(
+            'input',
+            help="Alignment files to process"
+        )
+    parser.add_argument(
+            'output',
+            nargs='?',
+            default=sys.stdout,
+            help="Output dir for alignment files"
+        )
+    parser.add_argument(
+            'config',
+            default=None,
+            help='The config file containing match information'
+        )
+    parser.add_argument(
+            'notstrict',
+            default=None,
+            help="Name of conf file containing notstrict species and data"
+            )
+    parser.add_argument(
+            '--genera',
+            dest='genera',
+            action='append',
+            help="Name of conf file containing notstrict species and data"
+        )
+    parser.add_argument(
+            '--min-taxa',
+            dest='min_taxa',
+            help="The minimum number of taxa to keep (default = 3)",
+            default=3,
+            type=int)
     return parser.parse_args()
 
 def get_names_from_config(config, group):
