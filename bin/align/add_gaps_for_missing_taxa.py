@@ -58,13 +58,15 @@ def get_args():
             type=int)
     return parser.parse_args()
 
+
 def get_names_from_config(config, group):
     try:
         return [i[0].rstrip('*') for i in config.items(group)]
     except ConfigParser.NoSectionError:
         return None
 
-def add_gaps_to_align(organisms, missing, align, genera = False, min_taxa = 3):
+
+def add_gaps_to_align(organisms, missing, align, genera=False, min_taxa=3):
     local_organisms = copy.deepcopy(organisms)
     for a in align:
         if len(a) < min_taxa:
@@ -90,6 +92,7 @@ def add_gaps_to_align(organisms, missing, align, genera = False, min_taxa = 3):
                 new_align.add_sequence(org, '-' * overall_length)
     return new_align
 
+
 def get_missing_loci_from_conf_file(config):
     missing = defaultdict(list)
     for sec in config.sections():
@@ -97,6 +100,7 @@ def get_missing_loci_from_conf_file(config):
         for item in config.items(sec):
             missing[sec].append(item[0])
     return missing
+
 
 def main():
     args = get_args()
@@ -120,4 +124,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
