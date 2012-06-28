@@ -111,13 +111,18 @@ def main():
     for f in files:
         try:
             aln = AlignIO.read(f, args.input_format)
-            lengths.append(aln.get_alignment_length())
+            l = aln.get_alignment_length()
+            lengths.append(l)
+            if l < 100:
+                print "{0} is < 100 bp long".format(os.path.basename(f))
             for col in xrange(len(aln[0])):
                 for base in aln[:, col]:
                     bases[base.upper()].append(1)
             if args.min_taxa:
                 if len(aln) >= args.min_taxa:
                     counts.append(len(aln))
+                else:
+                    print "{0} has fewer than {1} taxa".format(f, args.min_taxa)
             else:
                 counts.append(len(aln))
             for read in aln:
