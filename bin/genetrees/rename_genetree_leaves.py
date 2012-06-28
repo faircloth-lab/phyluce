@@ -57,6 +57,18 @@ def get_args():
             default=False,
             help="""Convert full species names on tips""",
         )
+    parser.add_argument(
+            "--shortnames",
+            action="store_true",
+            default=False,
+            help="""Convert full species names on tips""",
+        )
+    parser.add_argument(
+            "--reroot",
+            type=str,
+            default=None,
+            help="""The resulting name to root the tree on""",
+        )
     return parser.parse_args()
 
 
@@ -64,10 +76,12 @@ def main():
     args = get_args()
     conf = ConfigParser.ConfigParser()
     conf.read(args.config)
-    if not args.longnames:
-        names = conf.items('map')
-    else:
+    if args.longnames:
         names = conf.items('longnames')
+    elif args.shortnames:
+        names = conf.items('shortnames')
+    else:
+        names = conf.items('map')
     names = dict([(name[0].upper(), name[1]) for name in names])
     trees = dendropy.TreeList(stream=open(args.input), schema=args.input_format)
     new_labels = []
@@ -75,10 +89,18 @@ def main():
         for leaf in tree.leaf_nodes():
             if leaf.taxon.label in new_labels:
                 pass
-            else:
+            elif args.longnames:
                 new_label = names[leaf.taxon.label.upper()] + " - " + leaf.taxon.label
                 new_labels.append(new_label)
                 leaf.taxon.label = new_label
+            elif args.shortnames:
+                new_label = names[leaf.taxon.label.upper()]
+                leaf.taxon.label = new_label
+        #pdb.set_trace()
+        # reroot
+        if args.reroot:
+            reroot_node = tree.find_node_with_taxon_label(args.reroot)
+            tree.reroot_at_node(reroot_node)
     trees.write_to_path(args.output, args.output_format)
 
 
