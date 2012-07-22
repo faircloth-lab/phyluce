@@ -15,69 +15,72 @@ USAGE:  python remove_locus_name_from_nexus_lines.py \
     --output my/input/folder/nexus-renamed
 """
 
-import pdb
+
 import os
-import sys
+import re
 import glob
-import optparse
+import argparse
 from Bio import AlignIO
-from Bio.Alphabet import IUPAC, Gapped
-from Bio.Align.Generic import Alignment
+from Bio.Alphabet import generic_dna
+from Bio.Align import MultipleSeqAlignment
+from phyluce.helpers import FullPaths, is_dir
 
-def interface():
-    '''Command-line interface'''
-    usage = "usage: %prog [options]"
+import pdb
 
-    p = optparse.OptionParser(usage)
 
-    p.add_option('--input', dest = 'input', action='store', 
-type='string', default = None, help='The path to the input directory.', 
-metavar='FILE')
-    p.add_option('--output', dest = 'output', action='store', 
-type='string', default = None, help='The path to the output file.', 
-metavar='FILE')
-    p.add_option('--position', dest = 'position', action='store', 
-type='int', default = -2, help='The position of the name to keep')
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Program description""")
+    parser.add_argument(
+            "input",
+            action=FullPaths,
+            type=is_dir,
+            help="""The input files containing nexus files to filter"""
+        )
+    parser.add_argument(
+            "output",
+            action=FullPaths,
+            type=is_dir,
+            help="""Help text""",
+        )
+    parser.add_argument(
+            "taxa",
+            type=int,
+            help="""The expected number of taxa in all alignments""",
+        )
+    return parser.parse_args()
 
-    (options,arg) = p.parse_args()
-    options.input = os.path.abspath(os.path.expanduser(options.input))
-    options.output = os.path.abspath(os.path.expanduser(options.output))
-    if not options.input:
-        p.print_help()
-        sys.exit(2)
-    if not os.path.isdir(options.input) or not os.path.isdir(options.output):
-        print "You must provide a valid path to an input directory."
-        p.print_help()
-        sys.exit(2)
-    return options, arg
 
 def get_files(input_dir):
     return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex*'))
 
+
 def main():
-    options, args = interface()
+    args = get_args()
     # iterate through all the files to determine the longest alignment
-    files = get_files(options.input)
+    files = get_files(args.input)
+    all_taxa = set([])
     for count, f in enumerate(files):
-        new_align = Alignment(Gapped(IUPAC.unambiguous_dna, "-"))
-        #filename = os.path.basename(f)
-        #chromo_name = filename.split('.')[0]
+        #new_align = Alignment(Gapped(IUPAC.unambiguous_dna, "-"))
+        new_align = MultipleSeqAlignment([], generic_dna)
         for align in AlignIO.parse(f, 'nexus'):
             for seq in list(align):
-                if '.copy' in seq.name:
-                    pass
-                else:
                 #pdb.set_trace()
-                #new_seq_name = seq.name.split('|')[0]
-                    new_seq_name = '_'.join(seq.name.split('_')[options.position:])
-                    new_align.add_sequence(new_seq_name, str(seq.seq))
-        #pdb.set_trace()
-        outf = os.path.join(options.output, os.path.split(f)[1])
+                fname = os.path.splitext(os.path.basename(f))[0]
+                new_seq_name = re.sub("^{}_*".format(fname), "", seq.name)
+                all_taxa.add(new_seq_name)
+                seq.id = new_seq_name
+                seq.name = new_seq_name
+                new_align.append(seq)
+        assert len(all_taxa) == args.taxa, "Taxon names are not identical"
+        outf = os.path.join(args.output, os.path.split(f)[1])
         try:
             AlignIO.write(new_align, open(outf, 'w'), 'nexus')
         except ValueError:
             pdb.set_trace()
         print count
+    print "Taxon names in alignments: {0}".format(','.join(list(all_taxa)))
 
 if __name__ == '__main__':
     main()
