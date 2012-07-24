@@ -22,6 +22,7 @@ from seqtools.sequence import fasta
 
 import pdb
 
+answer='n'
 
 
 def get_args():
@@ -234,6 +235,7 @@ def main():
         matches, orientation, revmatches = \
                 defaultdict(set), defaultdict(set), defaultdict(set)
         probe_dupes = set()
+        global answer
         if not lztstderr:
             for lz in lastz.Reader(output):
                 # get strandedness of match
@@ -245,6 +247,14 @@ def main():
                     matches[contig_name].add(uce_name)
                     orientation[uce_name].add(lz.strand2)
                     revmatches[uce_name].add(contig_name)
+        #Error catch for Lastz
+        elif answer not in ['y', 'yes']:    
+		    print "There is very likely an error with the Lastz on your machine. Make sure lastz exists in your path." 
+		    answer=raw_input("The output will likely be incorrect if the program continues, but would you like to continue anyway? [y/N]")
+		    if answer.lower() in ['y', 'yes']:
+			    continue		
+		    else:
+			    sys.exit()
         # we need to check nodes for dupe matches to the same probes
         contigs_matching_mult_uces = check_contigs_for_dupes(matches)
         uces_matching_mult_contigs = check_probes_for_dupes(revmatches)
