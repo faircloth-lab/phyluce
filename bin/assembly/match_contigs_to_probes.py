@@ -23,7 +23,6 @@ from seqtools.sequence import fasta
 import pdb
 
 
-
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
     parser.add_argument(
@@ -245,6 +244,9 @@ def main():
                     matches[contig_name].add(uce_name)
                     orientation[uce_name].add(lz.strand2)
                     revmatches[uce_name].add(contig_name)
+        #Error catch for Lastz
+        else:
+		raise Exception("There is very likely an error with the Lastz on your machine. Make sure lastz exists in your path (use the 'which lastz' command).")	
         # we need to check nodes for dupe matches to the same probes
         contigs_matching_mult_uces = check_contigs_for_dupes(matches)
         uces_matching_mult_contigs = check_probes_for_dupes(revmatches)
