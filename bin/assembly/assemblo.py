@@ -77,11 +77,11 @@ def main():
             interleaved_dir = os.path.join(read, 'interleaved-adapter-quality-trimmed')
             singletons = os.path.join(
                     interleaved_dir,
-                    "{0}{1}".format(indiv, '-read-singleton.fastq.gz')
+                    "{0}{1}".format(indiv, '-READ-singleton.fastq.gz')
                 )
             interleaved = os.path.join(
                     interleaved_dir,
-                    "{0}{1}".format(indiv, '-read-interleaved.fastq.gz')
+                    "{0}{1}".format(indiv, '-READ1and2-interleaved.fastq.gz')
                 )
             assert is_dir(interleaved_dir), \
                     "NO interleaved directory"

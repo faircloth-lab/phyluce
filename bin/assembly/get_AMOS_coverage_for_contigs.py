@@ -19,10 +19,25 @@ genus-species-3/
     auto_data_69/
         velvet_asm.afg
 
+The directory structure can also be (output by assemblo.py, in this package):
+
+genus-species-1/
+    assembly/
+        auto_data_69/
+            velvet_asm.afg
+genus-species-2/
+    assembly/
+        auto_data_71/
+            velvet_asm.afg
+genus-species-3/
+    assembly/
+        auto_data_69/
+            velvet_asm.afg
+
 If run in TLD, will walk file-tree, working on any file in a subdir that
 ends with *.afg.  Must pass UCE match database to compute coverage across
 UCE loci.  Probably you need to be strict about file structure above, as
-dealign with filenames, etc. is rather fragile.
+dealing with filenames, etc. is rather fragile.
 
 Execution:
 
@@ -33,6 +48,7 @@ Execution:
 
 import os
 import sys
+import shutil
 import sqlite3
 import argparse
 import subprocess
@@ -96,6 +112,8 @@ def get_iids_from_cvg_stat(cvg, nodenames, fullpath):
     d = {}
     outpath = os.path.dirname(fullpath)
     taxon = os.path.dirname(os.path.dirname(fullpath)).replace('-', '_')
+    if '/assembly' in taxon:
+        taxon = os.path.dirname(taxon)
     outfile_name = os.path.join(outpath, "{}.iid".format(taxon))
     outfile = open(outfile_name, 'w')
     for line in cvg.split('\n'):
@@ -114,8 +132,11 @@ def get_iids_from_cvg_stat(cvg, nodenames, fullpath):
 
 def get_loci_list(db, fullpath):
     """Get list of UCE loci for taxon from sqlite"""
+    #pdb.set_trace()
     outpath = os.path.dirname(fullpath)
     taxon = os.path.dirname(os.path.dirname(fullpath)).replace('-', '_').strip('./')
+    if '/assembly' in taxon:
+        taxon = os.path.dirname(taxon)
     outfile = open(os.path.join(outpath, "{}.loci".format(taxon)), 'w')
     conn = sqlite3.connect(db)
     cur = conn.cursor()
@@ -145,7 +166,7 @@ def get_uce_cvg(amos, infile, bank, iid, outfile):
 def main():
     args = get_args()
     amos = "/Users/bcf/Source/amos-3.0.0/src/"
-    args.outfile.write("filename,all-coverage,uce-contig,uce-reads,uce-coverage\n")
+    args.outfile.write("filename,contigs,bp-in-contigs,contig-coverage,uce-contigs,bp-in-uce-contigs,uce-coverage\n")
     for root, dirs, infiles in os.walk(args.contigs):
         for infile in infiles:
             fullpath = os.path.join(root, infile)
@@ -160,7 +181,7 @@ def main():
                 if os.path.exists(bank):
                     answer = raw_input("\tBNK file exists, overwrite [Y/n]? ")
                     if answer == "Y":
-                        os.path.remove(bank)
+                        shutil.rmtree(bank)
                         create_bnk(amos, fullpath, bank)
                     else:
                         answer = raw_input("\tWould you like to proceed" \

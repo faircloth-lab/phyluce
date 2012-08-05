@@ -81,9 +81,9 @@ def get_args():
             default=False,
             help='Allow reads in alignments containing N-bases'
         )
-    parser.add_argument('--multiprocessing',
-            action='store_true',
-            default=False,
+    parser.add_argument('--cores',
+            type=int,
+            default=None,
             help='Use multiple cores for alignment'
         )
     return parser.parse_args()
@@ -205,9 +205,9 @@ def main(args):
     opts = [[args.window, args.threshold, args.notrim, args.proportion] \
             for i in range(len(loci))]
     params = zip(loci.items(), opts)
-    if args.multiprocessing:
-        pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
-
+    if args.cores:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
         alignments = pool.map(align, params)
     else:
         alignments = map(align, params)

@@ -138,7 +138,7 @@ def main():
             coverage = get_coverage(read.identifier)
             if name in node_dict.keys():
                 uce_seq = fasta.FastaSequence()
-                uce_seq.identifier = ">{0}_{1} |{0}|{2}".format(node_dict[name][0], organism, coverage)
+                uce_seq.identifier = ">{0}_{1} |{0}|{2}".format(node_dict[name][0], organism.rstrip('*'), coverage)
                 # deal with strandedness because aligners dont, which
                 # is annoying
                 if node_dict[name][1] == '-':

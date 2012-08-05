@@ -94,9 +94,11 @@ def main():
                 new_labels.append(new_label)
                 leaf.taxon.label = new_label
             elif args.shortnames:
-                new_label = names[leaf.taxon.label.upper()]
+                try:
+                    new_label = names[leaf.taxon.label.upper()]
+                except KeyError:
+                    new_label = names[leaf.taxon.label.replace(' ', '_').upper()]
                 leaf.taxon.label = new_label
-        #pdb.set_trace()
         # reroot
         if args.reroot:
             reroot_node = tree.find_node_with_taxon_label(args.reroot)

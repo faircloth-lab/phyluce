@@ -78,6 +78,12 @@ def get_args():
             default=False,
             help="""Add columns to existing database rather than starting  over""",
         )
+    parser.add_argument(
+            "--oldprobe",
+            action="store_true",
+            default=False,
+            help="""Generating a database for old probe naming scheme""",
+        )
     parser.add_argument('--dupefile',
             action=FullPaths,
             type=is_file,
@@ -126,6 +132,25 @@ def get_bgi_matches(lastz_file, stripnum):
     for lz in lastz.Reader(lastz_file, long_format=True):
         uce_name = re.sub(stripnum, 's', lz.name2).lower()
         probe_number = int(lz.name2.split('_')[-1])
+        if probe_number > probes[uce_name]:
+            probes[uce_name] = probe_number
+        matches[uce_name].append(
+                [
+                    get_name(lz.name1).lower(),
+                    lz.strand2,
+                    lz.zstart1,
+                    lz.end1
+                ]
+            )
+    return matches, probes
+
+
+def get_old_probe_matches(lastz_file):
+    matches = defaultdict(list)
+    probes = defaultdict(int)
+    for lz in lastz.Reader(lastz_file, long_format=True):
+        uce_name = lz.name2.split('|')[0]
+        probe_number = int(lz.name2.split(':')[-1])
         if probe_number > probes[uce_name]:
             probes[uce_name] = probe_number
         matches[uce_name].append(
@@ -301,13 +326,17 @@ def main():
         ff = get_fasta_name_from_lastz_pth(lz, args.fasta)
         # get lastz matches
         print "\tGetting LASTZ matches from GENOME alignments..."
-        matches, probes = get_bgi_matches(lz, stripnum)
+        if not args.oldprobe:
+            matches, probes = get_bgi_matches(lz, stripnum)
+        else:
+            matches, probes = get_old_probe_matches(lz)
         # remove bad loci (dupes)
         print "\tGetting bad (potentially duplicate) GENOME matches..."
         loci_to_skip = []
         for k, v in matches.iteritems():
             # check matches to makes sure all is well - keep names lc
             loci_to_skip.extend(quality_control_matches(matches, probes, dupes, k, v, False))
+        #pdb.set_trace()
         # convert to set, to keep only uniques
         loci_to_skip = set(loci_to_skip)
         print "\tSkipping {} bad (duplicate hit) loci...".format(len(loci_to_skip))
@@ -317,8 +346,11 @@ def main():
         for contig in fasta.FastaReader(ff):
             # make sure all names are lowercase
             contig.identifier = contig.identifier.lower()
-            name = contig.identifier.split('|')[-3]
-            locus = re.sub(stripnum, 's', name)
+            if not args.oldprobe:
+                name = contig.identifier.split('|')[-3]
+                locus = re.sub(stripnum, 's', name)
+            else:
+                locus = contig.identifier.split('|')[-5]
             # skip what we identified as bad loci
             if locus not in loci_to_skip:
                 seqdict[locus].append(contig)
