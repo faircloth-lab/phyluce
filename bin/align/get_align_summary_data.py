@@ -69,7 +69,9 @@ def compute_lengths(lengths):
     ci = ["95 CI length(aln)", \
             1.96 * (numpy.std(l, ddof=1) / numpy.sqrt(len(l)))
             ]
-    for result in [sm, avg, ci]:
+    mn = ["Minimum length(aln)", min(l)]
+    mx = ["Maximum length(aln)", max(l)]
+    for result in [sm, avg, ci, mn, mx]:
         pretty_printer(result)
 
 

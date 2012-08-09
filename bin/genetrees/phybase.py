@@ -31,7 +31,6 @@ import re
 import sys
 import gzip
 import glob
-from pylab import *
 import argparse
 import dendropy
 import textwrap
@@ -346,9 +345,9 @@ def parseSortedBootreps(args):
     if args.cores > 1:
         p = Pool(args.cores)
         results = p.map(worker, chunks)
+	p.close()
     else:
         results = map(worker, chunks)
-    p.close()
     # SETUP OUTPUT FILES
     star_file = os.path.splitext(args.input_file)[0]
     star_file += '.star.trees'
@@ -422,9 +421,9 @@ def parse_genetrees(args):
     if args.cores > 1:
         p = Pool(args.cores)
         trees = p.map(clean_genetree_worker, chunks)
+	p.close()
     else:
         trees = map(clean_genetree_worker, chunks)
-    p.close()
     # get taxa from first tree
     taxa = getTaxa(trees[0])
     # instantiate Phybase instance and analyse trees

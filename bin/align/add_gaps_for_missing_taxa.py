@@ -100,8 +100,11 @@ def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, m
                 else:
                     loc = seq.name
                 if missing:
-                    assert loc in missing[org], "Locus missing"
-                new_align.add_sequence(org, '-' * overall_length)
+                    try:
+                        assert loc in missing[org], "Locus missing"
+                    except:
+                        assert loc in missing['{}*'.format(org)], "Locus missing"
+                new_align.add_sequence(org, '?' * overall_length)
     return new_align
 
 
