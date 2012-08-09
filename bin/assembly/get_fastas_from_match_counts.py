@@ -76,7 +76,7 @@ def get_coverage(header):
 
 
 def find_file(contigs, name):
-    extensions = ['.fa', '.fasta', '.contigs.fasta', '.gz', '.fasta.gz', '.fa.gz']
+    extensions = ['.fa', '.fasta', '.contigs.fasta', '.contigs.fa', '.gz', '.fasta.gz', '.fa.gz']
     for ext in extensions:
             reads = os.path.join(contigs, name) + ext
             if os.path.isfile(reads):
