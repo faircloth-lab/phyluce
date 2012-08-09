@@ -13,6 +13,7 @@ Description:
 
 import os
 import glob
+import shutil
 import argparse
 from Bio import AlignIO
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
@@ -42,6 +43,19 @@ def get_args():
             type=str,
             help="""Output alignments that contain data for a taxon"""
         )
+    parser.add_argument(
+            "--min-length",
+            dest="min_length",
+            type=int,
+            default=0,
+            help="""Filter out alignments longer than --min-length"""
+        )
+    parser.add_argument(
+            "--output",
+            type=is_dir,
+            action=FullPaths,
+            help="""Place alignments meeting criteria in an output folder"""
+        )
     return parser.parse_args()
 
 
@@ -67,11 +81,13 @@ def main():
                             good = False
                         else:
                             good = True
-                if good:
-                    print "{0}\t{1}".format(os.path.basename(f), aln.get_alignment_length())
             else:
+                good = True
+            if good and aln.get_alignment_length() >= args.min_length:
                 print "{0}\t{1}".format(os.path.basename(f), aln.get_alignment_length())
-
+            if args.output and good and aln.get_alignment_length() >= args.min_length:
+                name = os.path.basename(f)
+                shutil.copy(f, os.path.join(args.output, name))
         except ValueError, e:
             if e.message == 'No records found in handle':
                 print 'No records found in {0}'.format(os.path.basename(f))
