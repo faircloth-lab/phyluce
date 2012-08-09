@@ -68,7 +68,6 @@ def get_files(input_dir, input_format):
 
 def main():
     args = get_args()
-    # iterate through all the files to determine the longest alignment
     files = get_files(args.input, args.input_format)
     for f in files:
         try:
