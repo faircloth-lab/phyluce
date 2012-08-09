@@ -156,7 +156,7 @@ def main():
             # get starts and ends of true bases in alignment
             trim_positions = get_absolute_starts_and_ends(new_aln, outgroup)
             # loop through taxa and get outgroup
-            bases = set(['A', 'C', 'G', 'T'])
+            bases = set(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't'])
             for taxon in new_aln:
                 if args.trim == 'relative':
                     trim_new_aln = new_aln[:, trim_positions[taxon.id][0]:trim_positions[taxon.id][1]]
