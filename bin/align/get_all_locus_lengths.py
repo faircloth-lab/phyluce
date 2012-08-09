@@ -7,8 +7,16 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 08 August 2012 19:08 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description: Given a folder of alignments, output the name and length.
+Filter on presence of data for a taxon with --containing-data-for and/or
+length with --min-length.  If --output, copy resulting files into a new
+directory.
 
+Usage: python get_all_locus_lengths.py phylip-with-gaps \
+	--input-format phylip \
+	--containing-data-for pol_sen \
+	--output phylip-with-gaps-polypterus \
+	--min-length 50
 """
 
 import os
