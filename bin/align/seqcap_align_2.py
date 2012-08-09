@@ -140,7 +140,6 @@ def get_fasta_dict(args):
         print 'Removing ALL sequences with ambiguous bases...'
     loci = defaultdict(list)
     for record in fasta.FastaReader(args.infile):
-        #pdb.set_trace()
         if not args.faircloth:
             locus = record.identifier.split('|')[1]
         else:
