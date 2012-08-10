@@ -39,6 +39,12 @@ def get_args():
             help="""The outgroup taxon"""
         )
     parser.add_argument(
+            '--output',
+            type=str,
+            default='output',
+            help="""The output filename (without extension - code will add .sqlite)"""
+        )
+    parser.add_argument(
             "--input-format",
             dest="input_format",
             choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
@@ -133,7 +139,8 @@ def create_indel_database(db):
 
 def main():
     args = get_args()
-    conn, c = create_indel_database('output.sqlite')
+    db_name = "{0}-{1}.sqlite".format(args.output, args.trim)
+    conn, c = create_indel_database(db_name)
     # iterate through all the files to determine the longest alignment
     files = get_files(args.input, args.input_format)
     for file_count, f in enumerate(files):
