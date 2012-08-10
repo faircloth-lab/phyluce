@@ -12,6 +12,7 @@ Description:
 """
 
 import os
+import glob
 import argparse
 from Bio import AlignIO
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
