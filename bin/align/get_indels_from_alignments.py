@@ -16,6 +16,7 @@ import sys
 import glob
 import sqlite3
 import argparse
+import multiprocessing
 from Bio import AlignIO
 from Bio.Alphabet import generic_dna
 from Bio.Align import MultipleSeqAlignment
@@ -58,6 +59,12 @@ def get_args():
             choices=['absolute', 'relative'],
             default='absolute',
             help="""Count indels only after removing gaps/missing data from alignment ends""",
+        )
+    parser.add_argument(
+            "--cores",
+            type=int,
+            default=1,
+            help="""The number of cores to use.""",
         )
     return parser.parse_args()
 
@@ -138,90 +145,103 @@ def create_indel_database(db):
     return conn, c
 
 
+def worker(work):
+    arguments, f = work
+    results = {}
+    name_map = {}
+    try:
+        aln = AlignIO.read(f, arguments.input_format)
+        # create new alignment to hold everything but the outgroup
+        new_aln = MultipleSeqAlignment([], generic_dna)
+        count = 0
+        for taxon in aln:
+            if taxon.id == arguments.outgroup:
+                outgroup = taxon
+            else:
+                results[taxon.id] = {'insertions': [], 'deletions': [], 'substitutions': [], 'length': []}
+                new_aln.append(taxon)
+                name_map[taxon.id] = count
+                count += 1
+        # rev_name_map = {v:k for k,v in name_map.iteritems()}
+        # get starts and ends of true bases in alignment
+        trim_positions = get_absolute_starts_and_ends(new_aln, outgroup)
+        # loop through taxa and get outgroup
+        bases = set(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't'])
+        for taxon in new_aln:
+            if arguments.trim == 'relative':
+                trim_new_aln = new_aln[:, trim_positions[taxon.id][0]:trim_positions[taxon.id][1]]
+                trim_outgroup = outgroup[trim_positions[taxon.id][0]:trim_positions[taxon.id][1]]
+            elif arguments.trim == 'absolute':
+                trim_new_aln = new_aln[:, trim_positions['minmax'][0]:trim_positions['minmax'][1]]
+                trim_outgroup = outgroup[trim_positions['minmax'][0]:trim_positions['minmax'][1]]
+            results[taxon.id]['length'] = trim_new_aln.get_alignment_length()
+            for idx in xrange(results[taxon.id]['length']):
+                col = list(trim_new_aln[:, idx])
+                # if outgroup only has insertion it is [ACGT] while set(base) == (['-'])
+                if trim_outgroup[idx] in bases and set(col) == set(['-']):
+                    outgroup_insertion = True
+                else:
+                    outgroup_insertion = False
+                # if outgroup only has deletion it is '-', while len(set(base)) >= 1 and not (['-'])
+                if trim_outgroup[idx] == '-' and (len(set(col)) == 1 and set(col) != set(['-'])):
+                    outgroup_deletion = True
+                else:
+                    outgroup_deletion = False
+                if not outgroup_insertion and not outgroup_deletion:
+                    # loop through columns and compare to outgroup
+                    base = col[name_map[taxon.id]]
+                    # insertion
+                    if base in bases and trim_outgroup[idx] == '-':
+                        results[taxon.id]['insertions'].append(1)
+                    # deletion
+                    elif base == '-' and trim_outgroup[idx] in bases:
+                        results[taxon.id]['deletions'].append(1)
+                    # substitution
+                    elif base != trim_outgroup[idx]:
+                        results[taxon.id]['substitutions'].append(1)
+        sys.stdout.write('.')
+        sys.stdout.flush()
+    except ValueError, e:
+        if e.message == 'No records found in handle':
+            print 'No records found in {0}'.format(os.path.basename(f))
+        else:
+            raise ValueError('Something is wrong with alignment {0}'.format(os.path.basename(f)))
+    return results
+
+
 def main():
     args = get_args()
     db_name = "{0}-{1}.sqlite".format(args.output, args.trim)
     conn, c = create_indel_database(db_name)
     # iterate through all the files to determine the longest alignment
-    files = get_files(args.input, args.input_format)
-    for file_count, f in enumerate(files):
-        results = {}
-        name_map = {}
-        try:
-            aln = AlignIO.read(f, args.input_format)
-            # create new alignment to hold everything but the outgroup
-            new_aln = MultipleSeqAlignment([], generic_dna)
-            count = 0
-            for taxon in aln:
-                if taxon.id == args.outgroup:
-                    outgroup = taxon
-                else:
-                    results[taxon.id] = {'insertions': [], 'deletions': [], 'substitutions': [], 'length': []}
-                    new_aln.append(taxon)
-                    name_map[taxon.id] = count
-                    count += 1
-            # rev_name_map = {v:k for k,v in name_map.iteritems()}
-            # get starts and ends of true bases in alignment
-            trim_positions = get_absolute_starts_and_ends(new_aln, outgroup)
-            # loop through taxa and get outgroup
-            bases = set(['A', 'C', 'G', 'T', 'a', 'c', 'g', 't'])
-            for taxon in new_aln:
-                if args.trim == 'relative':
-                    trim_new_aln = new_aln[:, trim_positions[taxon.id][0]:trim_positions[taxon.id][1]]
-                    trim_outgroup = outgroup[trim_positions[taxon.id][0]:trim_positions[taxon.id][1]]
-                elif args.trim == 'absolute':
-                    trim_new_aln = new_aln[:, trim_positions['minmax'][0]:trim_positions['minmax'][1]]
-                    trim_outgroup = outgroup[trim_positions['minmax'][0]:trim_positions['minmax'][1]]
-                results[taxon.id]['length'] = trim_new_aln.get_alignment_length()
-                for idx in xrange(results[taxon.id]['length']):
-                    col = list(trim_new_aln[:, idx])
-                    # if outgroup only has insertion it is [ACGT] while set(base) == (['-'])
-                    if trim_outgroup[idx] in bases and set(col) == set(['-']):
-                        outgroup_insertion = True
-                    else:
-                        outgroup_insertion = False
-                    # if outgroup only has deletion it is '-', while len(set(base)) >= 1 and not (['-'])
-                    if trim_outgroup[idx] == '-' and (len(set(col)) == 1 and set(col) != set(['-'])):
-                        outgroup_deletion = True
-                    else:
-                        outgroup_deletion = False
-                    if not outgroup_insertion and not outgroup_deletion:
-                        # loop through columns and compare to outgroup
-                        base = col[name_map[taxon.id]]
-                        # insertion
-                        if base in bases and trim_outgroup[idx] == '-':
-                            results[taxon.id]['insertions'].append(1)
-                        # deletion
-                        elif base == '-' and trim_outgroup[idx] in bases:
-                            results[taxon.id]['deletions'].append(1)
-                        # substitution
-                        elif base != trim_outgroup[idx]:
-                            results[taxon.id]['substitutions'].append(1)
-            for taxon_name, values in results.iteritems():
-                c.execute('''INSERT INTO indels (
-                                taxon_name,
-                                locus,
-                                length,
-                                insertions,
-                                deletions,
-                                substitutions
-                            )
-                            VALUES (?,?,?,?,?,?)''', (
-                                taxon_name,
-                                os.path.splitext(os.path.basename(f))[0],
-                                values['length'],
-                                sum(values['insertions']),
-                                sum(values['deletions']),
-                                sum(values['substitutions'])
-                            ))
-                conn.commit()
-            print file_count
+    work = [(args, f) for f in get_files(args.input, args.input_format)]
+    sys.stdout.write("Running")
+    sys.stdout.flush()
+    if args.cores > 1:
+        pool = multiprocessing.Pool(args.cores)
+        results = pool.map(worker, work)
+    else:
+        results = map(worker, work)
+    for result in results:
+        for taxon_name, values in result.iteritems():
+            c.execute('''INSERT INTO indels (
+                            taxon_name,
+                            locus,
+                            length,
+                            insertions,
+                            deletions,
+                            substitutions
+                        )
+                        VALUES (?,?,?,?,?,?)''', (
+                            taxon_name,
+                            os.path.splitext(os.path.basename(f))[0],
+                            values['length'],
+                            sum(values['insertions']),
+                            sum(values['deletions']),
+                            sum(values['substitutions'])
+                        ))
+            conn.commit()
 
-        except ValueError, e:
-            if e.message == 'No records found in handle':
-                print 'No records found in {0}'.format(os.path.basename(f))
-            else:
-                raise ValueError('Something is wrong with alignment {0}'.format(os.path.basename(f)))
 
 if __name__ == '__main__':
     main()
