@@ -118,7 +118,7 @@ def write_alignments_to_outdir(outdir, alignments, format):
     print '\nWriting output files...'
     for tup in alignments:
         locus, aln = tup
-        if aln.trimmed_alignment:
+        if aln.trimmed_alignment is not None:
             outname = "{}{}".format(
                     os.path.join(outdir, locus),
                     get_file_extensions(format)[0]

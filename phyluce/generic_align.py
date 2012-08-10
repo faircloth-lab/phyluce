@@ -170,7 +170,13 @@ class GenericAlign(object):
                     # pass the Alignment object a name and str(sequence).  Given this
                     # level of retardation, we'll fudge and use their private method
                     if start >= 0 and end:
-                        self.trimmed_alignment.append(sequence[start:end])
+                        trimmed = sequence[start:end]
+                        # ensure we don't just add a taxon with only gaps/missing data
+                        if set(trimmed) != set(['-']) and set(trimmed) != (['?']):
+                            self.trimmed_alignment.append(sequence[start:end])
+                        else:
+                            self.trimmed_alignment = None
+                            break
                     else:
                         self.trimmed_alignment = None
                         break

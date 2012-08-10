@@ -190,10 +190,13 @@ def write_alignments_to_outdir(outdir, alignments, format='nexus'):
     print '\nWriting output files...'
     for tup in alignments:
         locus, aln = tup
-        outname = "{}{}".format(os.path.join(outdir, locus), formats[format])
-        outf = open(outname, 'w')
-        outf.write(aln.trimmed_alignment.format(format))
-        outf.close()
+        if aln.trimmed_alignment is not None:
+            outname = "{}{}".format(os.path.join(outdir, locus), formats[format])
+            outf = open(outname, 'w')
+            outf.write(aln.trimmed_alignment.format(format))
+            outf.close()
+        else:
+            print "Dropped {0} from output".format(locus)
 
 
 def main(args):
