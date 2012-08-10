@@ -23,6 +23,7 @@ from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
 import pdb
 
+
 def get_args():
     parser = argparse.ArgumentParser(
             description="""Count indels in alignments, relative to (but excluding) the outgroup"""
