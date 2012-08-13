@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+    #!/usr/bin/env python
 # encoding: utf-8
 """
 File: mpi_sate.py
@@ -15,6 +15,7 @@ Description:
 import os
 import sys
 import copy
+import glob
 import mpimap
 import shutil
 import argparse
@@ -33,7 +34,6 @@ def get_args():
             description="""Program description""")
     parser.add_argument(
             "infile",
-            type=is_file,
             action=FullPaths,
             help="""Help text"""
         )
@@ -78,6 +78,18 @@ def get_args():
             default=False,
             help='Give verbose output'
         )
+    parser.add_argument(
+            "--parallelism",
+            choices=['mpi', 'multiprocessing', 'single'],
+            default='single',
+            help="""The type of parallelism to use.""",
+        )
+    parser.add_argument(
+            "--cores",
+            type=int,
+            default='8',
+            help="""The number of compute cores to use in multiprocessing.""",
+        )
     return parser.parse_args()
 
 
@@ -102,13 +114,21 @@ def get_fasta_dict(args):
             sys.stdout.write('Removing ALL sequences with ambiguous bases...\n')
     sys.stdout.flush()
     loci = defaultdict(list)
-    for record in fasta.FastaReader(args.infile):
-        if not args.faircloth:
-            locus = record.identifier.split('|')[1]
-        else:
-            locus = '_'.join([record.identifier.split('|')[0], \
-                record.identifier.split('|')[1].split('_')[0]])
-        loci = build_locus_dict(loci, locus, record, args.ambiguous)
+    if os.path.isfile(args.infile):
+        for record in fasta.FastaReader(args.infile):
+            if not args.faircloth:
+                locus = record.identifier.split('|')[1]
+            else:
+                locus = '_'.join([record.identifier.split('|')[0], \
+                    record.identifier.split('|')[1].split('_')[0]])
+            loci = build_locus_dict(loci, locus, record, args.ambiguous)
+    # work with a directory of fastas if we have those - get locus name from
+    # filename
+    elif os.path.isdir(args.infile):
+        for ff in glob.glob(os.path.join(args.infile, '*.fa*')):
+            locus = os.path.splitext(os.path.basename(ff))[0]
+            for record in fasta.FastaReader(ff):
+                loci = build_locus_dict(loci, locus, record, args.ambiguous)
     # workon a copy so we can iterate and delete
     snapshot = copy.deepcopy(loci)
     # iterate over loci to check for all species at a locus
@@ -167,6 +187,8 @@ def worker(params):
     aln = open(aln_file, 'rU').read()
     # zap working tempdir
     shutil.rmtree(working)
+    sys.stdout.write('.')
+    sys.stdout.flush()
     # return filename and align so we can store resulting alignments reasonably
     return (name, aln)
 
@@ -177,8 +199,9 @@ def main():
     loci = get_fasta_dict(args)
     opts = [[args.sate, args.cfg] for i in range(len(loci))]
     params = zip(loci.items(), opts)
+    sys.stdout.write('Aligning')
     # pass to map or Pool.map or mpimap
-    alignments = mpimap.map(worker, params)
+    alignments = mmap.map(worker, params)
     for data in alignments:
         name, aln = data
         out_file = os.path.join(args.output, name) + '.aln'
@@ -187,4 +210,16 @@ def main():
         out.close()
 
 if __name__ == '__main__':
-    main()
+    args = get_args()
+    if args.parallelism == 'mpi':
+        from deap.dtm import map as mmap
+        from deap.dtm import start
+        start(main)
+    elif args.parallelism == 'multiprocessing':
+        from multiprocessing import Pool
+        pool = Pool(args.cores)
+        mmap = pool.map
+        main()
+    elif args.parallelism == 'single':
+        mmap = map
+        main()
