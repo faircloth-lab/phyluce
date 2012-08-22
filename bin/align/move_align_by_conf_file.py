@@ -53,6 +53,12 @@ def get_args():
             default=False,
             help="""Move alignments based on what is NOT in the conf file""",
         )
+    parser.add_argument(
+            "--extension",
+            type=str,
+            default="nex",
+            help="""The extension of the files to move""",
+        )
     return parser.parse_args()
 
 
@@ -67,7 +73,7 @@ def main():
     for section in args.sections:
         temp_items.extend([i[0] for i in conf.items(section)])
     items = set(temp_items)
-    for src in glob.glob(os.path.join(args.input, '*.nex*')):
+    for src in glob.glob(os.path.join(args.input, '*.{}*'.format(args.extension))):
         basename = os.path.basename(src)
         if not args.opposite:
             if os.path.splitext(basename)[0] in items:
