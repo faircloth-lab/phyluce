@@ -59,7 +59,7 @@ def single_mpest(input, iterations):
     #pdb.set_trace()
     trees = []
     for seed in seeds:
-        temp_fd, temp_out = tempfile.mkstemp(suffix='.mpestout', dir='/n/home06/ngcrawford/tmp')
+        temp_fd, temp_out = tempfile.mkstemp(suffix='.mpestout', dir='/tmp')
         os.close(temp_fd)
         cli = mpest_cli(input, seed, temp_out)
         print cli
@@ -80,7 +80,7 @@ def single_mpest(input, iterations):
 def multi_mpest(input, output, control_file):
     '''docstring'''
     for seed in iter(input.get, 'STOP'):
-        temp_fd, temp_out = tempfile.mkstemp(suffix='.mpestout', dir='/n/home06/ngcrawford/tmp')
+        temp_fd, temp_out = tempfile.mkstemp(suffix='.mpestout', dir='/tmp')
         os.close(temp_fd)
         cli = mpest_cli(control_file, seed, temp_out)
         print cli
