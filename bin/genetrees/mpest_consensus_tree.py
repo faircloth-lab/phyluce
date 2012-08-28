@@ -31,11 +31,13 @@ USAGE:  python ../../consensus_tree.py --input=917_loci_19_species_mpest.tree \
 """
 
 import os
-import pdb
 import sys
 import glob
 import optparse
 import dendropy
+
+import pdb
+
 
 def interface():
     '''Command-line interface'''
@@ -65,23 +67,25 @@ metavar='FILE')
         sys.exit(2)
     return options, arg
 
+
 def make_consensus(treefile, min_freq=0.5):
     """generatae a consensus tree from the input"""
     trees = dendropy.TreeList()
     for tree_file in [treefile]:
-        trees.read_from_path(tree_file,"newick")
+        trees.read_from_path(tree_file, "newick")
     con_tree = trees.consensus(min_freq)
-    #return con_tree.as_string('newick')
     return con_tree
+
 
 def newick2nexus(in_dir):
     """some doc"""
-    alignments = glob.glob( os.path.join(in_dir,'*.tre'))
+    alignments = glob.glob(os.path.join(in_dir, '*.tre'))
     phyml_trees = dendropy.TreeList()
     for tree_file in alignments:
-        phyml_trees.read_from_path(tree_file,'newick',)
+        phyml_trees.read_from_path(tree_file, 'newick',)
     return phyml_trees
-    
+
+
 def get_species_dict(control):
     """docstring for get_species_dict"""
     control_file = open(control, 'rU')
@@ -93,7 +97,8 @@ def get_species_dict(control):
             break
         else:
             species.append(ls[0])
-    return dict(zip(xrange(1,len(species)+1),species))
+    return dict(zip(xrange(1, len(species) + 1), species))
+
 
 def main():
     options, arg = interface()
@@ -109,19 +114,12 @@ def main():
     else:
         cons = make_consensus(options.input)
     if options.output:
-        outf = open(options.output,'w')
+        outf = open(options.output, 'w')
         outf.write(cons.as_string('newick'))
         outf.close()
     else:
         print cons.as_string('newick')
-    # print 'steac', consensus('~/Desktop/more/steac.trees')
-    # in_dir = '/Users/nick/Desktop/Code/seqcap/Manuscripts/Tetrapods/Data/183Loci_29Species/alignments_from_loci/183Loci_29Species_alignments_trees/'
-    # out_file = open('183_nexus.trees','w')
-    # trees = newick2nexus(in_dir)
-    # out_file.write(trees.as_string('nexus'))
-
 
 
 if __name__ == '__main__':
     main()
-
