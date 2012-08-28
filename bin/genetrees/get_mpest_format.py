@@ -93,8 +93,9 @@ def create_rooted_trees_from_file(input, fout, outgroup):
     """docstring for create_rooted_trees_from_file"""
     fin = open(input, 'rU')
     fout = open(fout, 'w')
+    #pdb.set_trace()
     for count, line in enumerate(fin):
-        line = line.strip()
+        line = line.split('[&U]')[-1].strip()
         #pdb.set_trace()
         tree = Tree(line)
         tree.set_outgroup(outgroup)
