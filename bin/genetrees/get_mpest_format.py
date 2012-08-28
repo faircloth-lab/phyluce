@@ -33,12 +33,11 @@ USAGE:  python ../../get_mpest_format.py --input=408Loci_25Species.PhyML.trees \
 
 import os
 import sys
-import pdb
 import glob
 import optparse
-import subprocess
-import numpy as np
 from ete2 import Tree
+
+import pdb
 
 def interface():
     '''Get the starting parameters from a configuration file'''
@@ -66,10 +65,10 @@ help='Build mpest control files for trees in input directory')
     options.output = os.path.abspath(os.path.expanduser(options.output))
     return options, arg
 
+
 def create_rooted_trees_from_dir(paths, fout, outgroup, control):
     """provide paths of phyml bootstrap replicates """
     #pdb.set_trace()
-    
     for count, path in enumerate(paths):
         base_path, tree_file_name = os.path.split(path)
         rooted_tree_name = path.split('.')[0] + '.PhyML.rooted.trees'
@@ -81,14 +80,13 @@ def create_rooted_trees_from_dir(paths, fout, outgroup, control):
             tree = Tree(tree)
             tree.set_outgroup(outgroup)
             newick = tree.write(format=5) + '\n'
-	    fout.write(newick)
-	print count+1
+        fout.write(newick)
+        print count + 1
         fout.close()
-    	if control:
+        if control:
             #pdb.set_trace()
             print rooted_tree_name
-	    create_control_files(rooted_tree_name)
-	#if count > 1: break
+        create_control_files(rooted_tree_name)
 
 
 def create_rooted_trees_from_file(input, fout, outgroup):
@@ -102,33 +100,34 @@ def create_rooted_trees_from_file(input, fout, outgroup):
         tree.set_outgroup(outgroup)
         newick = tree.write(format=5) + '\n'
         fout.write(newick)
-        print count+1
+        print count + 1
     fout.close()
     fin.close()
-    
+
+
 def create_control_files(path):
     """explaination"""
     #pdb.set_trace()
     # set output filename for control file
     base_path, tree_file = os.path.split(path)
-    
-    control_file = '.'.join([tree_file.split('.')[0],'control'])
-    fout = open(os.path.join(base_path, control_file),'w')
+    control_file = '.'.join([tree_file.split('.')[0], 'control'])
+    fout = open(os.path.join(base_path, control_file), 'w')
     # open up the input tree file and get the first tree
-    tree_file_contents = open(path,'r').readlines()
+    tree_file_contents = open(path, 'r').readlines()
     tree = tree_file_contents[0].strip()
     tree = Tree(tree)
-    taxa_names =  tree.get_leaf_names()
+    taxa_names = tree.get_leaf_names()
     #pdb.set_trace()
-    taxa_string  = ['{0}\t1\t{0}'.format(taxa) for taxa in taxa_names]
-    template_info = {'filename':path,
-                    'tree_count':len(tree_file_contents),
-                    'numb_taxa':len(taxa_names),
-                    'taxa_details':'\n'.join(taxa_string)}
+    taxa_string = ['{0}\t1\t{0}'.format(taxa) for taxa in taxa_names]
+    template_info = {'filename': path,
+                    'tree_count': len(tree_file_contents),
+                    'numb_taxa': len(taxa_names),
+                    'taxa_details': '\n'.join(taxa_string)}
     # needs to go to format()
     template = "%(filename)s\n0\n%(tree_count)s %(numb_taxa)s\n%(taxa_details)s\n0\n" % template_info
     fout.write(template)
     fout.close()
+
 
 def main():
     options, arg = interface()
