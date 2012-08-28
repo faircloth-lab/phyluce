@@ -152,7 +152,7 @@ def main():
             output_file = os.path.abspath(os.path.join(options.output,       
                         "all_probes_v_{0}.lastz".format(g)))
             exc_str = '''/Users/bcf/git/brant/seqcap/Alignment/run_lastz.py \
-                        --target=/Volumes/nfs/data1/genomes/Genomes/{3}{0}/{0}.2bit \
+                        --target=/nfs/data1/genomes/Genomes/{3}{0}/{0}.2bit \
                         --query={1}\
                         --nprocs=6 \
                         --output={2} --huge'''.format(g, options.probefile, output_file, options.fish)
@@ -169,7 +169,7 @@ def main():
             output_file = os.path.abspath(os.path.join(options.output,       
                         "all_probes_v_{0}.lastz".format(g)))
             exc_str = '''/Users/bcf/git/brant/seqcap/Alignment/run_lastz.py \
-                        --target=/Volumes/nfs/data1/genomes/Genomes/{3}{0}/{0}.2bit \
+                        --target=/nfs/data1/genomes/Genomes/{3}{0}/{0}.2bit \
                         --query={1}\
                         --nprocs=6 \
                         --output={2}'''.format(g, options.probefile, output_file, options.fish)

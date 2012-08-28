@@ -56,7 +56,7 @@ def get_args():
     parser.add_argument(
             "--trim",
             dest="trim",
-            choices=['absolute', 'relative'],
+            choices=['absolute', 'relative', 'none'],
             default='absolute',
             help="""Count indels only after removing gaps/missing data from alignment ends""",
         )
@@ -152,6 +152,9 @@ def trim_alignments_with_start_and_stop(arguments, iden, new_aln, outgroup, trim
     elif arguments.trim == 'absolute':
         trim_new_aln = new_aln[:, trim_positions['minmax'][0]:trim_positions['minmax'][1]]
         trim_outgroup = outgroup[trim_positions['minmax'][0]:trim_positions['minmax'][1]]
+    elif arguments.trim == 'none':
+        trim_new_aln = new_aln
+        trim_outgroup = outgroup
     return trim_new_aln, trim_outgroup
 
 
