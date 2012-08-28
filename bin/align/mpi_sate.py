@@ -16,7 +16,6 @@ import os
 import sys
 import copy
 import glob
-import mpimap
 import shutil
 import argparse
 import tempfile
@@ -25,7 +24,7 @@ from collections import defaultdict
 from phyluce.helpers import is_dir, is_file, FullPaths
 from seqtools.sequence import fasta
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -201,7 +200,7 @@ def main():
     params = zip(loci.items(), opts)
     sys.stdout.write('Aligning')
     # pass to map or Pool.map or mpimap
-    alignments = mmap.map(worker, params)
+    alignments = mmap(worker, params)
     for data in alignments:
         name, aln = data
         out_file = os.path.join(args.output, name) + '.aln'
