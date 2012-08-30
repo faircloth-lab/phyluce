@@ -8,150 +8,204 @@ Created by Brant Faircloth on 16 September 2010 09:37 PDT (-0700).
 Copyright (c) 2010 Brant C. Faircloth. All rights reserved.
 
 PURPOSE:  Run an input file through our slightly customized version of mpest
-either using a single core or multiple cores, and feeding mpest a random 
+either using a single core or multiple cores, and feeding mpest a random
 (integer) seed drawn from a uniform distribution.
 
-USAGE:  python ../../run_mpest.py --control-file=408_loci_25_species.control \
-            --iterations=1000 --cores=7 
-            --output=408_loci_25_species_mpest.tree
+USAGE:  python run_mpest.py control-file-name.control output-file-name.output \
+            --iterations 1000 --cores 7
+
+Modified MP-EST is at:  https://github.com/faircloth-lab/mp-est
 
 """
 
-import pdb
-import sys
+
 import os
+import re
+import sys
 import time
-import numpy
-import optparse
+import shutil
+import random
+import argparse
 import tempfile
+#import dendropy
 import subprocess
-import multiprocessing
+from operator import itemgetter
+from multiprocessing import Pool
+from collections import defaultdict
+from phyluce.helpers import is_file, FullPaths
+from ete2 import Tree
+
+import pdb
 
 
-def interface():
-    '''Get the starting parameters from a configuration file'''
-    usage = "usage: %prog [options]"
-    
-    p = optparse.OptionParser(usage)
-    
-    p.add_option('--control-file', dest = 'input', action='store', \
-type='string', default = None, help='The path to the input control file', \
-metavar='FILE')
-    p.add_option('--output', dest = 'output', action='store', \
-type='string', default = None, help='The path to the output file', \
-metavar='FILE')
-    p.add_option('--iterations', dest = 'iterations', action='store', \
-type='int', default = None, help='The number of iterations to run')
-    p.add_option('--cores', dest = 'nprocs', action='store', \
-type='int', default = None, help='The number of cores to use')
-    (options,arg) = p.parse_args()
-    return options, arg
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Run MP-EST using multiple compute cores""")
+    parser.add_argument(
+            "control",
+            type=is_file,
+            action=FullPaths,
+            help="""The MP-EST control file"""
+        )
+    parser.add_argument(
+            "output",
+            action=FullPaths,
+            help="""The MP-EST output file (to hold iterations"""
+        )
+    parser.add_argument(
+            "root",
+            type=str,
+            help="""The nodename on which to root the tree"""
+        )
+    parser.add_argument(
+            "--iterations",
+            type=int,
+            default=1,
+            help="""The number of iterations to run""",
+        )
+    parser.add_argument(
+            "--cores",
+            type=int,
+            default=1,
+            help="""The number of compute cores to use""",
+        )
+    parser.add_argument(
+            "--bootreps",
+            action="store_true",
+            default=False,
+            help="""If processing bootreps""",
+        )
+    parser.add_argument(
+            "--bootrep-num",
+            dest='bootrep_num',
+            type=int,
+            default=10,
+            help="""The number of bootreps to run""",
+        )
+    return parser.parse_args()
 
 
-def mpest_cli(input, seed, outfile):
-    cli = 'mpest {0} {1} {2}'.format(input, seed, outfile)
-    return cli
+def create_control_file(taxa, genes, temp_bootrep_file):
+    temp_fd, temp_out = tempfile.mkstemp(suffix='.mpest-control')
+    taxa_string = ['{0}\t1\t{0}'.format(name) for name in taxa]
+    data = {
+            'filename': temp_bootrep_file,
+            'tree_count': genes,
+            'numb_taxa': len(taxa),
+            'taxa_details': '\n'.join(taxa_string)
+        }
+    template = "%(filename)s\n0\n%(tree_count)s %(numb_taxa)s\n%(taxa_details)s\n0\n" % data
+    os.write(temp_fd, template)
+    os.close(temp_fd)
+    return temp_out
 
 
-def single_mpest(input, iterations):
-    '''docstring'''
-    seeds = numpy.random.random_integers(100000, high=None, size=iterations)
+def run_mpest(work):
+    taxa, genes, temp_bootrep_file = work
     #pdb.set_trace()
-    trees = []
-    for seed in seeds:
-        temp_fd, temp_out = tempfile.mkstemp(suffix='.mpestout', dir='/tmp')
+    # generate control file
+    control = create_control_file(taxa, genes, temp_bootrep_file)
+    # create output file
+    temp_fd, temp_out = tempfile.mkstemp(suffix='.mpest-out')
+    os.close(temp_fd)
+    # get seed
+    seed = random.randint(1, 1000000)
+    # setup mpest command line
+    cmd = ['mpest', control, str(seed), temp_out]
+    # capture output to hide it from CLI
+    out, err = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        ).communicate(None)
+    regex = re.compile("tree\smpest\s\[(.*)\]")
+    for line in reversed(open(temp_out).readlines()):
+        # we basically need to pull the last line of the file
+        if 'tree mpest' in line:
+            pre, post = line.strip('\n').split('=')
+            post = post.strip()
+            ll_result = regex.search(pre)
+            ll = float(ll_result.groups()[0])
+            result = post.rstrip(';')
+            break
+    #for file in [control, temp_out, temp_bootrep_file]:
+    #    os.remove(file)
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    return result
+
+
+def parse_bootrep_file(fname, root, bootrep_num):
+    bootrep_temp_files = []
+    #bootreps = defaultdict(dendropy.TreeList)
+    bootreps = defaultdict(list)
+    sys.stdout.write("Parsing bootrep file")
+    sys.stdout.flush()
+    printrep = 0
+    for line in open(fname, 'rU'):
+        repnum, tree_string = line.strip().split('\t')
+        # clean up input
+        repnum = int(repnum)
+        if repnum > printrep:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            printrep = repnum
+        tree_string = tree_string.strip('"')
+        if repnum <= bootrep_num:
+            tree = Tree(tree_string)
+            tree.set_outgroup(root)
+            bootreps[repnum].append(tree)
+        else:
+            break
+    genes = list(set([len(trees) for trees in bootreps.values()]))
+    assert len(genes) == 1
+    for repnum, trees in bootreps.iteritems():
+        temp_fd, temp_out = tempfile.mkstemp(prefix='{}-'.format(repnum), suffix='.mpest-bootrep')
+        for tree in trees:
+            os.write(temp_fd, tree.write(format=5) + "\n")
         os.close(temp_fd)
-        cli = mpest_cli(input, seed, temp_out)
-        print cli
-        #pdb.set_trace()
-        mpest_out, mpest_stderr = subprocess.Popen(cli, shell=True, 
-            stdout=subprocess.PIPE, stderr = subprocess.PIPE).communicate(None)
-        #print mpest_stderr
-        #pdb.set_trace()
-        for line in reversed(open(temp_out).readlines()):
-            if 'mpestTree' in line:
-                pre, post = line.strip('\n').split('=')
-                post = post.strip(' ')
-                post = post.rstrip(';')
-                trees.append(post)
-        os.remove(temp_out)
-    return trees
-
-def multi_mpest(input, output, control_file):
-    '''docstring'''
-    for seed in iter(input.get, 'STOP'):
-        temp_fd, temp_out = tempfile.mkstemp(suffix='.mpestout', dir='/tmp')
-        os.close(temp_fd)
-        cli = mpest_cli(control_file, seed, temp_out)
-        print cli
-        #pdb.set_trace()
-        mpest_out, mpest_stderr = subprocess.Popen(cli, shell=True, 
-            stdout=subprocess.PIPE, stderr = subprocess.PIPE).communicate(None)
-        #pdb.set_trace()
-        for line in reversed(open(temp_out).readlines()):
-            if 'mpestTree' in line:
-                pre, post = line.strip('\n').split('=')
-                post = post.strip(' ')
-                post = post.rstrip(';')
-                output.put(post)
-        os.remove(temp_out)
+        bootrep_temp_files.append(temp_out)
+    return genes[0], bootrep_temp_files
 
 
-def q_runner(n_procs, list_item, function, *args):
-    '''generic function used to start worker processes'''
-    task_queue      = multiprocessing.Queue()
-    results_queue   = multiprocessing.JoinableQueue()
-    if args:
-        arguments = (task_queue, results_queue,) + args
-    else:
-        arguments = (task_queue, results_queue,)
-    results = []
-    # reduce processer count if proc count > files
-    if len(list_item) < n_procs:
-        n_procs = len(list_item)
-    for l in list_item:
-        task_queue.put(l)
-    for _ in range(n_procs):
-        p = multiprocessing.Process(target = function, args = arguments).start()
-        #print 'Starting %s' % function
-    for _ in range(len(list_item)):
-        # indicated done results processing
-        results.append(results_queue.get())
-        results_queue.task_done()
-    #tell child processes to stop
-    for _ in range(n_procs):
-        task_queue.put('STOP')
-    # join the queue until we're finished processing results
-    results_queue.join()
-    # not closing the Queues caused me untold heartache and suffering
-    task_queue.close()
-    results_queue.close()
-    return results
+def get_taxa_for_one_alignment(fname):
+    line = open(fname, 'rU').readline()
+    repnum, tree_string = line.strip().split('\t')
+    tree_string = tree_string.strip('"')
+    tree = Tree(tree_string)
+    taxa = tuple(tree.get_leaf_names())
+    return taxa
 
 
 def main():
-    start_time      = time.time()
+    start_time = time.time()
     print 'Started: ', time.strftime("%a %b %d, %Y  %H:%M:%S", time.localtime(start_time))
-    options, arg = interface()
-    if options.nprocs == 1:
-        trees = single_mpest(options.input, options.iterations)
-        outp = open(options.output, 'w')
-        outp.write(';\n'.join(trees))
-        outp.write(';')
-        outp.close()
+    args = get_args()
+    if args.bootreps:
+        # get taxa for a given alignment
+        taxa = get_taxa_for_one_alignment(args.control)
+        # parse bootreps from output file
+        genes, temp_bootrep_files = parse_bootrep_file(args.control, args.root, args.bootrep_num)
+        # create local control file
+        local_control = create_control_file(taxa, genes, temp_bootrep_files[0])
+        shutil.move(local_control, os.path.join(os.getcwd(), 'local-control-file.control'))
+    # cram taxa, gene count, and bootrep files into a list of size num(iterations)
+    work = [[taxa, genes, bootrep] for bootrep in temp_bootrep_files]
+    sys.stdout.write("\nRunning {0} bootreps of {1} iterations".format(args.bootrep_num, args.iterations))
+    sys.stdout.flush()
+    if args.cores == 1:
+        trees = map(run_mpest, work)
     else:
-        seeds = map(None, numpy.random.random_integers(100000, high=None, size=options.iterations))
-        #pdb.set_trace()
-        trees = q_runner(options.nprocs, seeds, multi_mpest, options.input)
-        outp = open(options.output, 'w')
-        outp.write(';\n'.join(trees))
-        outp.write(';')
-        outp.close()
-        #pdb.set_trace()
+        pool = Pool(args.cores)
+        trees = pool.map(run_mpest, work)
+    outp = open(args.output, 'w')
+    outp.write(';\n'.join(trees))
+    outp.write(';')
+    outp.close()
     end_time = time.time()
     print 'Ended: ', time.strftime("%a %b %d, %Y  %H:%M:%S", time.localtime(end_time))
-    print 'Time for execution: ', (end_time - start_time)/60, 'minutes'
-
+    print 'Time for execution: ', (end_time - start_time) / 60, 'minutes'
 
 
 if __name__ == '__main__':
