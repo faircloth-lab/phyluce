@@ -120,7 +120,7 @@ def run_mpest(work):
             stderr=subprocess.PIPE
         ).communicate(None)
     regex = re.compile("tree\smpest\s\[(.*)\]")
-    for line in reversed(open(temp_out).readlines()):
+    for line in reversed(open(temp_out, 'rU').readlines()):
         # we basically need to pull the last line of the file
         if 'tree mpest' in line:
             pre, post = line.strip('\n').split('=')
@@ -142,7 +142,7 @@ def parse_bootrep_file(fname, root, bootrep_num):
     bootreps = defaultdict(list)
     sys.stdout.write("Parsing bootrep file")
     sys.stdout.flush()
-    printrep = 0
+    printrep = 1
     for line in open(fname, 'rU'):
         repnum, tree_string = line.strip().split('\t')
         # clean up input
