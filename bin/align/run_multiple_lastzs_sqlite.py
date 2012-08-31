@@ -161,7 +161,15 @@ def align_against_scaffolds(cur, args, path):
     for g in args.scaffoldlist:
         output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
         target = path.format(g)
-        multi_lastz_runner(output, args.cores, target, args.probefile, True)
+        prefab = False
+        if os.path.exists(output):
+            inpt = raw_input("The output file exists.  Do you want to use it [Y/n]? ")
+            if inpt == 'Y' or inpt == 'Yes':
+                prefab = True
+            else:
+                prefab = False
+        if not prefab:
+            multi_lastz_runner(output, args.cores, target, args.probefile, True)
         if args.db:
             clean = clean_lastz_data(output)
             create_species_lastz_tables(cur, g)
@@ -173,7 +181,15 @@ def align_against_genomes(cur, args, path):
     for g in args.chromolist:
         output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
         target = path.format(g)
-        multi_lastz_runner(output, args.cores, target, args.probefile, False)
+        prefab = False
+        if os.path.exists(output):
+            inpt = raw_input("The output file exists.  Do you want to use it [Y/n]? ")
+            if inpt == 'Y' or inpt == 'Yes':
+                prefab = True
+            else:
+                prefab = False
+        if not prefab:
+            multi_lastz_runner(output, args.cores, target, args.probefile, False)
         if args.db:
             clean = clean_lastz_data(output)
             create_species_lastz_tables(cur, g)
@@ -183,10 +199,11 @@ def align_against_genomes(cur, args, path):
 
 def check_for_all_genome_sequences(chromo, scaffold, path):
     genomes = chromo + scaffold
+    pdb.set_trace()
     for g in genomes:
         file = path.format(g)
         if not os.path.isfile(file):
-            raise IOError("{} is not a file".format(g))
+            raise IOError("{} is not a file".format(file))
 
 
 def main():
