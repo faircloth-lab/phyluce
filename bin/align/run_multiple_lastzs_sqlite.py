@@ -162,16 +162,17 @@ def align_against_scaffolds(cur, args, path):
         output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
         target = path.format(g)
         prefab = False
-        if os.path.exists(output):
+        if os.path.isfile(output + '.clean'):
             inpt = raw_input("The output file exists.  Do you want to use it [Y/n]? ")
             if inpt == 'Y' or inpt == 'Yes':
                 prefab = True
+                clean = output + '.clean'
             else:
                 prefab = False
         if not prefab:
             multi_lastz_runner(output, args.cores, target, args.probefile, True)
-        if args.db:
             clean = clean_lastz_data(output)
+        if args.db:
             create_species_lastz_tables(cur, g)
             insert_species_to_lastz_tables(cur, g, clean)
             cur.execute('INSERT INTO species (name) VALUES (?)', (g,))
@@ -182,16 +183,17 @@ def align_against_genomes(cur, args, path):
         output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
         target = path.format(g)
         prefab = False
-        if os.path.exists(output):
+        if os.path.isfile(output + '.clean'):
             inpt = raw_input("The output file exists.  Do you want to use it [Y/n]? ")
             if inpt == 'Y' or inpt == 'Yes':
                 prefab = True
+                clean = output + '.clean'
             else:
                 prefab = False
         if not prefab:
             multi_lastz_runner(output, args.cores, target, args.probefile, False)
-        if args.db:
             clean = clean_lastz_data(output)
+        if args.db:
             create_species_lastz_tables(cur, g)
             insert_species_to_lastz_tables(cur, g, clean)
             cur.execute('INSERT INTO species (name) VALUES (?)', (g,))
