@@ -1,0 +1,208 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: run_multiple_lastzs_sqlite.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 22 August 2012 17:08 PDT (-0700)
+Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+
+USAGE:  python run_multiple_lastzs.py \
+    my-output-db.sqlite \
+    /path/to/some/folder/for/lastz/output \
+    /path/to/my/probes.fa
+    --chromolist oviAri1 \
+    --scaffoldlist ailMel1 myoLuc1
+
+"""
+
+import os
+import sqlite3
+import argparse
+import subprocess
+from phyluce.helpers import is_dir, is_file, FullPaths
+from phyluce.many_lastz import multi_lastz_runner
+
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Align a set of probes against genome sequence(s) in scaffolds or chromosomes""")
+    parser.add_argument(
+            "db",
+            type=str,
+            help="""The database in which to store results (also use --append if adding results to an existing database)"""
+        )
+    parser.add_argument(
+            "output",
+            type=is_dir,
+            action=FullPaths,
+            help="""The directory in which to store the LASTZ files"""
+        )
+    parser.add_argument(
+            "probefile",
+            type=is_file,
+            action=FullPaths,
+            help="""The probe file to align against the sequences"""
+        )
+    parser.add_argument(
+            "--chromolist",
+            type=str,
+            nargs='+',
+            default=[],
+            help="""The list of organisms with genome sequences in chromosomes"""
+        )
+    parser.add_argument(
+            "--scaffoldlist",
+            type=str,
+            nargs='+',
+            default=[],
+            help="""The list of organisms with genome sequences in scaffolds/contigs"""
+        )
+    parser.add_argument(
+            "--append",
+            action="store_true",
+            default=False,
+            help="""Insert results to an existing database""",
+        )
+    parser.add_argument(
+            "--cores",
+            type=int,
+            default=1,
+            help="""The number of compute cores to use""",
+        )
+    return parser.parse_args()
+
+
+def create_species_lastz_tables(cur, g):
+    print "Creating {0} table".format(g)
+    query = """CREATE TABLE {0} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            score INTEGER NOT NULL,
+            name1 TEXT NOT NULL,
+            strand1 TEXT NOT NULL,
+            zstart1 INTEGER NOT NULL,
+            end1 INTEGER NOT NULL,
+            length1 INTEGER NOT NULL,
+            name2 TEXT NOT NULL,
+            strand2 TEXT NOT NULL,
+            zstart2 INTEGER NOT NULL,
+            end2 INTEGER NOT NULL,
+            length2 INTEGER NOT NULL,
+            diff TEXT NOT NULL,
+            cigar TEXT NOT NULL,
+            identity TEXT NOT NULL,
+            percent_identity FLOAT NOT NULL,
+            continuity TEXT NOT NULL,
+            percent_continuity FLOAT NOT NULL,
+            coverage TEXT NOT NULL,
+            percent_coverage FLOAT NOT NULL)""".format(g)
+    try:
+        cur.execute(query)
+    except sqlite3.OperationalError, msg:
+        if "table {0} already exists".format(g) in msg.message:
+            cur.execute("DROP TABLE {0}".format(g))
+            cur.execute(query)
+    try:
+        query = """CREATE INDEX '{0}_name2_idx' on {0}(name2)""".format(g)
+        cur.execute(query)
+    except:
+        pdb.set_trace()
+
+
+def insert_species_to_lastz_tables(cur, g, input):
+    print "Inserting data to {0} table".format(g)
+    with open(input, 'rU') as data:
+        rows = [tuple(line.strip().split("\t")) for line in data]
+    query = """INSERT INTO {0} (score, name1, strand1, zstart1, end1,
+            length1, name2, strand2, zstart2, end2, length2, diff, cigar,
+            identity, percent_identity, continuity, percent_continuity,
+            coverage, percent_coverage) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,
+            ?,?,?,?,?,?,?)""".format(g)
+    cur.executemany(query, rows)
+
+
+def clean_lastz_data(dirty):
+    print "Cleaning {0}".format(dirty)
+    clean = dirty + '.clean'
+    with open(dirty, "r") as source:
+        with open(clean, "w") as target:
+            data = source.read()
+            target.write(data.replace("%", ""))
+    # remove the dirty file containing % signs
+    os.remove(dirty)
+    return clean
+
+
+def create_species_table(conn, cur, append):
+    if not append:
+        try:
+            cur.execute("""CREATE TABLE species (
+                name TEXT PRIMARY KEY,
+                description TEXT NULL,
+                version TEXT NULL
+                )
+            """)
+            conn.commit()
+        except sqlite3.OperationalError, msg:
+            if "table species already exists" in msg.message:
+                inpt = raw_input("Species table already exists. Replace [Y/n]? ")
+                if inpt == "Y":
+                    cur.execute("DROP TABLE species")
+                    create_species_table(conn, cur, append)
+    else:
+        pass
+
+
+def align_against_scaffolds(cur, args, path):
+    for g in args.scaffoldlist:
+        output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
+        target = path.format(g)
+        multi_lastz_runner(output, args.cores, target, args.probefile, True)
+        if args.db:
+            clean = clean_lastz_data(output)
+            create_species_lastz_tables(cur, g)
+            insert_species_to_lastz_tables(cur, g, clean)
+            cur.execute('INSERT INTO species (name) VALUES (?)', (g,))
+
+
+def align_against_genomes(cur, args, path):
+    for g in args.chromolist:
+        output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
+        target = path.format(g)
+        multi_lastz_runner(output, args.cores, target, args.probefile, False)
+        if args.db:
+            clean = clean_lastz_data(output)
+            create_species_lastz_tables(cur, g)
+            insert_species_to_lastz_tables(cur, g, clean)
+            cur.execute('INSERT INTO species (name) VALUES (?)', (g,))
+
+
+def check_for_all_genome_sequences(chromo, scaffold, path):
+    genomes = chromo + scaffold
+    for g in genomes:
+        file = path.format(g)
+        assert os.path.isfile(file)
+
+
+def main():
+    args = get_args()
+    # connect to the db
+    conn = sqlite3.connect(args.db)
+    cur = conn.cursor()
+    path = "/nfs/data1/genomes/Genomes/{0}/{0}.2bit"
+    check_for_all_genome_sequences(args.chromolist, args.scaffoldlist, path)
+    # create a species table if not exists
+    create_species_table(conn, cur, args.append)
+    # for each genome, align the probes against the scaffold/readlist passed
+    align_against_scaffolds(cur, args, path)
+    align_against_genomes(cur, args, path)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+if __name__ == '__main__':
+    main()
