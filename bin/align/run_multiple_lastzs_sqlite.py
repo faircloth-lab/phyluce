@@ -185,7 +185,8 @@ def check_for_all_genome_sequences(chromo, scaffold, path):
     genomes = chromo + scaffold
     for g in genomes:
         file = path.format(g)
-        assert os.path.isfile(file)
+        if not os.path.isfile(file):
+            raise IOError("{} is not a file".format(g))
 
 
 def main():
