@@ -199,7 +199,6 @@ def align_against_genomes(cur, args, path):
 
 def check_for_all_genome_sequences(chromo, scaffold, path):
     genomes = chromo + scaffold
-    pdb.set_trace()
     for g in genomes:
         file = path.format(g)
         if not os.path.isfile(file):
