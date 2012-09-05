@@ -163,7 +163,7 @@ def align_against_scaffolds(cur, args, path):
         target = path.format(g)
         prefab = False
         if os.path.isfile(output + '.clean'):
-            inpt = raw_input("The output file exists.  Do you want to use it [Y/n]? ")
+            inpt = raw_input("The output file {0} exists.  Do you want to use it [Y/n]? ".format(g))
             if inpt == 'Y' or inpt == 'Yes':
                 prefab = True
                 clean = output + '.clean'
@@ -184,7 +184,7 @@ def align_against_genomes(cur, args, path):
         target = path.format(g)
         prefab = False
         if os.path.isfile(output + '.clean'):
-            inpt = raw_input("The output file exists.  Do you want to use it [Y/n]? ")
+            inpt = raw_input("The output file {0} exists.  Do you want to use it [Y/n]? ".format(g))
             if inpt == 'Y' or inpt == 'Yes':
                 prefab = True
                 clean = output + '.clean'
