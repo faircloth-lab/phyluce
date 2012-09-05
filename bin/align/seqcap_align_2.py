@@ -83,7 +83,7 @@ def get_args():
         )
     parser.add_argument('--cores',
             type=int,
-            default=None,
+            default=1,
             help='Use multiple cores for alignment'
         )
     return parser.parse_args()
