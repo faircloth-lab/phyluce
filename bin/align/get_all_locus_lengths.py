@@ -13,10 +13,10 @@ length with --min-length.  If --output, copy resulting files into a new
 directory.
 
 Usage: python get_all_locus_lengths.py phylip-with-gaps \
-	--input-format phylip \
-	--containing-data-for pol_sen \
-	--output phylip-with-gaps-polypterus \
-	--min-length 50
+    --input-format phylip \
+    --containing-data-for pol_sen \
+    --output phylip-with-gaps-polypterus \
+    --min-length 50
 """
 
 import os
@@ -27,6 +27,7 @@ from Bio import AlignIO
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
 import pdb
+
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -48,6 +49,7 @@ def get_args():
     parser.add_argument(
             "--containing-data-for",
             dest="containing",
+            nargs='+',
             type=str,
             help="""Output alignments that contain data for a taxon"""
         )
@@ -83,7 +85,7 @@ def main():
             if args.containing:
                 good = False
                 for taxon in aln:
-                    if taxon.id == args.containing:
+                    if taxon.id in args.containing:
                         if (set(taxon.seq) == set('-')) or (set(taxon.seq) == set('?')):
                             good = False
                         else:
