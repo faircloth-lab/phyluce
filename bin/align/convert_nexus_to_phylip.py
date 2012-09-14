@@ -67,10 +67,13 @@ def rename(align, first, second, splitchar="_"):
         for seq in a:
             split_name = seq.id.split('_')
             if second:
-                if splitchar == "_":
-                    new_seq_name = splitchar.join([split_name[first][0:3], split_name[second][0:3]])
+                if len(split_name) == 2:
+                    if splitchar == "_":
+                        new_seq_name = splitchar.join([split_name[first][0:3], split_name[second][0:3]])
+                    else:
+                        new_seq_name = splitchar.join([split_name[first][0:3], split_name[second][0:3].title()])
                 else:
-                    new_seq_name = splitchar.join([split_name[first][0:3], split_name[second][0:3].title()])
+                    new_seq_name = split_name[0][0:3]
             else:
                 new_seq_name = split_name[first]
             seq.id, seq.name = new_seq_name, new_seq_name
