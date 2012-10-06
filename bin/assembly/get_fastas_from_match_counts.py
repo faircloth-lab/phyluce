@@ -78,7 +78,10 @@ def get_coverage(header):
 def find_file(contigs, name):
     extensions = ['.fa', '.fasta', '.contigs.fasta', '.contigs.fa', '.gz', '.fasta.gz', '.fa.gz']
     for ext in extensions:
-            reads = os.path.join(contigs, name) + ext
+        #pdb.set_trace()
+        reads1 = os.path.join(contigs, name) + ext
+        reads2 = os.path.join(contigs, name.replace('-', '_')) + ext
+        for reads in [reads1, reads2]:
             if os.path.isfile(reads):
                 break
             elif os.path.isfile(reads.lower()):
@@ -86,6 +89,8 @@ def find_file(contigs, name):
                 break
             else:
                 reads = None
+        if reads is not None:
+            break
     if reads is None:
         raise ValueError("Cannot find the a fasta file for {} with any of the extensions ({}) ".format(
                 name,
