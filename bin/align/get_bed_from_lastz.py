@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: get_bed_from_lastz.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 02 June 2012 15:06 PDT (-0700)
+Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+
+Description: Create a BED file from the output of LASTZ alignments
+
+"""
+
+import os
+import ConfigParser
+import argparse
+from phyluce import lastz
+from phyluce.helpers import FullPaths, is_file
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Output a BED file from a LASTZ alignment""")
+    parser.add_argument(
+            "lastz",
+            type=is_file,
+            action=FullPaths,
+            help="""The input lastz file."""
+        )
+    parser.add_argument(
+            "output",
+            type=argparse.FileType('w'),
+            help="""The output BED file"""
+        )
+    parser.add_argument(
+            "--long-format",
+            dest='long_format',
+            action="store_true",
+            default=False,
+            help="""Long-format LASTZ file""",
+        )
+    parser.add_argument(
+            "--conf",
+            type=is_file,
+            action=FullPaths,
+            default=None,
+            help="""A python INI formatted file containins loci to keep"""
+        )
+    parser.add_argument(
+            "--sections",
+            nargs='+',
+            default=None,
+            help="""The sections of files to move""",
+        )
+    return parser.parse_args()
+
+
+def write_to_outfile(args, match, name):
+    args.output.write("{0}\t{1}\t{2}\t{3}\n".format(
+                    match.name1,
+                    match.zstart1,
+                    match.end1,
+                    name
+                    )
+                )
+    return
+
+
+def main(lformat=True):
+    args = get_args()
+    if args.conf and args.sections:
+        conf = ConfigParser.ConfigParser()
+        conf.read(args.conf)
+        if not args.sections:
+            args.sections = conf.sections()
+        items = []
+        for section in args.sections:
+            items.extend([i[0] for i in conf.items(section)])
+        items = set(items)
+    else:
+        items = None
+    for match in lastz.Reader(args.lastz, long_format=args.long_format):
+        pdb.set_trace()
+        try:
+            name = match.name2.split('|')[1]
+        except:
+            name = match.name2
+        if match.percent_identity >= 90. and match.percent_continuity >= 90.:
+            #pdb.set_trace()
+            if args.conf and items and (name in items):
+                write_to_outfile(args, match, name)
+            elif args.conf is None:
+                write_to_outfile(args, match, name)
+        else:
+            print name
+    args.output.close()
+
+
+if __name__ == '__main__':
+    main()
