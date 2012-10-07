@@ -275,6 +275,11 @@ table.docutils {
     border:0;
 }
 
+table.docutils {
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
+}
+
 table.docutils td, table.docutils th {
     /* border: 1px solid #888; */
     border:0;
