@@ -5,7 +5,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
-BUILDDIR      = /Users/bcf/git/brant/phyluce/myhtmldocs
+BUILDDIR      = /Users/bcf/git/brant/phyluce/docs
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
