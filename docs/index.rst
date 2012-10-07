@@ -15,10 +15,10 @@ Contents:
    installation
    study-design
    pre-processing
+   assembly
    uce-processing
-   snp-processing
    license
-   citation
+   citations
    funding
    references
 
