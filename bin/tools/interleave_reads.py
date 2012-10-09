@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 File: interleave_reads.py
 Author: Brant Faircloth

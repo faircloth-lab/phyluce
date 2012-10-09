@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 File: split_reads.py
 Author: Brant Faircloth
