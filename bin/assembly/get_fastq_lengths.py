@@ -48,6 +48,8 @@ def main():
         print "Reads:\t\t{:,}".format(len(count))
         print "Bp:\t\t{:,}".format(sum(count))
         print "Avg. len:\t{:,}".format(sum(count) / len(count))
+        print "Min. len:\t{:,}".format(min(count))
+        print "Max. len:\t{:,}".format(max(count))
     else:
         print "{},{},{},{}".format(args.fastq, len(count), sum(count), sum(count) / len(count))
 
