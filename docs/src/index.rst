@@ -19,8 +19,7 @@ Contents:
    uce-processing
    license
    citations
-   funding
-   references
+   about
 
 Indices and tables
 ==================
