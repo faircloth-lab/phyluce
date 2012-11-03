@@ -14,8 +14,8 @@ Contents:
    introduction
    installation
    study-design
-   pre-processing
-   assembly
+   pre-processing-qc
+   pre-processing-assembly
    uce-processing
    license
    citations
