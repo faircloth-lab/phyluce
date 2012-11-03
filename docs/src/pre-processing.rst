@@ -94,9 +94,11 @@ If you used Casava, it will be easiest to place all of the demuliplexed reads
 into a single directory.  If you used `splitaake`_, then things should be all
 set.
 
-You need to generate a configuration file, that gives details of your reads,
-how you want them processed, and what renaming options to use.  This file is
-an extension of the INI file used to `splitaake`_ and looks like this::
+You need to generate a configuration file `your-illumiprocessor.conf`, that
+gives details of your reads, how you want them processed, and what renaming
+options to use. This file is an extension of the INI file used for `splitaake`_
+and it looks like this::
+
 
     [adapters]
     truseq1:AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT
@@ -126,11 +128,14 @@ an extension of the INI file used to `splitaake`_ and looks like this::
     bfidt-003:genus_species4
     
 This gives the adapter sequences to trim (with the index indicated by an 
-asterisk), the indexes we used, whether reads are separate, a name-formatting
-convention, a mapping of species names to index, and a mapping of index names
-to species.
+asterisk) in `[adapters]`, the indexes we used `[indexes]`, whether reads are
+separate and a name-formatting convention `[params]`, a mapping of species 
+names to index `[combos]`, and a mapping of index names to species `[remap]`.
 
-You can run illumiprocessor against your data (in `demultiplexed`) with:
+You can run illumiprocessor against your data (in `demultiplexed`) with the
+following.  If you do not have a multicore machine, you may with to run with
+`--cores=1`.  Additionally, multicore operations require a fair amount of RAM,
+so if you're low on RAM, run with fewer cores:
 
 .. code-block:: bash
     
@@ -138,7 +143,7 @@ You can run illumiprocessor against your data (in `demultiplexed`) with:
     python ~/git/illumiprocessor/illumiprocessor.py \
         demultiplexed \
         uce-clean \
-        malfaro-fish-illumiprocesser.conf \
+        your-illumiprocesser.conf \
         --remap \
         --clean \
         --cores 12 \
@@ -147,7 +152,18 @@ You can run illumiprocessor against your data (in `demultiplexed`) with:
 The clean data will appear in `uce-clean` with the following structure::
 
     uce-clean/
-        genus_species/
+        genus_species1/
+            interleaved-adapter-quality-trimmed/
+                genus_species-READ1and2-interleaved.fastq.gz
+                genus_species-READ-singleton.fastq.gz
+            stats/
+                genus_species-READ1.fastq.gz-adapter-contam.txt
+                genus_species--READ2.fastq.gz-adapter-contam.txt
+                sickle-trim.txt
+            untrimmed/
+                genus_species-READ1.fastq.gz (symlink)
+                genus_species-READ1.fastq.gz (symlink)
+        genus_species2/
             interleaved-adapter-quality-trimmed/
                 genus_species-READ1and2-interleaved.fastq.gz
                 genus_species-READ-singleton.fastq.gz
@@ -159,6 +175,6 @@ The clean data will appear in `uce-clean` with the following structure::
                 genus_species-READ1.fastq.gz (symlink)
                 genus_species-READ1.fastq.gz (symlink)
         
-`interleaved` contains the cleaned read data in interleaved format, with one
-file containing "READ1and2" (both reads kept) and another file containing "READ"
-data, where only one read of the pair are kept (AKA singleton reads).
+`interleaved-adapter-quality-trimmed` contains the cleaned read data in 
+interleaved format, with one file containing "READ1and2" (both reads kept) and 
+another file containing "READ" data, where singleton reads are kept (singletons sometimes results from the QC routines).
