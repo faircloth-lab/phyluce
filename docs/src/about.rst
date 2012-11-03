@@ -1,13 +1,51 @@
+Personnel
+=========
+
+A large number of people have worked on different aspects of the UCE approach
+across different taxonomic groups.  The primary group responsible for initial
+development of the UCE approach includes:
+
+* Brant Faircloth (UCLA)
+* Travis Glenn (UGA)
+* John McCormack (Occidental College)
+* Robb Brumfield (LSU)
+* Mike Alfaro (UCLA)
+* Nick Crawford (Boston Univ.)
+* Mike Harvey (LSU)
+* Brian Smith (LSU)
+* Laurie Sorenson (UCLA)
+* Kevin Winker (U. Alaska - Fairbanks)
+* Roger Nilsen (UGA)
+
+Additionally, the following individuals have contributed samples, funding,
+laboratory work, computer code, documentation, or all of the above:
+
+* Mike Braun (Smithsonian)
+* Noor White (Smithsonian)
+* Ed Braun (U. Florida)
+* Rebecca Kimball (U. Florida)
+* David Ray (MsState)
+* Sean Brady (Smithsonian)
+* Jesus Maldonado (Smithsonian)
+* Jonathan Chang (UCLA)
+
 Funding
-=============
+=======
 
-At various points funding from the following grants have supported either data
-collection or personnel working on the various UCE projects.  These include:
+At various points, funding from the following grants and/or organizations have
+supported portions of our work various UCE projects.  These include:
 
-* NSF DEB-1119734
 * NSF DEB-0841729
 * NSF DEB-0956069
-* Amazon Web Services Education grants to BCF, NGC, TCG
+* NSF DEB-1119734
+* NSF DEB-1242267
+* Smithsonian Institution Consortium for Understanding and Sustaining a 
+  Biodiverse Planet
+* `Amazon Web Services`_ (Education grants to BCF, NGC, JEM, and TCG)
+* `IDTDNA`_
+
+.. _Amazon Web Services: http://aws.amazon.com/
+.. _IDTDNA: http://www.idtdna.com/site
 
 Acknowledgements
 ================
@@ -15,20 +53,8 @@ Acknowledgements
 We thank the following people, each of who have made contributions
 ensuring the success of our work.  These include:
 
-* B. Peterson
-* C. Mancuso
-* C. Moran
-* D. Peterson
-* D. Ray
-* G. Schneider
-* J. Sukumaran
-* K. Jones
-* L. Miles 
-* M. Harvey
-* M. Holder
-* R. Nilsen
-* R. Nussbaum
-* S. Herke
-* S. Isberg
-
+* Brant Peterson
+* Claire Mancuso
+* Chris Moran
+* Ken Jones
 * LSU Genomic Facility
