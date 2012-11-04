@@ -46,8 +46,9 @@ def get_args():
             dest='extend_dir',
             help='The directory holding extension fastas/contigs'
         )
-    parser.add_argument('--notstrict',
-            help='The outfile for notstrict data',
+    parser.add_argument('--incomplete-matrix',
+            dest='notstrict',
+            help='The outfile for incomplete-matrix data',
             type=argparse.FileType('w'),
             default=False
         )

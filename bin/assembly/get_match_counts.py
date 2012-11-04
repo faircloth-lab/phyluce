@@ -75,7 +75,7 @@ def get_args():
             dest='extend',
             help='The match database to add as an extension'
         )
-    parser.add_argument('--notstrict',
+    parser.add_argument('--incomplete-matrix',
             dest='notstrict',
             action="store_true",
             help='Do not do strict matching',

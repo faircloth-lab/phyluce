@@ -51,7 +51,8 @@ def get_args():
             default=False,
             help='Take faircloth+stephens probe names'
         )
-    parser.add_argument('--notstrict',
+    parser.add_argument('--incomplete-matrix',
+            dest='notstrict',
             action='store_true',
             default=False,
             help='Allow alignments containing not all species'
