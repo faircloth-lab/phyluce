@@ -1,3 +1,5 @@
+.. include:: global.rst
+
 #####################
 Data Pre-processing
 #####################
@@ -25,17 +27,7 @@ Illumina reads.  splitaake_ is particularly useful when you have very many
 sequence tags (aka "barcodes") to demultiplex, when your sequence tags are
 long, or some combination of the two.
 
-To demultiplex your data with splitaake_, please see the `website`__.
-
-
-.. _splitaake: https://github.com/faircloth-lab/splitaake/
-.. _screen: http://www.gnu.org/software/screen/
-.. _tmux: http://tmux.sourceforge.net/
-.. _gzip: http://www.gzip.org/
-.. _Casava: http://support.illumina.com/sequencing/sequencing_software/casava.ilmn
-.. _fastx-toolkit: http://hannonlab.cshl.edu/fastx_toolkit/
-.. _bartab: http://www.phyloware.com/Phyloware/XSTK.html
-__ splitaake_
+To demultiplex your data with splitaake_, please see the website.
 
 ************
 Read Counts

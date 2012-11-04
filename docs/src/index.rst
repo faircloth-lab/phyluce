@@ -4,12 +4,12 @@
    contain the root `toctree` directive.
 
 Welcome to phyluces's documentation!
-===================================
+====================================
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    introduction
    installation

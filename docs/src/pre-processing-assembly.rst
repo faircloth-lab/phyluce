@@ -1,12 +1,14 @@
+.. include:: global.rst
+
 #####################
-Read assembly
+Read Assembly
 #####################
 
 Once your reads are clean, you're ready to assemble. At the moment, we use
-`velvet`_ and VelvetOptimiser for assembly, although I'm considering adding
-similar routines for `ABySS`_.
+velvet_ and VelvetOptimiser for assembly, although I'm considering adding
+similar routines for ABySS_.
 
-Most of this process is automated using code within `phyluce`_. But, before you
+Most of this process is automated using code within phyluce_. But, before you
 runt the automated routines, you need to get a good idea of the kmer ranges
 within which you will assembling, prior to starting the assembly process with
 the automated code.
@@ -117,7 +119,38 @@ Within the `uce-clean` directory, `assemblo.py` will create a directory named
 If you assembled any data by hand that are in `assembly` directories, you will
 also want to symlink those results in the `contigs` directory.
 
-Determining Success or Failure of an Assembly/Enrichment
+Linking contig assemblies into the `contigs` directory
+******************************************************
+
+`assemblo.py` will assemble your contigs, and symlink them into a `contigs`
+directory.  These symlinks allow you to reasonably keep track of which assembly
+is linked to a particular taxon, maintaining continuity in your data.
+
+If you have manually assembled any contigs outside of assembly, you will also 
+need to manually link those into the contigs folder with something like:
+
+.. code-block:: bash
+
+    ln -s uce-clean/genus_species1/genus_species1/assembly/auto_data_75/contigs.fa \
+    contigs/genus_species1.contigs.fasta
+    
+The other downside of symlinks is that they tend not to "travel" very well.
+Meaning, if you want to move the contigs folder somewhere else, this will often
+break the symlinks created by `assemblo.py`.  This is often painful to fix by hand,
+so there's a bit of code in `phyluce_` to help you do that.  If you have reads in::
+
+    /path/to/my/uce-clean/contigs
+    
+and you want to create a new `contigs` folder elsewhere, you want to replace the path
+in the original symlink with the path in the new symlink.  So, you can run::
+
+    python ~/Git/brant/phyluce/bin/share/replace_many_links.py \
+        /path/to/my/uce-clean/contigs \
+        /path/to/my/uce-clean/clean/ \
+        /new/path/to/my/uce-clean/location/
+        name-of-new-folder
+
+Determining success or failure of an assembly/enrichment
 ********************************************************
 
 This is a little bit tricky without having some previous experience. Generally
