@@ -102,7 +102,14 @@ def align_min_length(args, aln):
 
 
 def align_min_taxa(args, aln):
-    if len(aln) >= args.min_taxa:
+    count = 0
+    # remove taxa having only missing data designators
+    for taxon in aln:
+        if (set(taxon.seq) == set('-')) or (set(taxon.seq) == set('?')):
+            pass
+        else:
+            count += 1
+    if count >= args.min_taxa:
         taxa = True
     else:
         taxa = False
