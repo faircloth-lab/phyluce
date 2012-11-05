@@ -56,6 +56,7 @@ default=False, help='[Optional] Unlink the models.')
         sys.exit(2)
     return options, arg
 
+
 def get_loci_and_models(infile):
     loci = OrderedDict()
     for line in open(infile, 'rU'):
@@ -64,12 +65,14 @@ def get_loci_and_models(infile):
         group[ls[0]] = None
     return loci
 
+
 def save_concat_metadata(metadata, outfile):
     o = open(outfile, 'w')
     cPickle.dump(metadata, o)
     o.close()
 
-def add_mr_bayes_params(metadata, outfile, partition_fully, partition_name = 'fully', unlink = False):
+
+def add_mr_bayes_params(metadata, outfile, partition_fully, partition_name='fully', unlink=False):
     o = open(outfile, 'a')
     o.write('begin mrbayes;\n')
     #o.write('\tset autoclose=yes nowarn=yes;\n\texecute test.nex;\n')
@@ -109,8 +112,9 @@ def add_mr_bayes_params(metadata, outfile, partition_fully, partition_name = 'fu
     o.write('end;')
     o.close()
 
+
 def check_for_missing_models(metadata, aligns):
-    aln = set([os.path.splitext(os.path.basename(name))[0] 
+    aln = set([os.path.splitext(os.path.basename(name))[0]
             for name in glob.glob(os.path.join(aligns, '*.nex'))])
     model = set([y for v in metadata.values() for y in v.keys()])
     missing = aln.difference(model)
@@ -121,6 +125,7 @@ def check_for_missing_models(metadata, aligns):
         if not proceed.upper() == 'Y':
             sys.exit()
     return
+
 
 def fully_partition(metadata, aligns):
     to_combine = []
@@ -134,8 +139,8 @@ def fully_partition(metadata, aligns):
             to_combine.append((locus, nex))
             start = end + 1
     combined = Nexus.combine(to_combine)
-    #pdb.set_trace()
     return combined, metadata
+
 
 def model_partition(metadata, aligns):
     to_combine = []
@@ -146,9 +151,6 @@ def model_partition(metadata, aligns):
     for model in metadata:
         for locus in metadata[model]:
             nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nex".format(locus))))
-            #s = sum([1 if 'copy' in n else 0 for n in nex.get_original_taxon_order()])
-            #if s > 0:
-            #    pdb.set_trace()
             end += nex.nchar
             to_combine.append((locus, nex))
         new_metadata[model] = (start, end)
@@ -156,6 +158,7 @@ def model_partition(metadata, aligns):
     combined = Nexus.combine(to_combine)
     #pdb.set_trace()
     return combined, new_metadata
+
 
 def main():
     options, args = interface()
@@ -165,17 +168,17 @@ def main():
         concat, metadata = fully_partition(metadata, options.aligns)
     else:
         concat, metadata = model_partition(metadata, options.aligns)
-    concat.write_nexus_data(filename=options.concat, interleave=options.interleave, append_sets = False)
+    concat.write_nexus_data(filename=options.concat, interleave=options.interleave, append_sets=False)
     if not options.mrbayes:
         save_concat_metadata(metadata, options.metadata)
     else:
         if options.fully:
-            add_mr_bayes_params(metadata, options.concat, options.fully, partition_name = 'fully', unlink = options.unlink)
+            add_mr_bayes_params(metadata, options.concat, options.fully, partition_name='fully', unlink=options.unlink)
         else:
-            add_mr_bayes_params(metadata, options.concat, options.fully, partition_name = 'partial', unlink = options.unlink)
+            add_mr_bayes_params(metadata, options.concat, options.fully, partition_name='partial', unlink=options.unlink)
             
     #pdb.set_trace()
-    
+
 SUBS = {
     'GTR':{'nst':6, 'rates':None, 'statefreqpr':None},
     'GTRI':{'nst':6, 'rates':'propinv', 'statefreqpr':None}, 
