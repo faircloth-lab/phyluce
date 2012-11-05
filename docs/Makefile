@@ -133,14 +133,13 @@ doctest:
 gh-pages:
 	git checkout gh-pages
 	rm -rf *
-	git checkout master docs
+	git checkout master $(GH_PAGES_SOURCES)
 	git reset HEAD
-	cd docs
-	make html
-	mv -fv build/html/* ../
-	cd ../
+	make -f $(GH_PAGES_SOURCES)/Makefile html
+	mv -fv $(GH_PAGES_SOURCES)/build/html/* ./
+	rm -rf $(GH_PAGES_SOURCES)
 	touch .nojekyll
-	rm -rf docs
 	git add -A
-	git ci -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages
+	git ci -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`"
+	git push origin gh-pages
 	git checkout master
