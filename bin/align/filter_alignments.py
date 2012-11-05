@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-File: get_all_locus_lengths.py
+File: filter_alignments.py
 Author: Brant Faircloth
 
 Created by Brant Faircloth on 08 August 2012 19:08 PDT (-0700)
@@ -12,7 +12,7 @@ Filter on presence of data for a taxon with --containing-data-for and/or
 length with --min-length.  If --output, copy resulting files into a new
 directory.
 
-Usage: python get_all_locus_lengths.py phylip-with-gaps \
+Usage: python filter_alignments phylip-with-gaps \
     --input-format phylip \
     --containing-data-for pol_sen \
     --output phylip-with-gaps-polypterus \
@@ -26,7 +26,7 @@ import argparse
 from Bio import AlignIO
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -51,14 +51,21 @@ def get_args():
             dest="containing",
             nargs='+',
             type=str,
-            help="""Output alignments that contain data for a taxon"""
+            help="""Output only alignments --containing-data-for a taxon"""
         )
     parser.add_argument(
             "--min-length",
             dest="min_length",
             type=int,
             default=0,
-            help="""Filter out alignments longer than --min-length"""
+            help="""Filter out alignments shorter than --min-length"""
+        )
+    parser.add_argument(
+            "--min-taxa",
+            dest="min_taxa",
+            type=int,
+            default=0,
+            help="""Filter out alignments with fewer than --min-taxa"""
         )
     parser.add_argument(
             "--output",
@@ -76,25 +83,61 @@ def get_files(input_dir, input_format):
     return alignments
 
 
+def align_contains_taxa(args, aln):
+    for taxon in aln:
+        if taxon.id in args.containing:
+            if (set(taxon.seq) == set('-')) or (set(taxon.seq) == set('?')):
+                containing = False
+            else:
+                containing = True
+    return containing
+
+
+def align_min_length(args, aln):
+    if aln.get_alignment_length() >= args.min_length:
+        length = True
+    else:
+        length = False
+    return length
+
+
+def align_min_taxa(args, aln):
+    count = 0
+    # remove taxa having only missing data designators
+    for taxon in aln:
+        if (set(taxon.seq) == set('-')) or (set(taxon.seq) == set('?')):
+            pass
+        else:
+            count += 1
+    if count >= args.min_taxa:
+        taxa = True
+    else:
+        taxa = False
+    return taxa
+
+
 def main():
     args = get_args()
     files = get_files(args.input, args.input_format)
+    print "Good Alignments\n"
     for f in files:
         try:
             aln = AlignIO.read(f, args.input_format)
             if args.containing:
-                good = False
-                for taxon in aln:
-                    if taxon.id in args.containing:
-                        if (set(taxon.seq) == set('-')) or (set(taxon.seq) == set('?')):
-                            good = False
-                        else:
-                            good = True
+                containing = align_contains_taxa(args, aln)
             else:
-                good = True
-            if good and aln.get_alignment_length() >= args.min_length:
-                print "{0}\t{1}".format(os.path.basename(f), aln.get_alignment_length())
-            if args.output and good and aln.get_alignment_length() >= args.min_length:
+                containing = True
+            if args.min_length:
+                length = align_min_length(args, aln)
+            else:
+                length = True
+            if args.min_taxa:
+                taxa = align_min_taxa(args, aln)
+            else:
+                taxa = True
+            if containing and taxa and length:
+                print "{0}\t{1}".format(os.path.basename(f))
+            if containing and taxa and length and args.output:
                 name = os.path.basename(f)
                 shutil.copy(f, os.path.join(args.output, name))
         except ValueError, e:
@@ -103,7 +146,5 @@ def main():
             else:
                 raise ValueError('Something is wrong with alignment {0}'.format(os.path.basename(f)))
 
-
 if __name__ == '__main__':
     main()
-

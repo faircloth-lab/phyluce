@@ -79,10 +79,10 @@ def get_args():
             help="Proportional removal of gaps"
         )
     parser.add_argument(
-            "--multiprocessing",
-            action="store_true",
-            default=False,
-            help="""Use multiprocessing""",
+            "--cores",
+            type=int,
+            default=1,
+            help="""Process alignments with X number of --cores""",
             )
     return parser.parse_args()
 
@@ -144,8 +144,8 @@ def main():
     # if --multprocessing, use Pool.map(), else use map()
     # can also extend to MPI map, but not really needed on multicore
     # machine
-    if args.multiprocessing:
-        pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
+    if args.cores > 1:
+        pool = multiprocessing.Pool(args.cores - 1)
         alignments = pool.map(get_and_trim_alignments, params)
     else:
         alignments = map(get_and_trim_alignments, params)

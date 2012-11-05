@@ -38,6 +38,11 @@ def get_args():
             help="""The output tree file"""
         )
     parser.add_argument(
+            "section",
+            type=str,
+            help="""The section of the conf file to use"""
+        )
+    parser.add_argument(
             "--input-format",
             dest='input_format',
             choices=['nexus', 'newick', 'fasta', 'phylip'],
@@ -52,18 +57,6 @@ def get_args():
             help="""The tree file format"""
         )
     parser.add_argument(
-            "--longnames",
-            action="store_true",
-            default=False,
-            help="""Convert full species names on tips""",
-        )
-    parser.add_argument(
-            "--shortnames",
-            action="store_true",
-            default=False,
-            help="""Convert full species names on tips""",
-        )
-    parser.add_argument(
             "--reroot",
             type=str,
             default=None,
@@ -76,12 +69,7 @@ def main():
     args = get_args()
     conf = ConfigParser.ConfigParser()
     conf.read(args.config)
-    if args.longnames:
-        names = conf.items('longnames')
-    elif args.shortnames:
-        names = conf.items('shortnames')
-    else:
-        names = conf.items('map')
+    names = conf.items(args.section)
     names = dict([(name[0].upper(), name[1]) for name in names])
     trees = dendropy.TreeList(stream=open(args.input), schema=args.input_format)
     new_labels = []
@@ -89,16 +77,18 @@ def main():
         for leaf in tree.leaf_nodes():
             if leaf.taxon.label in new_labels:
                 pass
-            elif args.longnames:
-                new_label = names[leaf.taxon.label.upper()] + " - " + leaf.taxon.label
-                new_labels.append(new_label)
-                leaf.taxon.label = new_label
-            elif args.shortnames:
-                try:
-                    new_label = names[leaf.taxon.label.upper()]
-                except KeyError:
-                    new_label = names[leaf.taxon.label.replace(' ', '_').upper()]
-                leaf.taxon.label = new_label
+            try:
+                new_label = names[leaf.taxon.label.upper()]
+            except:
+                new_label = names[leaf.taxon.label.replace(' ', '_').upper()]
+            new_labels.append(new_label)
+            leaf.taxon.label = new_label
+            #elif args.shortnames:
+            #    try:
+            #        new_label = names[leaf.taxon.label.upper()]
+            #    except KeyError:
+            #        new_label = names[leaf.taxon.label.replace(' ', '_').upper()]
+            #    leaf.taxon.label = new_label
         # reroot
         if args.reroot:
             reroot_node = tree.find_node_with_taxon_label(args.reroot)
