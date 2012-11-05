@@ -1,44 +1,32 @@
 Introduction
 ************
 
-The code within should be functional and steps followed during data collection
-and analysis are available from:
+Please see the `documentation <http://faircloth-lab.github.com/phyluce/>`_ for
+information on using the code within this repository.
 
-- `<https://gist.github.com/47e03463db0573c4252f>`_
+**Note** that not all programs in this repository are currently covered by
+the documentation, and some programs are likely to be changed or removed.
 
-These steps generally apply to the computer code within this repository.
-However, pathnames within the notes are unlikely to be equivalent to
-pathnames on your system.
+License
+-------
 
-To generate species trees from gene trees, we used:
-
-- `<https://github.com/ngcrawford/CloudForest>`_
-
-Dependencies
-------------
-
-This list may not be complete.
-
-Python
-``````
-
-- `Biopython <http://biopython.org>`_
-- `bx-python <https://bitbucket.org/james_taylor/bx-python/wiki/Home>`_
-- `numpy <http://numpy.scipy.org>`_
-
-External
-````````
-
-- `Jim Kent Source Tree <http://genome.ucsc.edu/admin/git.html>`_
-- `mraic_mod.pl <https://gist.github.com/192d709da33b23dedbe4>`_
+The code within this repository is available under a 3-clause BSD license.  See
+the License.txt file for more information.
 
 Citation
 --------
 
-If you use portions of this code in your own work, please contact the author(s)
-to ensure there is not a newer, officially packaged version.  If there is not,
-please cite the following manuscript:
+If you use this documentation or the phyluce software for your own research,
+please cite:
 
-    Faircloth BC, McCormack JE, Crawford NG, Harvey MG, Brumfield RT, Glenn TC:
-    Ultraconserved Elements Anchor Thousands of Genetic Markers Spanning Multiple
-    Evolutionary Timescales. Systematic Biol. 2012.
+Faircloth BC, McCormack JE, Crawford NG, Harvey MG, Brumfield RT, Glenn TC
+(2012). Ultraconserved Elements Anchor Thousands of Genetic Markers Spanning
+Multiple Evolutionary Timescales. Systematic Biology 61: 717-726. pmid:
+`22232343 <http://www.ncbi.nlm.nih.gov/pubmed?term=22232343%5Buid%5D>`_ doi:
+`10.1093/sysbio/SYS004 <http://dx.doi.org/10.1093/sysbio/SYS004>`_
+
+Please also provide the link to this software repository in your manuscript::
+
+    https://github.com/faircloth-lab/phyluce
+
+
