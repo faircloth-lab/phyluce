@@ -9,52 +9,59 @@ Copyright (c) 2011 Brant Faircloth. All rights reserved.
 
 import os
 import sys
-import pdb
 import glob
-import optparse
+import argparse
 import cPickle
 from Bio.Nexus import Nexus
 from collections import OrderedDict
+from phyluce.helpers import is_dir, is_file, FullPaths
 
-def interface():
-    '''Command-line interface'''
-    usage = "usage: %prog [options]"
+import pdb
 
-    p = optparse.OptionParser(usage)
 
-    p.add_option('--models', dest = 'models', action='store', 
-type='string', default = None, help='The path to the models file.', 
-metavar='FILE')
-
-    p.add_option('--aligns', dest = 'aligns', action='store', 
-type='string', default = None, help='The path to the nexus files.', 
-metavar='FILE')
-
-    p.add_option('--concat', dest = 'concat', action='store', 
-type='string', default = None, help='The path to the nexus files.', 
-metavar='FILE')
-
-    p.add_option('--metadata', dest = 'metadata', action='store', 
-type='string', default = None, help='The path to the nexus files.', 
-metavar='FILE')
-
-    p.add_option('--mr-bayes', dest = 'mrbayes', action='store_true', 
-default=False, help='[Optional] Format output for MrBayes.')
-    
-    p.add_option('--fully', dest = 'fully', action='store_true', 
-default=False, help='Fully partition the data (or partition by model).')
-
-    p.add_option('--interleave', dest = 'interleave', action='store_true', 
-default=False, help='[Optional] Interleave sequence in nexus.')
-
-    p.add_option('--unlink', dest = 'unlink', action='store_true', 
-default=False, help='[Optional] Unlink the models.')
-
-    (options,arg) = p.parse_args()
-    if not options.models or not options.aligns:
-        p.print_help()
-        sys.exit(2)
-    return options, arg
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(description="""Generate a Nexus
+        file for MrBayes given an raw_input file of Nexus-formatted
+        alignments and a file of models associated with loci.""")
+    parser.add_argument(
+            "aligns",
+            type=is_dir,
+            action=FullPaths,
+            help="""The path to the alignment directory"""
+        )
+    parser.add_argument(
+            "models",
+            type=is_file,
+            action=FullPaths,
+            help="""The path to the model configuration file"""
+        )
+    parser.add_argument(
+            "output",
+            type=is_file,
+            action=FullPaths,
+            help="""The path to the output file"""
+        )
+    parser.add_argument(
+            "--fully-partition",
+            dest='fully',
+            action="store_true",
+            default=False,
+            help="""Fully partition the output""",
+        )
+    parser.add_argument(
+            "--interleave",
+            action="store_true",
+            default=False,
+            help="""Interleave sequence in nexus files""",
+        )
+    parser.add_argument(
+            "--unlink",
+            action="store_true",
+            default=False,
+            help="""Unlink the models""",
+        )
+    return parser.parse_args()
 
 
 def get_loci_and_models(infile):
@@ -161,22 +168,32 @@ def model_partition(metadata, aligns):
 
 
 def main():
-    options, args = interface()
-    metadata = get_loci_and_models(options.models)
-    #concat, metadata = fully_partition(metadata, options.aligns)
-    if options.fully:
-        concat, metadata = fully_partition(metadata, options.aligns)
+    args = get_args()
+    metadata = get_loci_and_models(args.models)
+    if args.fully:
+        concat, metadata = fully_partition(metadata, args.aligns)
     else:
-        concat, metadata = model_partition(metadata, options.aligns)
-    concat.write_nexus_data(filename=options.concat, interleave=options.interleave, append_sets=False)
-    if not options.mrbayes:
-        save_concat_metadata(metadata, options.metadata)
+        concat, metadata = model_partition(metadata, args.aligns)
+    concat.write_nexus_data(
+            filename=args.output,
+            interleave=args.interleave,
+            append_sets=False
+        )
+    if args.fully:
+        add_mr_bayes_params(
+                metadata,
+                args.output,
+                args.fully,
+                unlink=args.unlink
+            )
     else:
-        if options.fully:
-            add_mr_bayes_params(metadata, options.concat, options.fully, partition_name='fully', unlink=options.unlink)
-        else:
-            add_mr_bayes_params(metadata, options.concat, options.fully, partition_name='partial', unlink=options.unlink)
-            
+        add_mr_bayes_params(
+                metadata,
+                args.output,
+                args.fully,
+                partition_name='partial',
+                unlink=args.unlink
+            )
     #pdb.set_trace()
 
 SUBS = {
