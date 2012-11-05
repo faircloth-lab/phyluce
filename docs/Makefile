@@ -132,7 +132,6 @@ doctest:
 		  
 gh-pages:
 	git checkout gh-pages
-	rm -rf *
 	git checkout master docs
 	git reset HEAD
 	cd docs; make html; mv -fv build/html/* ../
