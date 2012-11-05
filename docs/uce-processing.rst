@@ -122,8 +122,8 @@ The probe.matches.sqlite database
 
 `probe.matches.sqlite` is a relational database that summarizes all **valid**
 matches of contigs to UCE loci across the set of taxa that you fed it. The
-database is created by and for `sqlite_`, which is a very handy, portable SQL
-database. For more info on SQL and SQLITE, see `here_`. I'll briefly cover the
+database is created by and for sqlite_, which is a very handy, portable SQL
+database. For more info on SQL and SQLITE, see this `sqlite-tutorial`_. I'll briefly cover the
 database contents and use below.
 
 First, to take a look at the contents of the database run:
@@ -140,7 +140,7 @@ You'll now see something like::
     sqlite>
     
 It's often easier to change some defaults for better viewing, so at the prompt, 
-past in the following (for more info on `sqlite_` "dot" commands, you can type
+past in the following (for more info on sqlite_ "dot" commands, you can type
 `.help`)::
 
     sqlite> .mode columns
@@ -293,8 +293,6 @@ Let's assume you name this file `datasets.conf`.  Now, you want to run the
 following against this file, along with several other files we've created
 previously::
 
-.. code-block:: bash
-
     python phyluce/bin/assembly/get_match_counts.py \
         /path/to/output/lastz/probe.matches.sqlite \
         /path/to/your/datasets.conf \
@@ -388,7 +386,7 @@ differently - by indicating these external data with asterisks::
     
 Then, you need to pass `get_match_counts.py` the location of the
 `probe.matches.sqlite` database previously generated as described in
-:ref:`contigs-matching` or downloaded as part of :ref:`outgroup-data`
+:ref:`contigs-matching` or downloaded as part of :ref:`outgroup-data`::
 
     python phyluce/bin/assembly/get_match_counts.py \
         /path/to/output/lastz/probe.matches.sqlite \

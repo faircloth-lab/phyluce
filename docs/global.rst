@@ -13,3 +13,5 @@
 .. _IDTDNA: http://www.idtdna.com/site
 .. _uce-probe-sets: https://github.com/faircloth-lab/uce-probe-sets
 .. _CloudForest: https://github.com/ngcrawford/CloudForest
+.. _sqlite: http://www.sqlite.org
+.. _sqlite-tutorial: http://www.sqlite.org/sqlite.html
