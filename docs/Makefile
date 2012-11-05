@@ -132,12 +132,10 @@ doctest:
 		  
 gh-pages:
 	git checkout gh-pages
-	git rm -rf *
+	rm -rf *
 	git checkout master docs
 	git reset HEAD
-	cd docs
-	make html
-	mv -fv build/html/* ../
+	cd docs; make html; mv -fv build/html/* ../
 	rm -rf docs
 	touch .nojekyll
 	git add -A
