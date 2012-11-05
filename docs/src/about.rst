@@ -1,3 +1,5 @@
+.. include:: global.rst
+
 Personnel
 =========
 
@@ -25,7 +27,7 @@ laboratory work, computer code, documentation, or all of the above:
 * Ed Braun (U. Florida)
 * Rebecca Kimball (U. Florida)
 * David Ray (MsState)
-* Sean Brady (Smithsonian)
+* Seán Brady (Smithsonian)
 * Jesus Maldonado (Smithsonian)
 * Jonathan Chang (UCLA)
 
@@ -42,10 +44,7 @@ supported portions of our work various UCE projects.  These include:
 * Smithsonian Institution Consortium for Understanding and Sustaining a 
   Biodiverse Planet
 * `Amazon Web Services`_ (Education grants to BCF, NGC, JEM, and TCG)
-* `IDTDNA`_
-
-.. _Amazon Web Services: http://aws.amazon.com/
-.. _IDTDNA: http://www.idtdna.com/site
+* IDTDNA_
 
 Acknowledgements
 ================

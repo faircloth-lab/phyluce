@@ -123,7 +123,7 @@ Read QC with illumiprocessor
 ----------------------------
 
 I created a program that I use for adapter and quality trimming named
-`illumiprocessor`_. It generally automates these processes and produces output
+illumiprocessor_. It generally automates these processes and produces output
 if the format we want downstream.
 
 If you used Casava, it will be easiest to place all of the demuliplexed reads
