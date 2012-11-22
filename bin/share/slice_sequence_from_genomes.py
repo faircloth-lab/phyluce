@@ -58,6 +58,13 @@ def get_args():
             default=None,
             help="An alternate name pattern to transform the conf entry into"
             )
+    parser.add_argument(
+            "--exclude",
+            type=str,
+            nargs='+',
+            default=None,
+            help="""Species to exclude from genome slicing""",
+        )
     return parser.parse_args()
 
 
@@ -109,17 +116,18 @@ def main():
     #pdb.set_trace()
     for genome in all_files:
         short_name, long_name, twobit_name = genome
-        out_file = os.path.join(args.output, short_name) + ".fasta"
-        out = fasta.FastaWriter(out_file)
-        tb = twobit.TwoBitFile(file(twobit_name))
-        lz = os.path.join(args.lastz, long_name)
-        count = 0
-        for row in lastz.Reader(lz, long_format=True):
-            sequence = slice_and_return_fasta(tb, row, args.flank)
-            out.write(sequence)
-            count += 1
-        print "\t{} sequences written to {}".format(count, out_file)
-        out.close()
+        if not args.exclude or (short_name not in args.exclude):
+            out_file = os.path.join(args.output, short_name) + ".fasta"
+            out = fasta.FastaWriter(out_file)
+            tb = twobit.TwoBitFile(file(twobit_name))
+            lz = os.path.join(args.lastz, long_name)
+            count = 0
+            for row in lastz.Reader(lz, long_format=True):
+                sequence = slice_and_return_fasta(tb, row, args.flank)
+                out.write(sequence)
+                count += 1
+            print "\t{} sequences written to {}".format(count, out_file)
+            out.close()
 
 if __name__ == '__main__':
     main()
