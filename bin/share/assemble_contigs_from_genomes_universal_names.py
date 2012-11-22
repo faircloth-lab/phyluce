@@ -76,7 +76,7 @@ def get_args():
             "--extend",
             action="store_true",
             default=False,
-            help="""Add columns to existing database rather than starting  over""",
+            help="""Add columns to existing database rather than starting over""",
         )
     parser.add_argument(
             "--pattern",
