@@ -67,8 +67,13 @@ def get_files(input_dir, input_format):
 
 
 def get_informative_sites(count):
+    #pdb.set_trace()
     # remove gaps
     del count['-']
+    # remove N
+    del count['N']
+    # remove ?
+    del count['?']
     sufficient_sites = len(count)
     if sufficient_sites >= 2:
         sufficient_sequences = sum([1 for i in count.values() if i >= 2])
@@ -91,7 +96,7 @@ def main():
                 informative_sites.append(1)
             else:
                 informative_sites.append(0)
-        pdb.set_trace()
+        #pdb.set_trace()
         results[name] = {
                 'length': aln.get_alignment_length(),
                 'informative': sum(informative_sites)
