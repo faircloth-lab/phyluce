@@ -12,19 +12,15 @@ Description:
 """
 
 import os
-import sys
 import glob
-import sqlite3
 import argparse
 import multiprocessing
 from Bio import AlignIO
-from Bio.Alphabet import generic_dna
-from Bio.Align import MultipleSeqAlignment
 from collections import Counter
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -40,8 +36,8 @@ def get_args():
     parser.add_argument(
             '--output',
             type=str,
-            default='output',
-            help="""The output filename (without extension - code will add .sqlite)"""
+            default=None,
+            help="""The output filename"""
         )
     parser.add_argument(
             "--input-format",
@@ -67,7 +63,6 @@ def get_files(input_dir, input_format):
 
 
 def get_informative_sites(count):
-    #pdb.set_trace()
     # remove gaps
     del count['-']
     # remove N
@@ -82,27 +77,39 @@ def get_informative_sites(count):
     return False
 
 
+def worker(work):
+    args, f = work
+    aln = AlignIO.read(f, args.input_format)
+    name = os.path.basename(f)
+    informative_sites = []
+    for idx in xrange(aln.get_alignment_length()):
+        col = aln[:, idx]
+        count = Counter(col)
+        if get_informative_sites(count):
+            informative_sites.append(1)
+        else:
+            informative_sites.append(0)
+    return (name, aln.get_alignment_length(), sum(informative_sites))
+
+
 def main():
     args = get_args()
-    results = {}
-    for f in get_files(args.input, args.input_format):
-        aln = AlignIO.read(f, args.input_format)
-        name = os.path.basename(f)
-        informative_sites = []
-        for idx in xrange(aln.get_alignment_length()):
-            col = aln[:, idx]
-            count = Counter(col)
-            if get_informative_sites(count):
-                informative_sites.append(1)
-            else:
-                informative_sites.append(0)
-        #pdb.set_trace()
-        results[name] = {
-                'length': aln.get_alignment_length(),
-                'informative': sum(informative_sites)
-            }
-    for locus, v in results.iteritems():
-        print "{0}\t{1}\t{2}".format(locus, v['informative'], v['length'])
+    work = [(args, f) for f in get_files(args.input, args.input_format)]
+    if args.cores <= 1:
+        results = map(worker, work)
+    elif args.cores > 1:
+        pool = multiprocessing.Pool(args.cores)
+        results = pool.map(worker, work)
+    if args.output:
+        outf = open(args.output, 'w')
+        outf.write("locus,length,informative_sites\n")
+    else:
+        print "locus\tlength\tinformative_sites"
+    for locus in results:
+        if not args.output:
+            print "{0}\t{1}\t{2}".format(locus[0], locus[1], locus[2])
+        else:
+            outf.write("{0},{1},{2}\n".format(locus[0], locus[1], locus[2]))
 
 if __name__ == '__main__':
     main()
