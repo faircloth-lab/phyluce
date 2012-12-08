@@ -74,6 +74,13 @@ def get_args():
             default=1,
             help="""The number of compute cores to use""",
         )
+    parser.add_argument(
+            "--genome-base-path",
+            dest="base_path",
+            type=str,
+            default=None,
+            help="""The base path to a directory containing genomes sequences""",
+        )
     return parser.parse_args()
 
 
@@ -212,7 +219,7 @@ def main():
     # connect to the db
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
-    path = "/nfs/data1/genomes/Genomes/{0}/{0}.2bit"
+    path = os.path.join("{0}".format(args.base_path), "{0}/{0}.2bit")
     check_for_all_genome_sequences(args.chromolist, args.scaffoldlist, path)
     # create a species table if not exists
     create_species_table(conn, cur, args.append)
