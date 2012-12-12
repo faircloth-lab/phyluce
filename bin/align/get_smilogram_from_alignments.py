@@ -197,8 +197,8 @@ def worker(work):
                     # bases can be any of IUPAC set except N|n
                     if c == max(count_of_count) and base in ['a', 'c', 't', 'g', 'r', 'y', 's', 'w', 'k', 'm', 'b', 'd', 'h', 'v']:
                         common_bases.append(base)
-                    # randomly select 1 of the bases
-                    major = choice(common_bases)
+                # randomly select 1 of the bases
+                major = choice(common_bases)
             # now, check for indels/substitutions
             for pos, base in enumerate(col):
                 base = base.lower()
