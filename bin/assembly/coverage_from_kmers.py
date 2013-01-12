@@ -5,7 +5,7 @@ import sys
 import math
 import numpy
 import argparse
-from tools.sequence import fasta
+from seqtools.sequence import fasta
 
 def get_args():
     parser = argparse.ArgumentParser(description='Parse fastq files and drop reads containing Ns.')
