@@ -10,7 +10,7 @@ Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 Description: 
 
 """
-
+import os
 import gzip
 import argparse
 
@@ -51,7 +51,10 @@ def main():
         print "Min. len:\t{:,}".format(min(count))
         print "Max. len:\t{:,}".format(max(count))
     else:
-        print "{},{},{},{}".format(args.fastq, len(count), sum(count), sum(count) / len(count))
+        try:
+	    print "{},{},{},{},{},{}".format(os.path.basename(args.fastq), len(count), sum(count), sum(count) / len(count), min(count), max(count))
+	except:
+	    print "{},{},{},{},{},{}".format(os.path.basename(args.fastq), len(count), "Div/0", "Div/0", "Div/0","Div/0")
 
 
 
