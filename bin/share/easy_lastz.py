@@ -62,7 +62,7 @@ def main():
         options.identity, options.output)
     lzstdout, lztstderr = alignment.run()
     if lztstderr:
-        pdb.set_trace()
+        raise IOError(lztstderr)
     end_time        = time.time()
     print 'Ended: ', time.strftime("%a %b %d, %Y  %H:%M:%S", time.localtime(end_time))
     print 'Time for execution: ', (end_time - start_time)/60, 'minutes'
