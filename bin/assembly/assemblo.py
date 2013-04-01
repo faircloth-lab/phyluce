@@ -62,7 +62,7 @@ def mkdir_p(path):
     return path
 
 
-def assemble_paired_end_reads(indiv, interleaved_dir):
+def assemble_paired_end_reads(indiv, read, interleaved_dir):
     singletons = os.path.join(
             interleaved_dir,
             "{0}{1}".format(indiv, '-READ-singleton.fastq.gz')
@@ -91,7 +91,7 @@ def assemble_paired_end_reads(indiv, interleaved_dir):
     return stdout, stderr, assembly_dir
 
 
-def assemble_single_end_reads(indiv, interleaved_dir):
+def assemble_single_end_reads(indiv, read, interleaved_dir):
     interleaved = os.path.join(
             interleaved_dir,
             "{0}{1}".format(indiv, '-READS-interleaved.fastq.gz')
@@ -134,9 +134,9 @@ def main():
         if indiv not in args.exclude:
             interleaved_dir = os.path.join(read, 'interleaved-adapter-quality-trimmed')
             if not args.single_end:
-                stdout, stderr, assembly_dir = assemble_paired_end_reads(indiv, interleaved_dir)
+                stdout, stderr, assembly_dir = assemble_paired_end_reads(indiv, read, interleaved_dir)
             else:
-                stdout, stderr, assembly_dir = assemble_single_end_reads(indiv, interleaved_dir)
+                stdout, stderr, assembly_dir = assemble_single_end_reads(indiv, read, interleaved_dir)
             results = [indiv]
             for search in [kmer, contig, n50]:
                 results.append(get_values(search, stderr))
