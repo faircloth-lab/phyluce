@@ -25,7 +25,6 @@ def get_args():
         action=FullPaths,
         help='The directory containing species-specific data')
     parser.add_argument('s',
-        dest='s'
         type=str,
         help='The starting kmer value (-s in VelvetOptimiser)')
     parser.add_argument('e',
