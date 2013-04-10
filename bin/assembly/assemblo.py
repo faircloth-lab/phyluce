@@ -25,6 +25,7 @@ def get_args():
         action=FullPaths,
         help='The directory containing species-specific data')
     parser.add_argument('s',
+        dest='s'
         type=str,
         help='The starting kmer value (-s in VelvetOptimiser)')
     parser.add_argument('e',
@@ -37,6 +38,11 @@ def get_args():
         action="store_true",
         default=False,
         help='Choose this flag if you are assembling single-end reads'
+        )
+    parser.add_argument('--separate-reads',
+        action="store_true",
+        default=False,
+        help='Choose this flag if you are assembling paired-end data in separate read files'
         )
     parser.add_argument('--exclude',
         type=str,
@@ -91,6 +97,39 @@ def assemble_paired_end_reads(args, indiv, read, interleaved_dir):
     return stdout, stderr, assembly_dir
 
 
+def assemble_separate_paired_end_reads(args, indiv, read, paired_dir):
+    assert is_dir(paired_dir), \
+            "NO interleaved directory"
+    singletons = os.path.join(
+            paired_dir,
+            "{0}{1}".format(indiv, '-READ-singleton.fastq.gz')
+        )
+    read1 = os.path.join(
+            paired_dir,
+            "{0}{1}".format(indiv, '-READ1.fastq.gz')
+        )
+    read2 = os.path.join(
+            paired_dir,
+            "{0}{1}".format(indiv, '-READ2.fastq.gz')
+        )
+    for f in [singletons, read1, read2]:
+        assert os.path.isfile(f), "Missing sequence file(s): {0}".format(f)
+    assembly_dir = os.path.join(read, 'assembly')
+    mkdir_p(assembly_dir)
+    os.chdir(assembly_dir)
+    velveth = "-fastq.gz -separate -shortPaired {} {} -short {}".format(read1, read2, singletons)
+    cmd = ["VelvetOptimiser",
+            "-s", args.s,
+            "-e", args.e,
+            "-c", "'ncon'",
+            "-t", args.t,
+            "-a",
+            "-f", velveth
+        ]
+    stdout, stderr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    return stdout, stderr, assembly_dir
+
+
 def assemble_single_end_reads(args, indiv, read, interleaved_dir):
     interleaved = os.path.join(
             interleaved_dir,
@@ -132,11 +171,16 @@ def main():
     for read in reads:
         indiv = os.path.basename(read)
         if indiv not in args.exclude:
-            interleaved_dir = os.path.join(read, 'interleaved-adapter-quality-trimmed')
-            if not args.single_end:
-                stdout, stderr, assembly_dir = assemble_paired_end_reads(args, indiv, read, interleaved_dir)
+            if not args.separate_reads:
+                read_dir = os.path.join(read, 'interleaved-adapter-quality-trimmed')
             else:
-                stdout, stderr, assembly_dir = assemble_single_end_reads(args, indiv, read, interleaved_dir)
+                read_dir = os.path.join(read, 'split-adapter-quality-trimmed')
+            if not args.single_end and not args.separate_reads:
+                stdout, stderr, assembly_dir = assemble_paired_end_reads(args, indiv, read, read_dir)
+            elif not args.single_end and args.separate_reads:
+                stdout, stderr, assembly_dir = assemble_separate_paired_end_reads(args, indiv, read, read_dir)
+            else:
+                stdout, stderr, assembly_dir = assemble_single_end_reads(args, indiv, read, read_dir)
             results = [indiv]
             for search in [kmer, contig, n50]:
                 results.append(get_values(search, stderr))
