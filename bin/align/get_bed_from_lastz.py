@@ -36,6 +36,20 @@ def get_args():
             help="""The output BED file"""
         )
     parser.add_argument(
+            "--identity",
+            dest='identity',
+            type=float,
+            default=90.0,
+            help="""The minimum percent identity to output""",
+        )
+    parser.add_argument(
+            "--continuity",
+            dest='continuity',
+            type=float,
+            default=90.0,
+            help="""The minimum percent continuity to output""",
+        )
+    parser.add_argument(
             "--long-format",
             dest='long_format',
             action="store_true",
@@ -83,13 +97,11 @@ def main(lformat=True):
     else:
         items = None
     for match in lastz.Reader(args.lastz, long_format=args.long_format):
-        pdb.set_trace()
         try:
             name = match.name2.split('|')[1]
         except:
-            name = match.name2
-        if match.percent_identity >= 90. and match.percent_continuity >= 90.:
-            #pdb.set_trace()
+            name = match.name2.split(' ')[0]
+        if match.percent_identity >= args.identity and match.percent_continuity >= args.continuity:
             if args.conf and items and (name in items):
                 write_to_outfile(args, match, name)
             elif args.conf is None:

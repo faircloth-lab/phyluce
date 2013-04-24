@@ -81,6 +81,18 @@ def get_args():
             default=None,
             help="""The base path to a directory containing genomes sequences""",
         )
+    parser.add_argument(
+            "--coverage",
+            type=float,
+            default=83.0,
+            help="""The default coverage to search for using lastz""",
+        )
+    parser.add_argument(
+            "--identity",
+            type=float,
+            default=92.5,
+            help="""The default percent identity to search for using lastz""",
+        )
     return parser.parse_args()
 
 
@@ -177,7 +189,7 @@ def align_against_scaffolds(cur, args, path):
             else:
                 prefab = False
         if not prefab:
-            multi_lastz_runner(output, args.cores, target, args.probefile, True)
+            multi_lastz_runner(output, args.cores, target, args.probefile, True, args.coverage, args.identity)
             clean = clean_lastz_data(output)
         if args.db:
             create_species_lastz_tables(cur, g)
@@ -198,7 +210,7 @@ def align_against_genomes(cur, args, path):
             else:
                 prefab = False
         if not prefab:
-            multi_lastz_runner(output, args.cores, target, args.probefile, False)
+            multi_lastz_runner(output, args.cores, target, args.probefile, False, args.coverage, args.identity)
             clean = clean_lastz_data(output)
         if args.db:
             create_species_lastz_tables(cur, g)
