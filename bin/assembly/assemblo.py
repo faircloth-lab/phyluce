@@ -14,7 +14,7 @@ import argparse
 import subprocess
 from phyluce.helpers import is_dir, FullPaths
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -24,6 +24,9 @@ def get_args():
         type=is_dir,
         action=FullPaths,
         help='The directory containing species-specific data')
+    parser.add_argument('--output',
+        action=FullPaths,
+        help='The directory to hold the assembled contigs')
     parser.add_argument('s',
         type=str,
         help='The starting kmer value (-s in VelvetOptimiser)')
@@ -43,11 +46,17 @@ def get_args():
         default=False,
         help='Choose this flag if you are assembling paired-end data in separate read files'
         )
-    parser.add_argument('--exclude',
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--exclude',
         type=str,
         default=[],
         nargs='+',
         help='Directories in <input> to exclude')
+    group.add_argument('--include',
+        type=str,
+        default=[],
+        nargs='+',
+        help='Directories in <input> to include')
     return parser.parse_args()
 
 
@@ -68,6 +77,7 @@ def mkdir_p(path):
 
 
 def assemble_paired_end_reads(args, indiv, read, interleaved_dir):
+    assert is_dir(interleaved_dir), IOError("Directory {} containing interleaved reads does not exist".format(interleaved_dir))
     singletons = os.path.join(
             interleaved_dir,
             "{0}{1}".format(indiv, '-READ-singleton.fastq.gz')
@@ -76,14 +86,12 @@ def assemble_paired_end_reads(args, indiv, read, interleaved_dir):
             interleaved_dir,
             "{0}{1}".format(indiv, '-READ1and2-interleaved.fastq.gz')
         )
-    assert is_dir(interleaved_dir), \
-            "NO interleaved directory"
     for f in [singletons, interleaved]:
-        assert os.path.isfile(f), "Missing sequence file(s): {0}".format(f)
-    assembly_dir = os.path.join(read, 'assembly')
+        assert os.path.isfile(f), IOError("Missing sequence file(s): {0}".format(f))
+    assembly_dir = os.path.join(args.output, indiv, 'assembly')
     mkdir_p(assembly_dir)
     os.chdir(assembly_dir)
-    velveth = "-fastq.gz -short {} -shortPaired {}".format(singletons, interleaved)
+    velveth = "-fastq.gz -shortPaired {} -short {}".format(singletons, interleaved)
     cmd = ["VelvetOptimiser",
             "-s", args.s,
             "-e", args.e,
@@ -97,8 +105,7 @@ def assemble_paired_end_reads(args, indiv, read, interleaved_dir):
 
 
 def assemble_separate_paired_end_reads(args, indiv, read, paired_dir):
-    assert is_dir(paired_dir), \
-            "NO interleaved directory"
+    assert is_dir(paired_dir), IOError("Directory {} containing separate reads does not exist".format(paired_dir))
     singletons = os.path.join(
             paired_dir,
             "{0}{1}".format(indiv, '-READ-singleton.fastq.gz')
@@ -112,8 +119,8 @@ def assemble_separate_paired_end_reads(args, indiv, read, paired_dir):
             "{0}{1}".format(indiv, '-READ2.fastq.gz')
         )
     for f in [singletons, read1, read2]:
-        assert os.path.isfile(f), "Missing sequence file(s): {0}".format(f)
-    assembly_dir = os.path.join(read, 'assembly')
+        assert os.path.isfile(f), IOError("Missing sequence file(s): {0}".format(f))
+    assembly_dir = os.path.join(args.output, indiv, 'assembly')
     mkdir_p(assembly_dir)
     os.chdir(assembly_dir)
     velveth = "-fastq.gz -separate -shortPaired {} {} -short {}".format(read1, read2, singletons)
@@ -125,23 +132,23 @@ def assemble_separate_paired_end_reads(args, indiv, read, paired_dir):
             "-a",
             "-f", velveth
         ]
+    #pdb.set_trace()
     stdout, stderr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     return stdout, stderr, assembly_dir
 
 
-def assemble_single_end_reads(args, indiv, read, interleaved_dir):
-    interleaved = os.path.join(
-            interleaved_dir,
+def assemble_single_end_reads(args, indiv, read, singles_dir):
+    assert is_dir(singles_dir), IOError("Directory {} containing single reads does not exist".format(singles_dir))
+    singles = os.path.join(
+            singles_dir,
             "{0}{1}".format(indiv, '-READS-interleaved.fastq.gz')
         )
-    assert is_dir(interleaved_dir), \
-            "NO interleaved directory"
-    for f in [interleaved]:
-        assert os.path.isfile(f), "Missing sequence file(s): {0}".format(f)
-    assembly_dir = os.path.join(read, 'assembly')
+    for f in [singles]:
+        assert os.path.isfile(f), IOError("Missing sequence file(s): {0}".format(f))
+    assembly_dir = os.path.join(args.output, indiv, 'assembly')
     mkdir_p(assembly_dir)
     os.chdir(assembly_dir)
-    velveth = "-fastq.gz -short {}".format(interleaved)
+    velveth = "-fastq.gz -short {}".format(singles)
     cmd = ["VelvetOptimiser",
             "-s", args.s,
             "-e", args.e,
@@ -155,8 +162,11 @@ def assemble_single_end_reads(args, indiv, read, interleaved_dir):
 
 def main():
     args = get_args()
+    pdb.set_trace()
     basedir = args.input
-    contig_dir = mkdir_p(os.path.join(basedir, 'contigs'))
+    if not args.output:
+        args.output == args.input
+    contig_dir = mkdir_p(os.path.join(args.output, 'contigs'))
     # Total number of contigs: 4882
     contig = re.compile('Total\snumber\sof\scontigs:\s(\d+)')
     kmer = re.compile('Velvet\shash\svalue:\s(\d+)')
