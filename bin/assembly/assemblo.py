@@ -160,9 +160,19 @@ def assemble_single_end_reads(args, indiv, read, singles_dir):
     stdout, stderr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     return stdout, stderr, assembly_dir
 
+
+def get_samples_to_run(args, reads):
+    """docstring for get_samples_to_run"""
+    all_names = [os.path.basename(read) for read in reads]
+    if args.exclude:
+        return set([name for name in all_names if name not in args.exclude])
+    elif args.include:
+        return set([name for name in all_names if name in args.include])
+    else:
+        return all_names
+
 def main():
     args = get_args()
-    pdb.set_trace()
     basedir = args.input
     if not args.output:
         args.output == args.input
@@ -177,9 +187,10 @@ def main():
     # skip contigs dir that we just added
     reads = [f for f in glob.glob(os.path.join(args.input, '*')) \
             if os.path.basename(f) != 'contigs']
+    taxa_to_run = get_samples_to_run(args, reads)
     for read in reads:
         indiv = os.path.basename(read)
-        if indiv not in args.exclude:
+        if indiv in taxa_to_run:
             if not args.separate_reads:
                 read_dir = os.path.join(read, 'interleaved-adapter-quality-trimmed')
             else:
