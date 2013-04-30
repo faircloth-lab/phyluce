@@ -175,7 +175,7 @@ def main():
     args = get_args()
     basedir = args.input
     if not args.output:
-        args.output == args.input
+        args.output = args.input
     contig_dir = mkdir_p(os.path.join(args.output, 'contigs'))
     # Total number of contigs: 4882
     contig = re.compile('Total\snumber\sof\scontigs:\s(\d+)')
