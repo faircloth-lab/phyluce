@@ -13,6 +13,7 @@ import errno
 import argparse
 import subprocess
 from phyluce.helpers import is_dir, FullPaths
+from phyluce.third_party import which
 
 import pdb
 
@@ -76,7 +77,7 @@ def mkdir_p(path):
     return path
 
 
-def assemble_paired_end_reads(args, indiv, read, interleaved_dir):
+def assemble_paired_end_reads(args, velvet_optimiser, indiv, read, interleaved_dir):
     assert is_dir(interleaved_dir), IOError("Directory {} containing interleaved reads does not exist".format(interleaved_dir))
     singletons = os.path.join(
             interleaved_dir,
@@ -92,7 +93,7 @@ def assemble_paired_end_reads(args, indiv, read, interleaved_dir):
     mkdir_p(assembly_dir)
     os.chdir(assembly_dir)
     velveth = "-fastq.gz -shortPaired {} -short {}".format(singletons, interleaved)
-    cmd = ["VelvetOptimiser",
+    cmd = [velvet_optimiser,
             "-s", args.s,
             "-e", args.e,
             "-c", "'ncon'",
@@ -104,7 +105,7 @@ def assemble_paired_end_reads(args, indiv, read, interleaved_dir):
     return stdout, stderr, assembly_dir
 
 
-def assemble_separate_paired_end_reads(args, indiv, read, paired_dir):
+def assemble_separate_paired_end_reads(args, velvet_optimiser, indiv, read, paired_dir):
     assert is_dir(paired_dir), IOError("Directory {} containing separate reads does not exist".format(paired_dir))
     singletons = os.path.join(
             paired_dir,
@@ -124,7 +125,7 @@ def assemble_separate_paired_end_reads(args, indiv, read, paired_dir):
     mkdir_p(assembly_dir)
     os.chdir(assembly_dir)
     velveth = "-fastq.gz -separate -shortPaired {} {} -short {}".format(read1, read2, singletons)
-    cmd = ["VelvetOptimiser",
+    cmd = [velvet_optimiser,
             "-s", args.s,
             "-e", args.e,
             "-c", "'ncon'",
@@ -137,7 +138,7 @@ def assemble_separate_paired_end_reads(args, indiv, read, paired_dir):
     return stdout, stderr, assembly_dir
 
 
-def assemble_single_end_reads(args, indiv, read, singles_dir):
+def assemble_single_end_reads(args, velvet_optimiser, indiv, read, singles_dir):
     assert is_dir(singles_dir), IOError("Directory {} containing single reads does not exist".format(singles_dir))
     singles = os.path.join(
             singles_dir,
@@ -149,7 +150,7 @@ def assemble_single_end_reads(args, indiv, read, singles_dir):
     mkdir_p(assembly_dir)
     os.chdir(assembly_dir)
     velveth = "-fastq.gz -short {}".format(singles)
-    cmd = ["VelvetOptimiser",
+    cmd = [velvet_optimiser,
             "-s", args.s,
             "-e", args.e,
             "-c", "'ncon'",
@@ -170,6 +171,16 @@ def get_samples_to_run(args, reads):
         return set([name for name in all_names if name in args.include])
     else:
         return all_names
+        
+def get_velvet_optimiser(name='VelvetOptimiser'):
+    velvetg = which("velvetg")
+    velveth = which("velveth")
+    try:
+        velvet_optimiser = which("{}".format(name))[0]
+        return velvet_optimiser
+    except EnvironmentError, e:
+        velvet_optimiser = which("{}.pl".format(name))[0]
+        return velvet_optimiser
 
 def main():
     args = get_args()
@@ -188,6 +199,8 @@ def main():
     reads = [f for f in glob.glob(os.path.join(args.input, '*')) \
             if os.path.basename(f) != 'contigs']
     taxa_to_run = get_samples_to_run(args, reads)
+    # find VelvetOptimiser
+    velvet_optimiser = get_velvet_optimiser()
     for read in reads:
         indiv = os.path.basename(read)
         if indiv in taxa_to_run:
@@ -196,11 +209,11 @@ def main():
             else:
                 read_dir = os.path.join(read, 'split-adapter-quality-trimmed')
             if not args.single_end and not args.separate_reads:
-                stdout, stderr, assembly_dir = assemble_paired_end_reads(args, indiv, read, read_dir)
+                stdout, stderr, assembly_dir = assemble_paired_end_reads(args, velvet_optimiser, indiv, read, read_dir)
             elif not args.single_end and args.separate_reads:
-                stdout, stderr, assembly_dir = assemble_separate_paired_end_reads(args, indiv, read, read_dir)
+                stdout, stderr, assembly_dir = assemble_separate_paired_end_reads(args, velvet_optimiser, indiv, read, read_dir)
             else:
-                stdout, stderr, assembly_dir = assemble_single_end_reads(args, indiv, read, read_dir)
+                stdout, stderr, assembly_dir = assemble_single_end_reads(args, velvet_optimiser, indiv, read, read_dir)
             results = [indiv]
             for search in [kmer, contig, n50]:
                 results.append(get_values(search, stderr))
