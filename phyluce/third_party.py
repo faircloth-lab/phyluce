@@ -90,5 +90,5 @@ def which(name, flags=os.X_OK):
             if os.access(pext, flags):
                 result.append(pext)
     if result == []:
-        raise EnvironmentError("Cannot find {0}.  Make sure {0} is in your path.".format(name))
+        raise EnvironmentError("Cannot find {0}.  Make sure {0} is in your $PATH.".format(name))
     return result
