@@ -173,10 +173,11 @@ def get_samples_to_run(args, reads):
         return all_names
         
 def get_velvet_optimiser(name='VelvetOptimiser'):
-    """ensure that velvetg, velveth, and VelvetOptimiser are in $PATH"""
+    """ensure that velvetg, velveth, VelvetOpt, and VelvetOptimiser are in $PATH"""
     # ensure velvetg and velveth are in $PATH
     velvetg = which("velvetg")
     velveth = which("velveth")
+    velvet_opt = which("VelvetOpt")
     # we need velvetoptimiser - ensure that is in $PATH and return
     try:
         velvet_optimiser = which("{}".format(name))[0]
