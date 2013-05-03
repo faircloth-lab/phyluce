@@ -22,12 +22,14 @@ from phyluce.helpers import FullPaths, is_file
 import pdb
 
 def check_min_value(value):
+    """ensure min values for range are sane"""
     value = float(value)
     if value < 0 or value >= 1:
         raise argparse.ArgumentTypeError("The min value must be 0 < value < 1")
     return value
 
 def check_max_value(value):
+    """ensure max/step values for range/step are sane"""
     value = float(value)
     if not 0 <= value <= 1:
         raise argparse.ArgumentTypeError("The max value must be 0 <= value <= 1")
@@ -91,6 +93,7 @@ def get_number_of_taxa_in_db(args, cur):
 
 
 def get_counts_of_hits_by_locus(cur, taxa):
+    """Across the desired taxa, tally the locus matches"""
     locus_counts = {}
     query = "SELECT uce,{} FROM matches".format(','.join(taxa))
     for row in cur.execute(query):
@@ -101,13 +104,13 @@ def get_counts_of_hits_by_locus(cur, taxa):
 
 
 def get_cut_points(args, taxa):
-    """docstring for get_cut_points"""
+    """Given a range of proportions, return the cut points in a vector of ints"""
     fracs = numpy.arange(args.min, args.max, args.step)
     return fracs, numpy.around(taxa * fracs, decimals=0)
 
 
 def get_bins_of_counts(args, num_taxa, locus_counts):
-    """docstring for get_bins_of_counts"""
+    """Bin the tallies of counts by locus into categories by proportion"""
     # get cut points
     fracs, cuts = get_cut_points(args, num_taxa)
     frac_dict = defaultdict(list)
@@ -124,7 +127,7 @@ def get_bins_of_counts(args, num_taxa, locus_counts):
 
 
 def main():
-    """docstring for main"""
+    """main loop"""
     args = get_args()
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
