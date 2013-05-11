@@ -54,7 +54,7 @@ def main():
             frac.append(len(aln)/float(args.taxa))
             shutil.copyfile(f,os.path.join(args.output, os.path.basename(f)))
     print "Copied {0} alignments containing an proportion of {1} taxa".format(sum(counts), round(sum(frac)/len(frac), 2))
-    pdb.set_trace()
+    #pdb.set_trace()
 
 if __name__ == '__main__':
     main()

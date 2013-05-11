@@ -5,7 +5,8 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
-BUILDDIR      = /Users/bcf/git/brant/phyluce/myhtmldocs
+BUILDDIR      = build
+GH_PAGES_SOURCES = docs
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -128,3 +129,14 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+		  
+gh-pages:
+	git checkout gh-pages
+	git checkout master docs
+	git reset HEAD
+	cd docs; make html; mv -fv build/html/* ../
+	rm -rf docs
+	touch .nojekyll
+	git add -A
+	git ci -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`"
+	git push origin gh-pages

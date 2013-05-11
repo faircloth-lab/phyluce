@@ -3,24 +3,23 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to phyluces's documentation!
-===================================
+Welcome to phyluce's documentation!
+====================================
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    introduction
    installation
    study-design
-   pre-processing
+   pre-processing-qc
+   pre-processing-assembly
    uce-processing
-   snp-processing
    license
-   citation
-   funding
-   references
+   citations
+   about
 
 Indices and tables
 ==================

@@ -51,16 +51,34 @@ def get_args():
             default=500,
             help="""The amount of flanking sequence to add to each match""",
         )
+    parser.add_argument(
+            "--name-pattern",
+            dest="pattern",
+            type=str,
+            default=None,
+            help="An alternate name pattern to transform the conf entry into"
+            )
+    parser.add_argument(
+            "--exclude",
+            type=str,
+            nargs='+',
+            default=None,
+            help="""Species to exclude from genome slicing""",
+        )
     return parser.parse_args()
 
 
-def get_all_files_from_conf(conf):
+def get_all_files_from_conf(conf, pattern=None):
     all_files = []
     if conf.has_section("chromos"):
         all_files.extend(conf.items("chromos"))
     if conf.has_section("scaffolds"):
         all_files.extend(conf.items("scaffolds"))
-    return all_files
+    if pattern is not None:
+        files = [(v[0], pattern.format(v[0]), v[1]) for v in all_files]
+    else:
+        files = [(v[0], v[0], v[1]) for v in all_files]
+    return files
 
 
 def slice_and_return_fasta(tb, lz, flank=500):
@@ -92,21 +110,24 @@ def slice_and_return_fasta(tb, lz, flank=500):
 def main():
     args = get_args()
     conf = ConfigParser.ConfigParser()
+    conf.optionxform = str
     conf.read(args.conf)
-    all_files = get_all_files_from_conf(conf)
+    all_files = get_all_files_from_conf(conf, args.pattern)
+    #pdb.set_trace()
     for genome in all_files:
-        name, twobit_name = genome
-        out_file = os.path.join(args.output, name) + ".fasta"
-        out = fasta.FastaWriter(out_file)
-        tb = twobit.TwoBitFile(file(twobit_name))
-        lz = os.path.join(args.lastz, name) + ".lastz"
-        count = 0
-        for row in lastz.Reader(lz, long_format=True):
-            sequence = slice_and_return_fasta(tb, row, args.flank)
-            out.write(sequence)
-            count += 1
-        print "\t{} sequences written to {}".format(count, out_file)
-        out.close()
+        short_name, long_name, twobit_name = genome
+        if not args.exclude or (short_name not in args.exclude):
+            out_file = os.path.join(args.output, short_name) + ".fasta"
+            out = fasta.FastaWriter(out_file)
+            tb = twobit.TwoBitFile(file(twobit_name))
+            lz = os.path.join(args.lastz, long_name)
+            count = 0
+            for row in lastz.Reader(lz, long_format=True):
+                sequence = slice_and_return_fasta(tb, row, args.flank)
+                out.write(sequence)
+                count += 1
+            print "\t{} sequences written to {}".format(count, out_file)
+            out.close()
 
 if __name__ == '__main__':
     main()

@@ -75,7 +75,7 @@ def get_args():
             dest='extend',
             help='The match database to add as an extension'
         )
-    parser.add_argument('--notstrict',
+    parser.add_argument('--incomplete-matrix',
             dest='notstrict',
             action="store_true",
             help='Do not do strict matching',
@@ -157,7 +157,7 @@ def return_complete_matrix(organismal_matches, organisms, uces, fast=True):
 
 
 def return_incomplete_matrix(organismal_matches, organisms, uces):
-    setlist = [organismal_matches[organism.rstrip('*')] for organism in organisms]
+    setlist = [organismal_matches[organism] for organism in organisms]
     return uces.union(*setlist), None
 
 

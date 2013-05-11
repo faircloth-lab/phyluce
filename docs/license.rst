@@ -1,5 +1,23 @@
+.. include:: global.rst
+
 License
 =========
+
+Documentation
+*************
+
+The documentation for phyluce_ is available under a
+`CC-BY (2.0) <http://creativecommons.org/licenses/by/2.0/>`_ license.  This
+license gives you permission to copy, distribute, and trasmit the work as well
+as to adapt the work or use this work for commercial purposes, under the
+condition that you must attribute the work to the author(s).
+
+If you use this documentation or the phyluce_ software for your own research,
+please cite [Fair:2012a]_ and provide the link to the software repository: 
+`<https://github.com/faircloth-lab/phyluce>`_.
+
+Software
+********
 
 Copyright (c) 2010-2012, Brant C. Faircloth All rights reserved.
 

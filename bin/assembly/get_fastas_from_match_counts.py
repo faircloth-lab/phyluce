@@ -46,8 +46,9 @@ def get_args():
             dest='extend_dir',
             help='The directory holding extension fastas/contigs'
         )
-    parser.add_argument('--notstrict',
-            help='The outfile for notstrict data',
+    parser.add_argument('--incomplete-matrix',
+            dest='notstrict',
+            help='The outfile for incomplete-matrix data',
             type=argparse.FileType('w'),
             default=False
         )
@@ -76,9 +77,12 @@ def get_coverage(header):
 
 
 def find_file(contigs, name):
-    extensions = ['.fa', '.fasta', '.contigs.fasta', '.gz', '.fasta.gz', '.fa.gz']
+    extensions = ['.fa', '.fasta', '.contigs.fasta', '.contigs.fa', '.gz', '.fasta.gz', '.fa.gz']
     for ext in extensions:
-            reads = os.path.join(contigs, name) + ext
+        #pdb.set_trace()
+        reads1 = os.path.join(contigs, name) + ext
+        reads2 = os.path.join(contigs, name.replace('-', '_')) + ext
+        for reads in [reads1, reads2]:
             if os.path.isfile(reads):
                 break
             elif os.path.isfile(reads.lower()):
@@ -86,6 +90,8 @@ def find_file(contigs, name):
                 break
             else:
                 reads = None
+        if reads is not None:
+            break
     if reads is None:
         raise ValueError("Cannot find the a fasta file for {} with any of the extensions ({}) ".format(
                 name,
@@ -138,17 +144,23 @@ def main():
             coverage = get_coverage(read.identifier)
             if name in node_dict.keys():
                 uce_seq = fasta.FastaSequence()
-                uce_seq.identifier = ">{0}_{1} |{0}|{2}".format(node_dict[name][0], organism, coverage)
+                uce_seq.identifier = ">{0}_{1} |{0}|{2}".format(node_dict[name][0], organism.rstrip('*'), coverage)
                 # deal with strandedness because aligners dont, which
                 # is annoying
                 if node_dict[name][1] == '-':
                     uce_seq.sequence = transform.DNA_reverse_complement(read.sequence)
                 else:
                     uce_seq.sequence = read.sequence
-                # replace any occurrences of <21 Ns
+                # replace any occurrences of <21 Ns in a given sequence with
+                # blanks.  These should gap out during alignment.
                 if regex.search(uce_seq.sequence):
                     uce_seq.sequence = re.sub(regex, "", uce_seq.sequence)
                     print "\tReplaced < 20 ambiguous bases in {0}".format(uce_seq.identifier.split(' ')[0])
+                # Replace and leading/trailing lowercase bases from velvet
+                # assemblies. Lowercase bases indicate low coverage, and these 
+                # have been problematic in downstream alignments).
+                uce_seq.sequence = re.sub("^[acgtn]+", "", uce_seq.sequence)
+                uce_seq.sequence = re.sub("[acgtn]+$", "", uce_seq.sequence)
                 uce_fasta_out.write(uce_seq)
                 written.append(str(node_dict[name][0]))
             else:

@@ -51,7 +51,8 @@ def get_args():
             default=False,
             help='Take faircloth+stephens probe names'
         )
-    parser.add_argument('--notstrict',
+    parser.add_argument('--incomplete-matrix',
+            dest='notstrict',
             action='store_true',
             default=False,
             help='Allow alignments containing not all species'
@@ -81,9 +82,9 @@ def get_args():
             default=False,
             help='Allow reads in alignments containing N-bases'
         )
-    parser.add_argument('--multiprocessing',
-            action='store_true',
-            default=False,
+    parser.add_argument('--cores',
+            type=int,
+            default=1,
             help='Use multiple cores for alignment'
         )
     return parser.parse_args()
@@ -140,7 +141,6 @@ def get_fasta_dict(args):
         print 'Removing ALL sequences with ambiguous bases...'
     loci = defaultdict(list)
     for record in fasta.FastaReader(args.infile):
-        #pdb.set_trace()
         if not args.faircloth:
             locus = record.identifier.split('|')[1]
         else:
@@ -191,10 +191,13 @@ def write_alignments_to_outdir(outdir, alignments, format='nexus'):
     print '\nWriting output files...'
     for tup in alignments:
         locus, aln = tup
-        outname = "{}{}".format(os.path.join(outdir, locus), formats[format])
-        outf = open(outname, 'w')
-        outf.write(aln.trimmed_alignment.format(format))
-        outf.close()
+        if aln.trimmed_alignment is not None:
+            outname = "{}{}".format(os.path.join(outdir, locus), formats[format])
+            outf = open(outname, 'w')
+            outf.write(aln.trimmed_alignment.format(format))
+            outf.close()
+        else:
+            print "Dropped {0} from output".format(locus)
 
 
 def main(args):
@@ -205,9 +208,9 @@ def main(args):
     opts = [[args.window, args.threshold, args.notrim, args.proportion] \
             for i in range(len(loci))]
     params = zip(loci.items(), opts)
-    if args.multiprocessing:
-        pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
-
+    if args.cores:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
         alignments = pool.map(align, params)
     else:
         alignments = map(align, params)

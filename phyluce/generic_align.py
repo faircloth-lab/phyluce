@@ -171,22 +171,13 @@ class GenericAlign(object):
                     # pass the Alignment object a name and str(sequence).  Given this
                     # level of retardation, we'll fudge and use their private method
                     if start >= 0 and end:
-                        sl = []
-                        for k, v in enumerate(sequence.seq):
-                            if k in good:
-                                sl.append(v)
-                            else:
-                                sl.append('N')
-                        #pdb.set_trace()
-                        # sequence to array
-                        #seq_array = numpy.array(list(str(sequence.seq)))
-                        # reindex by good bases
-                        #seq_array = seq_array[good]
-                        # convert to sequence object
-                        #new_seq = Seq(seq_array.tostring(), IUPAC.ambiguous_dna)
-                        new_seq = Seq(''.join(sl), IUPAC.ambiguous_dna)
-                        new_seq_record = SeqRecord(new_seq, id=sequence.id, name=sequence.name, description=sequence.description)
-                        self.trimmed_alignment.append(new_seq_record)
+                        trimmed = sequence[start:end]
+                        # ensure we don't just add a taxon with only gaps/missing data
+                        if set(trimmed) != set(['-']) and set(trimmed) != (['?']):
+                            self.trimmed_alignment.append(sequence[start:end])
+                        else:
+                            self.trimmed_alignment = None
+                            break
                     else:
                         self.trimmed_alignment = None
                         break
@@ -233,7 +224,7 @@ class GenericAlign(object):
             self.trimmed_alignment_summary, self.trimmed_alignment_consensus = \
                 self._alignment_summary(self.trimmed_alignment)
         if not self.trimmed_alignment:
-            print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description.split('|')[1])
+            print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description)
 
     def trim_ambiguous_bases(self):
         """snip ambiguous bases from a trimmed_alignment"""

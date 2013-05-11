@@ -14,9 +14,6 @@ Description: Convert individual files to a large concantenated phylip file
 import os
 import glob
 import argparse
-import tempfile
-
-from Bio import AlignIO
 from Bio.Nexus import Nexus
 from phyluce.helpers import is_dir, FullPaths
 
@@ -46,15 +43,8 @@ def main():
     data = [(fname, Nexus.Nexus(fname)) for fname in nexus_files]
     print "Concatenating files..."
     concatenated = Nexus.combine(data)
-    #print "Writing temp nexus..."
-    #fd, temp = tempfile.mkstemp(suffix='.nexus')
-    #concatenated.write_nexus_data(filename=os.fdopen(fd, 'w'))
     print "Writing to phylip..."
     concatenated.export_phylip(args.output)
-    #aln = AlignIO.parse(temp, "nexus")
-    #AlignIO.write(aln, args.output, "phylip")
-    #print "Cleaning up..."
-    #os.remove(temp)
 
 
 if __name__ == '__main__':

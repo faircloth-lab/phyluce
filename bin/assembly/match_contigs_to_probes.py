@@ -116,7 +116,7 @@ def store_lastz_results_in_db(c, matches, orientation, critter):
 
 def get_name(header, splitchar="_", items=2, regex=None, repl=None):
     """parse the name of a locus from a file"""
-    name = "_".join(header.split(splitchar)[:items]).lstrip('>').lower()
+    name = "_".join(header.split(splitchar)[:items]).lstrip('>').strip().lower()
     if regex is not None and repl is not None:
         return re.sub(regex, repl, name)
     else:
@@ -194,7 +194,7 @@ def pretty_print_output(critter, matches, contigs, pd, mc, mp):
 
 def main():
     args = get_args()
-    if args.regex and args.repl:
+    if args.regex and args.repl is not None:
         # "s_[0-9]+$"
         regex = re.compile(args.regex)
         uces = set([get_name(read.identifier, "|", 1, regex=regex, repl=args.repl)

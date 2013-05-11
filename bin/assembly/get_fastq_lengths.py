@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: get_fastq_lengths.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 21 July 2012 12:07 PDT (-0700)
+Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+
+Description: 
+
+"""
+import os
+import gzip
+import glob
+import numpy
+import tempfile
+import argparse
+import subprocess
+from phyluce.helpers import is_dir, FullPaths
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Get summary (length) data from fastq""")
+    parser.add_argument(
+            "input",
+            type=is_dir,
+            action=FullPaths,
+            help="""The directory of fastq files to summarize"""
+        )
+    parser.add_argument(
+            "--csv",
+            action="store_true",
+            default=False,
+            help="""Give output in CSV"""
+        )
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
+    fd, templen = tempfile.mkstemp(suffix='.fqcount')
+    os.close(fd)
+    templen_stdout = open(templen, 'w')
+    for f in glob.glob(os.path.join(args.input, '*.fastq*')):
+        if f.endswith('.gz'):
+            # not secure
+            cmd = "gunzip -c {} | awk '{{if(NR%4==2) print length($1)}}'".format(f)
+        else:
+            # not secure
+            cmd = "cat {} | awk '{{if(NR%4==2) print length($1)}}'".format(f)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=templen_stdout,
+            stderr=subprocess.PIPE,
+            shell=True
+        )
+        stdout, stderr = proc.communicate()
+    templen_stdout.close()
+    if stderr == '':
+        lengths = [int(l.strip()) for l in open(templen, 'rU')]
+    os.remove(templen)
+    lengths = numpy.array(lengths)
+    std_error = numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths))
+    if not args.csv:
+        print "Reads:\t\t{:,}".format(len(lengths))
+        print "Bp:\t\t{:,}".format(sum(lengths))
+        print "Avg. len:\t{:,}".format(numpy.average(lengths))
+        print "STDERR len:\t{:,}".format(std_error)
+        print "Min. len:\t{:,}".format(min(lengths))
+        print "Max. len:\t{:,}".format(max(lengths))
+        print "Median len:\t{:,}".format(numpy.median(lengths))
+    else:
+        try:
+            print "All files in dir with {},{},{},{},{},{},{},{}".format(os.path.basename(f), len(lengths), sum(lengths), numpy.average(lengths), std_error, min(lengths), max(lengths), numpy.median(lengths))
+        except:
+            print "All files in dir with {},{},{},{},{},{}".format(os.path.basename(f), len(lengths), "Div/0", "Div/0", "Div/0","Div/0")
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: replace_many_links.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 19 September 2012 13:09 PDT (-0700)
+Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+
+Description: 
+
+"""
+
+import os
+import glob
+import argparse
+from phyluce.helpers import is_dir, FullPaths
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Program description""")
+    parser.add_argument(
+            "indir",
+            type=is_dir,
+            action=FullPaths,
+            help="""The directory containing the links to rename"""
+        )
+    parser.add_argument(
+            "oldpath",
+            help="""The text you want to replace in the oldpath (include '/')"""
+        )
+    parser.add_argument(
+            "newpath",
+            help="""The text you want to use as a replacement in the newpath (include '/')"""
+        )
+    parser.add_argument(
+            "outdir",
+            type=is_dir,
+            action=FullPaths,
+            help="""The output directory to hold updated symlinks"""
+        )
+
+    return parser.parse_args()
+
+
+def get_and_check_links(indir):
+    links = glob.glob(os.path.join(indir, '*'))
+    for link in links:
+        assert os.path.islink(link), "Not all paths are links"
+    return links
+
+
+def change_links(links, oldpath, newpath, outdir):
+    for link in links:
+        new_link_name = os.path.join(outdir, os.path.basename(link))
+        # get the target
+        target = os.readlink(link)
+        new_target_name = target.replace(oldpath, newpath)
+        assert os.path.isfile(new_target_name), "The new target is not a file"
+        os.symlink(new_target_name, new_link_name)
+
+
+def main():
+    args = get_args()
+    links = get_and_check_links(args.indir)
+    change_links(links, args.oldpath, args.newpath, args.outdir)
+
+if __name__ == '__main__':
+    main()
