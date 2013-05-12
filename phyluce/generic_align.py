@@ -22,8 +22,6 @@ from Bio.Align import AlignInfo
 from Bio.Alphabet import IUPAC, Gapped
 from Bio.Align import MultipleSeqAlignment
 
-import pdb
-
 
 class GenericAlign(object):
     """docstring for Align"""
@@ -45,6 +43,7 @@ class GenericAlign(object):
             pass
     
     def _get_ends(self, seq):
+        """find the start and end of sequence data for a given alignment row"""
         f = re.compile("^([-]+)")
         result = f.search(seq.seq.tostring())
         if result:
@@ -60,13 +59,14 @@ class GenericAlign(object):
         return start_gap, len(seq.seq) - end_gap
 
     def _gap_replacement(self, match, r='?'):
+        """function called by replace_ends to add group of (missing data) characters"""
         if match.groups():
             return r * len(match.groups()[0])
         else:
             pass
     
     def _replace_ends(self, seq):
-        """docstring for replace_ends"""
+        """replace the ends of a given alignment with a character (usually gap/missing data)"""
         seq = re.sub('^([-]+)', self._gap_replacement, seq)
         seq = re.sub('([-]+)$', self._gap_replacement, seq)
         return seq
@@ -80,7 +80,20 @@ class GenericAlign(object):
         """read an alignment from the CLI - largely for testing purposes"""
         self.alignment = AlignIO.read(open(self.input, 'rU'), format)
 
+    def _record_formatter(self, trim, name):
+        """return a string formatted as a biopython sequence record"""
+        return SeqRecord(Seq(trim, Gapped(IUPAC.ambiguous_dna, "-?")),
+            id=name,
+            name=name,
+            description=name)
+    
     def running_average(self, alignment, window_size, threshold, proportion):
+        """
+        compute the running average of base differences on a column-by-column
+        basis across and alignment.  only count those bases where there is
+        sufficient data, determined by `proportion`. Filter out columns
+        having sufficient data where running average is > `threshold`
+        """
         # iterate across the columns of the alignment and determine presence
         # or absence of base-identity in the column
         good_alignment = []
@@ -129,6 +142,11 @@ class GenericAlign(object):
         return start_clip, end_clip
     
     def stage_one_trimming(self, alignment, window_size, threshold, proportion):
+        """
+        First stage (of 3) alignment trimming to find and trim edges of a given
+        alignment.  Calls running_average function above to determine reasonable
+        alignment start and end trimming for the entire alignment block.
+        """
         # get the trim positions that we determine begin and end "good"
         # alignments
         start, end = self.running_average(alignment, window_size, threshold, proportion)
@@ -149,14 +167,15 @@ class GenericAlign(object):
                 break
         return s1_trimmed
     
-    def _record_formatter(self, trim, name):
-        """return a string formatted as a biopython sequence record"""
-        return SeqRecord(Seq(trim, Gapped(IUPAC.ambiguous_dna, "-?")),
-            id=name,
-            name=name,
-            description=name)
-    
     def stage_two_trimming(self, s1_trimmed, window_size=5):
+        """
+        Alignment row-by-row trimming.  After stage one trimming, iterate
+        over rows of alignment to find differences between the alignment
+        consensus and the row of data.  Trim those ends coming before
+        (or after at 3' end) a block of 5 contiguous highly conserved
+        positions.  Goes to third round of filtering to remove edges that
+        end up with only '----' characters to start or end alignment block.
+        """
         # create new alignment object to hold trimmed alignment
         s2_trimmed = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
         # get consensus of alignment in array form
@@ -191,28 +210,6 @@ class GenericAlign(object):
                 if numpy.all(reversed_gm[i:i+5] == True):
                     bad_end = reversed_gm.size - i
                     break
-            '''
-            # extract those values from best
-            best_start, best_end = best[0], best[-1]
-            # now, from [:best_start] and [best_end:], look for
-            # values that drop below an average identity w/ consensus
-            # of 0.5.  We'll keep the first one that we hit.
-            bad_start = numpy.where(running_average[:best_start] < 0.5)[0]
-            # skip if an empty array
-            if bad_start.size == 0:
-                bad_start = 0
-            else:
-                bad_start = bad_start[-1]
-            # do same for 3' end
-            bad_end = numpy.where(running_average[best_end:] < 0.5)[0]
-            # skip if an empty array
-            if bad_end.size == 0:
-                bad_end = seq_array.size
-            else:
-                bad_end = best_end + bad_end[0]
-            # against the original, untrimmed alignment
-            # use fancy indexing to convert bad parts to "-"
-            '''
             orig_seq_array[:start + bad_start] = '-'
             orig_seq_array[start + bad_end:] = '-'
             trim = ''.join(orig_seq_array)
@@ -220,7 +217,6 @@ class GenericAlign(object):
             # missing/trimmed data at edges to "?" which is
             # missing data designator
             #trim = self._replace_ends(trim)
-            #pdb.set_trace()
             if set(trim) != set(['-']) and set(trim) != (['?']):
                 s2_trimmed.append(self._record_formatter(trim, sequence.id))
             else:
@@ -229,7 +225,13 @@ class GenericAlign(object):
         return s2_trimmed
 
     def trim_alignment(self, method='running', window_size=20, threshold=0.75, proportion=0.65):
-        """Trim the alignment"""
+        """
+        Trim a given alignment from one of the alignment engines.  Uses three-pass
+        approach - one to trim alignment block ends, one to trim row data, and a
+        third to re-trim alignment block ends after trimming row data.
+        
+        Returns self.trimmed
+        """
         if method == 'notrim':
             self.trimmed = self.alignment
         else:
