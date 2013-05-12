@@ -32,7 +32,7 @@ class Align(GenericAlign):
         """initialize, calling superclass __init__ also"""
         super(Align, self).__init__(input)
 
-    def run_alignment(self, clean=True, consensus=True):
+    def run_alignment(self, clean=True):
         """ muscle """
         # dialign requires ENV variable be set for dialign_dir
         muscle = which("muscle")
@@ -48,10 +48,6 @@ class Align(GenericAlign):
         stdout, stderr = proc.communicate()
         self.alignment = AlignIO.read(open(aln, 'rU'), \
                 "fasta", alphabet=Gapped(IUPAC.unambiguous_dna, "-"))
-        # build a dumb consensus
-        if consensus:
-            self.alignment_summary, self.alignment_consensus = \
-                self._alignment_summary(self.alignment)
         # cleanup temp files
         if clean:
             self._clean(aln)
