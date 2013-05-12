@@ -244,11 +244,10 @@ class GenericAlign(object):
             print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description)
 
 if __name__ == '__main__':
-    #aln = GenericAlign('../test-data/phaenicophaeus-coccyzus-cuculus-NO-TRIM/uce-7117.nex')
-    aln = GenericAlign('/nfs/data1/working/mbraun-birds/taxon-sets/ALLIGATOR-NO-GHARIAL-NO-LARUS-NO-HELIORNIS/nexus-rename/uce-1239.nex')
+    aln = GenericAlign('../test-data/uce-7117.nex')
     aln._read('nexus')
     aln.trim_alignment()
-    outf = open('/Users/bcf/Dropbox/Research/shared-manuscripts/mbraun-birds/BCF/phaenicophaeus-differences/testing/alignment-test.nex', 'w')
+    outf = open('alignment-test.nex', 'w')
     outf.write(aln.trimmed.format('nexus'))
     outf.close()
     #pdb.set_trace()
