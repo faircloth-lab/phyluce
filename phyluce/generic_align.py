@@ -14,12 +14,12 @@ Description:
 import os
 import re
 import numpy
+from collections import Counter
 from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 from Bio import AlignIO
 from Bio.Align import AlignInfo
-from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC, Gapped
-#from Bio.Align.Generic import Alignment
 from Bio.Align import MultipleSeqAlignment
 
 import pdb
@@ -30,8 +30,7 @@ class GenericAlign(object):
     def __init__(self, input):
         self.input = input
         self.alignment = None
-        self.trimmed_alignment = None
-        self.perfect_trimmed_alignment = None
+        self.trimmed = None
 
     def _clean(self, outtemp):
         if type(outtemp) is list:
@@ -44,229 +43,196 @@ class GenericAlign(object):
             os.remove(self.input)
         except:
             pass
-
-    def _find_ends(self, forward=True):
-        """determine the first (or last) position where all reads in an 
-        alignment start/stop matching"""
-        if forward:
-            theRange = xrange(self.alignment.get_alignment_length())
+    
+    def _get_ends(self, seq):
+        f = re.compile("^([-]+)")
+        result = f.search(seq.seq.tostring())
+        if result:
+            start_gap = len(result.groups()[0])
         else:
-            theRange = reversed(xrange(self.alignment.get_alignment_length()))
-        for col in theRange:
-            if '-' in self.alignment.get_column(col):
-                pass
-            else:
-                break
-        return col
+            start_gap = 0
+        r = re.compile("([-]+)$")
+        result = r.search(seq.seq.tostring())
+        if result:
+            end_gap = len(result.groups()[0])
+        else:
+            end_gap = 0
+        return start_gap, len(seq.seq) - end_gap
 
-    def _base_checker(self, bases, sequence, loc):
-        """ensure that any trimming that occurs does not start beyong the
-        end of the sequence being trimmed"""
-        # deal with the case where we just want to measure out from the
-        # middle of a particular sequence
-        if len(loc) == 1:
-            loc = (loc, loc)
-        if not bases > len(sequence.seq[:loc[0]]) and \
-            not bases > len(sequence.seq[loc[1]:]):
-            return True
+    def _gap_replacement(self, match, r='?'):
+        if match.groups():
+            return r * len(match.groups()[0])
+        else:
+            pass
+    
+    def _replace_ends(self, seq):
+        """docstring for replace_ends"""
+        seq = re.sub('^([-]+)', self._gap_replacement, seq)
+        seq = re.sub('([-]+)$', self._gap_replacement, seq)
+        return seq
 
-    def _record_formatter(self, temp):
-        """return a string formatted as a biopython sequence record"""
-        temp_record = SeqRecord(temp)
-        return temp_record
-
-    def _alignment_summary(self, alignment):
-        """return summary data for an alignment object using the AlignInfo
-        class from BioPython"""
-        summary = AlignInfo.SummaryInfo(alignment)
-        consensus = summary.dumb_consensus()
-        return summary, consensus
+    def _alignment_consensus(self, alignment):
+        """return consensus for an alignment object using BioPython"""
+        consensus = AlignInfo.SummaryInfo(alignment).dumb_consensus()
+        return consensus.tostring().replace('X', '-')
 
     def _read(self, format):
         """read an alignment from the CLI - largely for testing purposes"""
         self.alignment = AlignIO.read(open(self.input, 'rU'), format)
 
-    def get_probe_location(self):
-        '''Pull the probe sequence from an alignment object and determine its position
-        within the read'''
-        # probe at bottom => reverse order
-        for record in self.alignment[::-1]:
-            if record.id == 'probe':
-                start = re.search('^-*', str(record.seq))
-                end = re.search('-*$', str(record.seq))
-                # should be first record
-                break
-        # ooh, this seems so very backwards
-        self.ploc = (start.end(), end.start(),)
-
-    def running_average(self, window_size, threshold, proportion=0.3, k=None, running_probe=False):
+    def running_average(self, alignment, window_size, threshold, proportion):
         # iterate across the columns of the alignment and determine presence
         # or absence of base-identity in the column
-        differences = []
-        members = len(self.alignment)
-        if not running_probe:
-            for column in xrange(self.alignment.get_alignment_length()):
-                column_values = self.alignment[:, column]
-                # get the count of different bases in a column (converting
-                # it to a set gets only the unique values)
-                column_list = list(column_values)
-                # use proportional removal of gaps
-                if column_list.count('-') <= int(round(proportion * members, 0)):
-                    column_list = [i for i in column_list if i != '-']
-                #pdb.set_trace()
-                if len(set(column_list)) > 1:
-                    differences.append(0)
+        good_alignment = []
+        # get count of taxa in alignment
+        taxa = len(alignment)
+        # get what constitutes the count of characters we need to
+        # make a "majority" (this could be < 50% by changing
+        # proportion
+        majority_of_characters = int(round(proportion * taxa, 0))
+        for column in xrange(alignment.get_alignment_length()):
+            # get the count of different bases in a column
+            column_count = Counter(alignment[:, column])
+            # don't start considering base differences until we
+            # have data from > required_characters (meaning we've
+            # past the gappy parts of a given alignment)
+            if column_count['-'] <= majority_of_characters:
+                # remove the insertion marker
+                del column_count['-']
+                # alignment is "good" where the count of identities
+                # at a given base is >= 50% across all taxa
+                if column_count.most_common(1)[0][1] >= majority_of_characters:
+                    good_alignment.append(True)
+                # alignment is "bad" when we have < majority_of_characters
+                # identities at a given base.
                 else:
-                    differences.append(1)
-        else:
-            for column in xrange(self.alignment.get_alignment_length()):
-                column_values = list(self.alignment[:, column])
-                # drop the index of the probe from the column_values
-                del column_values[k]
-                # get the count of different bases in a column (converting
-                # it to a set gets only the unique values).
-                #
-                # no need to convert to a list here because it is already one
-                if len(set(column_values)) > 1:
-                    differences.append(0)
-                else:
-                    differences.append(1)
-        differences = numpy.array(differences)
+                    good_alignment.append(False)
+            # alignment is also "bad" when we have > majority_of_characters
+            # gaps in a column
+            else:
+                good_alignment.append(False)
+        # convert good_alignment to array
+        good_alignment = numpy.array(good_alignment)
+        # setup weights for running average
         weight = numpy.repeat(1.0, window_size) / window_size
-        running_average = numpy.convolve(differences, weight)[window_size - 1:-(window_size - 1)]
+        # compute running average - will have edge effect
+        running_average = numpy.convolve(good_alignment, weight, 'same')
+        # get all positions where identity == 1 - we'll need the first
+        # and last
         good = numpy.where(running_average >= threshold)[0]
-        # remember to add window size onto end of trim
         try:
-            start_clip, end_clip = good[0], good[-1] + window_size
+            start_clip = good[0]
+            end_clip = good[-1]
         except IndexError:
-            start_clip, end_clip = None, None
-        return start_clip, end_clip, good
-
-    def trim_alignment(self, method='edges', remove_probe=None, bases=None, consensus=True, window_size=20, threshold=0.5, proportion=0.3):
-        """Trim the alignment"""
-        if method == 'edges':
-            # find edges of the alignment
-            start = self._find_ends(forward=True)
-            end = self._find_ends(forward=False)
-        elif method == 'running':
-            start, end, good = self.running_average(window_size, threshold, proportion=proportion)
-        elif method == 'running-probe':
-            # get position of probe
-            for k, v in enumerate(self.alignment):
-                if v.name == 'probe':
-                    break
+            start_clip = None
+            end_clip = None
+        return start_clip, end_clip
+    
+    def stage_one_trimming(self, alignment, window_size, threshold, proportion):
+        # get the trim positions that we determine begin and end "good"
+        # alignments
+        start, end = self.running_average(alignment, window_size, threshold, proportion)
+        # create a new alignment object to hold our alignment
+        s1_trimmed = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-"))
+        for sequence in alignment:
+            if start >= 0 and end:
+                trim = sequence[start:end]
+                # ensure we don't just add a taxon with only gaps/missing
+                # data
+                if set(trim) != set(['-']) and set(trim) != (['?']):
+                    s1_trimmed.append(sequence[start:end])
                 else:
-                    pass
-            start, end = self.running_average(window_size, threshold, proportion, k, True)
-        #pdb.set_trace()
+                    s1_trimmed = None
+                    break
+            else:
+                s1_trimmed = None
+                break
+        return s1_trimmed
+    
+    def _record_formatter(self, trim, name):
+        """return a string formatted as a biopython sequence record"""
+        return SeqRecord(Seq(trim, Gapped(IUPAC.ambiguous_dna, "-?")),
+            id=name,
+            name=name,
+            description=name)
+    
+    def stage_two_trimming(self, s1_trimmed, window_size=5):
+        # create new alignment object to hold trimmed alignment
+        s2_trimmed = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
+        # get consensus of alignment in array form
+        consensus_array = numpy.array(list(self._alignment_consensus(s1_trimmed)))
+        # iterate over each alignment sequence
+        for sequence in s1_trimmed:
+            #if sequence.id == 'phaenicophaeus_curvirostris2':
+            #    pdb.set_trace()
+            start, end = self._get_ends(sequence)
+            # convert sequence to array
+            orig_seq_array = numpy.array(list(sequence))
+            # trim down edge gaps so they do not exert undue influence
+            # on the running average
+            seq_array = orig_seq_array[start:end]
+            compare = (seq_array == consensus_array[start:end])
+            weight = numpy.repeat(1.0, window_size) / window_size
+            # compute running average across window size
+            running_average = numpy.convolve(compare, weight, 'same')
+            # get first 5' and 3' positions where quality == 1 over
+            # window_size. This helps us find the ends of the alignment
+            # where there are likely problems)
+            best = numpy.where(running_average > 0.99)[0]
+            # extract those values from best
+            best_start, best_end = best[0], best[-1]
+            # now, from [:best_start] and [best_end:], look for
+            # values that drop below an average identity w/ consensus
+            # of 0.5.  We'll keep the first one that we hit.
+            bad_start = numpy.where(running_average[:best_start] < 0.5)[0]
+            # skip if an empty array
+            if bad_start.size == 0:
+                bad_start = 0
+            else:
+                bad_start = bad_start[-1]
+            # do same for 3' end
+            bad_end = numpy.where(running_average[best_end:] < 0.5)[0]
+            # skip if an empty array
+            if bad_end.size == 0:
+                bad_end = seq_array.size
+            else:
+                bad_end = best_end + bad_end[0]
+            # against the original, untrimmed alignment
+            # use fancy indexing to convert bad parts to "-"
+            orig_seq_array[:start + bad_start] = '-'
+            orig_seq_array[start + bad_end:] = '-'
+            trim = ''.join(orig_seq_array)
+            # feed those up to replacement engine to set all
+            # missing/trimmed data at edges to "?" which is
+            # missing data designator
+            #trim = self._replace_ends(trim)
+            #pdb.set_trace()
+            if set(trim) != set(['-']) and set(trim) != (['?']):
+                s2_trimmed.append(self._record_formatter(trim, sequence.id))
+            else:
+                s2_trimmed = None
+                break
+        return s2_trimmed
+
+    def trim_alignment(self, method='running', window_size=20, threshold=0.75, proportion=0.65):
+        """Trim the alignment"""
         if method == 'notrim':
-            self.trimmed_alignment = self.alignment
+            self.trimmed = self.alignment
         else:
-            # create a new alignment object to hold our alignment
-            self.trimmed_alignment = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-"))
-            for sequence in self.alignment:
-                # ignore the probe sequence we added
-                if (method == 'edges' or method == 'running' or method == 'running-probe') and not remove_probe:
-                    # it is totally retarded that biopython only gives us the option to
-                    # pass the Alignment object a name and str(sequence).  Given this
-                    # level of retardation, we'll fudge and use their private method
-                    if start >= 0 and end:
-                        trimmed = sequence[start:end]
-                        # ensure we don't just add a taxon with only gaps/missing data
-                        if set(trimmed) != set(['-']) and set(trimmed) != (['?']):
-                            self.trimmed_alignment.append(sequence[start:end])
-                        else:
-                            self.trimmed_alignment = None
-                            break
-                    else:
-                        self.trimmed_alignment = None
-                        break
-                elif method == 'static' and not remove_probe and bases:
-                    # get middle of alignment and trim out from that - there's a
-                    # weakness here in that we are not actually locating the probe
-                    # region, we're just locating the middle of the alignment
-                    mid_point = len(sequence) / 2
-                    if self._base_checker(bases, sequence, mid_point):
-                        self.trimmed_alignment._records.append(
-                                sequence[mid_point - bases:mid_point + bases]
-                            )
-                    else:
-                        self.trimmed_alignment = None
-                elif method == 'static' and not remove_probe and bases and self.ploc:
-                    # get middle of alignment and trim out from that - there's a
-                    # weakness here in that we are not actually locating the probe
-                    # region, we're just locating the middle of the alignment
-                    if self._base_checker(bases, sequence, self.ploc):
-                        self.trimmed_alignment._records.append(
-                                sequence[self.ploc[0] - bases:self.ploc[1] + bases]
-                            )
-                    else:
-                        self.trimmed_alignment = None
-                elif remove_probe and self.ploc:
-                    # we have to drop to sequence level to add sequence slices
-                    # where we basically slice around the probes location
-                    temp = sequence.seq[:self.ploc[0]] + sequence.seq[self.ploc[1]:]
-                    self.trimmed_alignment._records.append( \
-                            self._record_formatter(temp)
-                        )
-                elif method == 'static' and remove_probe and bases and self.ploc:
-                    if self._base_checker(bases, sequence, self.ploc):
-                        temp = sequence.seq[self.ploc[0] - bases:self.ploc[0]] + \
-                                sequence.seq[self.ploc[1]:self.ploc[1] + bases]
-                        self.trimmed_alignment._records.append( \
-                                self._record_formatter(temp)
-                            )
-                    else:
-                        self.trimmed_alignment = None
-        #pdb.set_trace()
-        # build a dumb consensus
-        if consensus and self.trimmed_alignment:
-            self.trimmed_alignment_summary, self.trimmed_alignment_consensus = \
-                self._alignment_summary(self.trimmed_alignment)
-        if not self.trimmed_alignment:
+            s1_trimmed = self.stage_one_trimming(self.alignment, window_size, threshold, proportion)
+            s2_trimmed = self.stage_two_trimming(s1_trimmed)
+            # cleanup any edges on which we've masked the data
+            self.trimmed = self.stage_one_trimming(s2_trimmed, window_size, threshold, proportion)
+        # report failed (complete) trimming
+        if not self.trimmed:
             print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description)
 
-    def trim_ambiguous_bases(self):
-        """snip ambiguous bases from a trimmed_alignment"""
-        ambiguous_bases = []
-        # do this by finding all ambiguous bases and then snipping the largest
-        # chunk with no ambiguous bases from the entire alignment
-        if not self.trimmed_alignment:
-            self.perfect_trimmed_alignment = self.trimmed_alignment
-        else:
-            for column in xrange(0, self.trimmed_alignment.get_alignment_length()):
-                if 'N' in self.trimmed_alignment[:,column]:
-                    ambiguous_bases.append(column)
-            maximum = 0
-            maximum_pos = None
-            #pdb.set_trace()
-            if not ambiguous_bases:
-                self.perfect_trimmed_alignment = self.trimmed_alignment
-            if ambiguous_bases:
-                # prepend and append the start and end of the sequence so consider
-                # those chunks outside the stop and start of ambiguous base runs.
-                ambiguous_bases.insert(0, 0)
-                ambiguous_bases.append(self.trimmed_alignment.get_alignment_length() - 1)
-                # create a new alignment object to hold our alignment
-                self.perfect_trimmed_alignment = \
-                    MultipleSeqAlignment([], Gapped(IUPAC.unambiguous_dna, "-"))
-                for pos in xrange(len(ambiguous_bases)):
-                    if pos + 1 < len(ambiguous_bases):
-                        difference = ambiguous_bases[pos + 1] - \
-                            ambiguous_bases[pos]
-                        if difference > maximum:
-                            maximum = difference
-                            maximum_pos = (pos, pos + 1)
-                    else:
-                        pass
-                # make sure we catch cases where there is not best block
-                if maximum_pos:
-                    for sequence in self.trimmed_alignment:
-                        self.perfect_trimmed_alignment.append(
-                                sequence[ambiguous_bases[maximum_pos[0]] + 1:ambiguous_bases[maximum_pos[1]]]
-                            )
-                else:
-                    self.perfect_trimmed_alignment = None
-
 if __name__ == '__main__':
-    pass
+    #aln = GenericAlign('../test-data/phaenicophaeus-coccyzus-cuculus-NO-TRIM/uce-7117.nex')
+    aln = GenericAlign('/nfs/data1/working/mbraun-birds/taxon-sets/ALLIGATOR-NO-GHARIAL-NO-LARUS-NO-HELIORNIS/nexus-rename/uce-6748.nex')
+    aln._read('nexus')
+    aln.trim_alignment()
+    outf = open('/Users/bcf/Dropbox/Research/shared-manuscripts/mbraun-birds/BCF/phaenicophaeus-differences/testing/alignment-test.nex', 'w')
+    outf.write(aln.trimmed.format('nexus'))
+    outf.close()
+    #pdb.set_trace()
