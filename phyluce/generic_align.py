@@ -175,10 +175,23 @@ class GenericAlign(object):
             weight = numpy.repeat(1.0, window_size) / window_size
             # compute running average across window size
             running_average = numpy.convolve(compare, weight, 'same')
-            # get first 5' and 3' positions where quality == 1 over
-            # window_size. This helps us find the ends of the alignment
-            # where there are likely problems)
-            best = numpy.where(running_average > 0.99)[0]
+            # get first 5' and 3' positions where quality > 1 over
+            # 5 positions ([True, True, True, True, True]). This helps
+            # us find the ends of the alignment where there are likely
+            # problems)
+            gm = (running_average > 0.99)
+            for i in xrange(gm.size):
+                # get 5 value slices
+                if numpy.all(gm[i:i+5] == True):
+                    bad_start = i
+                    break
+            reversed_gm = gm[::-1]
+            for i in xrange(reversed_gm.size):
+                # get 5 value slices
+                if numpy.all(reversed_gm[i:i+5] == True):
+                    bad_end = reversed_gm.size - i
+                    break
+            '''
             # extract those values from best
             best_start, best_end = best[0], best[-1]
             # now, from [:best_start] and [best_end:], look for
@@ -199,6 +212,7 @@ class GenericAlign(object):
                 bad_end = best_end + bad_end[0]
             # against the original, untrimmed alignment
             # use fancy indexing to convert bad parts to "-"
+            '''
             orig_seq_array[:start + bad_start] = '-'
             orig_seq_array[start + bad_end:] = '-'
             trim = ''.join(orig_seq_array)
@@ -229,7 +243,7 @@ class GenericAlign(object):
 
 if __name__ == '__main__':
     #aln = GenericAlign('../test-data/phaenicophaeus-coccyzus-cuculus-NO-TRIM/uce-7117.nex')
-    aln = GenericAlign('/nfs/data1/working/mbraun-birds/taxon-sets/ALLIGATOR-NO-GHARIAL-NO-LARUS-NO-HELIORNIS/nexus-rename/uce-6748.nex')
+    aln = GenericAlign('/nfs/data1/working/mbraun-birds/taxon-sets/ALLIGATOR-NO-GHARIAL-NO-LARUS-NO-HELIORNIS/nexus-rename/uce-1239.nex')
     aln._read('nexus')
     aln.trim_alignment()
     outf = open('/Users/bcf/Dropbox/Research/shared-manuscripts/mbraun-birds/BCF/phaenicophaeus-differences/testing/alignment-test.nex', 'w')
