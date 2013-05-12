@@ -23,6 +23,8 @@ from Bio.Alphabet import IUPAC, Gapped
 from phyluce.helpers import which
 from phyluce.generic_align import GenericAlign
 
+import pdb
+
 
 class Align(GenericAlign):
     """ MAFFT alignment class.  Subclass of GenericAlign which
@@ -33,7 +35,7 @@ class Align(GenericAlign):
         """initialize, calling superclass __init__ also"""
         super(Align, self).__init__(input)
 
-    def run_alignment(self, clean=True, consensus=True):
+    def run_alignment(self, clean=True):
         # dialign requires ENV variable be set for dialign_dir
         mafft = which("mafft")
         # create results file
@@ -42,8 +44,8 @@ class Align(GenericAlign):
         aln_stdout = open(aln, 'w')
         # dialign makes an extra file for fasta output
         #fasta = "{}.{}".format(aln, 'fa')
-        # run MUSCLE on the temp file
-        cmd = [mafft, "--auto", self.input]
+        # run MAFFT on the temp file
+        cmd = [mafft, "--maxiterate", "1000", self.input]
         # just pass all ENV params
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,
@@ -53,11 +55,6 @@ class Align(GenericAlign):
         aln_stdout.close()
         self.alignment = AlignIO.read(open(aln, 'rU'), "fasta", \
                 alphabet=Gapped(IUPAC.unambiguous_dna, "-"))
-        # build a dumb consensus
-        if consensus:
-            self.alignment_summary, self.alignment_consensus = \
-                self._alignment_summary(self.alignment)
-        # cleanup temp files
         if clean:
             self._clean(aln)
 
