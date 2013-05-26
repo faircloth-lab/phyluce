@@ -83,9 +83,10 @@ def create_probe_database(db, organisms, uces):
         c.execute(query)
         query = "CREATE TABLE match_map (uce text primary key, {0})".format(','.join(create_string))
         c.execute(query)
-        for uce in uces:
-            c.execute("INSERT INTO matches(uce) values (?)", (uce,))
-            c.execute("INSERT INTO match_map(uce) values (?)", (uce,))
+        # convert uces to list of tuples for executemany
+        all_uces = [(uce,) for uce in uces]
+        c.executemany("INSERT INTO matches(uce) values (?)", all_uces)
+        c.executemany("INSERT INTO match_map(uce) values (?)", all_uces)
     except sqlite3.OperationalError, e:
         if e[0] == 'table matches already exists':
             answer = raw_input("Database already exists.  Overwrite [Y/n]? ")
