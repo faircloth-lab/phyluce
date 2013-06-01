@@ -151,10 +151,16 @@ def main():
                     uce_seq.sequence = transform.DNA_reverse_complement(read.sequence)
                 else:
                     uce_seq.sequence = read.sequence
-                # replace any occurrences of <21 Ns
+                # replace any occurrences of <21 Ns in a given sequence with
+                # blanks.  These should gap out during alignment.
                 if regex.search(uce_seq.sequence):
                     uce_seq.sequence = re.sub(regex, "", uce_seq.sequence)
                     print "\tReplaced < 20 ambiguous bases in {0}".format(uce_seq.identifier.split(' ')[0])
+                # Replace and leading/trailing lowercase bases from velvet
+                # assemblies. Lowercase bases indicate low coverage, and these 
+                # have been problematic in downstream alignments).
+                uce_seq.sequence = re.sub("^[acgtn]+", "", uce_seq.sequence)
+                uce_seq.sequence = re.sub("[acgtn]+$", "", uce_seq.sequence)
                 uce_fasta_out.write(uce_seq)
                 written.append(str(node_dict[name][0]))
             else:

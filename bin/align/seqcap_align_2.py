@@ -43,7 +43,7 @@ def get_args():
         )
     parser.add_argument('--aligner',
             choices=['dialign', 'muscle', 'mafft'],
-            default='muscle',
+            default='mafft',
             help='The aligner to use.'
         )
     parser.add_argument('--faircloth',
@@ -69,12 +69,12 @@ def get_args():
         )
     parser.add_argument('--threshold',
             type=float,
-            default=0.5,
+            default=0.75,
             help='Threshold cutoff for trimming'
         )
     parser.add_argument('--proportion',
             type=float,
-            default=0.3,
+            default=0.65,
             help='Proportional removal of gaps'
         )
     parser.add_argument('--ambiguous',
@@ -118,9 +118,11 @@ def align(params):
     window, threshold, notrim, proportion = opts
     fasta = create_locus_specific_fasta(sequences)
     aln = Align(fasta)
-    aln.run_alignment(consensus=False)
+    aln.run_alignment()
     if notrim:
-        aln.trimmed_alignment = aln.alignment
+        aln.trim_alignment(
+                method='notrim'
+            )
     else:
         aln.trim_alignment(
                 method='running',
@@ -191,10 +193,10 @@ def write_alignments_to_outdir(outdir, alignments, format='nexus'):
     print '\nWriting output files...'
     for tup in alignments:
         locus, aln = tup
-        if aln.trimmed_alignment is not None:
+        if aln.trimmed is not None:
             outname = "{}{}".format(os.path.join(outdir, locus), formats[format])
             outf = open(outname, 'w')
-            outf.write(aln.trimmed_alignment.format(format))
+            outf.write(aln.trimmed.format(format))
             outf.close()
         else:
             print "Dropped {0} from output".format(locus)

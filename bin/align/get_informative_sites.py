@@ -20,7 +20,7 @@ from collections import Counter
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -76,12 +76,25 @@ def get_informative_sites(count):
             return True
     return False
 
+def get_differences(count):
+    # remove gaps
+    del count['-']
+    # remove N
+    del count['N']
+    # remove ?
+    del count['?']
+    sufficient_sites = len(count)
+    if sufficient_sites >= 2:
+        return True
+    else:
+        return False
 
 def worker(work):
     args, f = work
     aln = AlignIO.read(f, args.input_format)
     name = os.path.basename(f)
     informative_sites = []
+    differences = []
     for idx in xrange(aln.get_alignment_length()):
         col = aln[:, idx]
         count = Counter(col)
@@ -89,7 +102,11 @@ def worker(work):
             informative_sites.append(1)
         else:
             informative_sites.append(0)
-    return (name, aln.get_alignment_length(), sum(informative_sites))
+        if get_differences(count):
+            differences.append(1)
+        else:
+            differences.append(0)
+    return (name, aln.get_alignment_length(), sum(informative_sites), sum(differences))
 
 
 def main():
@@ -102,14 +119,14 @@ def main():
         results = pool.map(worker, work)
     if args.output:
         outf = open(args.output, 'w')
-        outf.write("locus,length,informative_sites\n")
+        outf.write("locus,length,informative_sites,differences\n")
     else:
-        print "locus\tlength\tinformative_sites"
+        print "locus\tlength\tinformative_sites\tdifferences"
     for locus in results:
         if not args.output:
-            print "{0}\t{1}\t{2}".format(locus[0], locus[1], locus[2])
+            print "{0}\t{1}\t{2}\t{3}".format(locus[0], locus[1], locus[2], locus[3])
         else:
-            outf.write("{0},{1},{2}\n".format(locus[0], locus[1], locus[2]))
+            outf.write("{0},{1},{2},{3}\n".format(locus[0], locus[1], locus[2], locus[3]))
 
 if __name__ == '__main__':
     main()
