@@ -18,7 +18,6 @@ import argparse
 from phyluce import lastz
 from phyluce.helpers import is_dir, is_file
 from collections import defaultdict
-from seqtools.sequence import fasta
 from Bio import SeqIO
 
 import pdb
