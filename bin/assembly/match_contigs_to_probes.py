@@ -193,6 +193,12 @@ def pretty_print_output(critter, matches, contigs, pd, mc, mp):
         )
 
 
+def get_contig_name(header):
+    """parse the contig name from the header of either velvet/trinity assembled contigs"""
+    match = re.search("^(Node_\d+|comp\d+_c\d+_seq\d+).*", header)
+    return match.groups()[0]
+
+
 def main():
     args = get_args()
     if args.regex and args.repl is not None:
@@ -238,7 +244,7 @@ def main():
         if not lztstderr:
             for lz in lastz.Reader(output):
                 # get strandedness of match
-                contig_name = get_name(lz.name1)
+                contig_name = get_contig_name(lz.name1)
                 uce_name = get_name(lz.name2, "|", 1, regex=regex, repl=args.repl)
                 if args.dupefile and uce_name in dupes:
                     probe_dupes.add(uce_name)
