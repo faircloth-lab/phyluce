@@ -106,15 +106,6 @@ def store_lastz_results_in_db(c, matches, orientation, critter):
         c.execute(insert_string)
 
 
-def get_name(header, splitchar="_", items=2, regex=None, repl=None):
-    """parse the name of a locus from a file"""
-    name = "_".join(header.split(splitchar)[:items]).lstrip('>').strip().lower()
-    if regex is not None and repl is not None:
-        return re.sub(regex, repl, name)
-    else:
-        return name
-
-
 def get_dupes(lastz_file, regex):
     """Given a lastz_file of probes aligned to themselves, get duplicates"""
     matches = defaultdict(list)
