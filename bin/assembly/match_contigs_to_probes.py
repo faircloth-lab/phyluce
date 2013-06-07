@@ -19,6 +19,7 @@ from phyluce import lastz
 from phyluce.helpers import is_dir, is_file
 from collections import defaultdict
 from seqtools.sequence import fasta
+from Bio import SeqIO
 
 import pdb
 
@@ -55,20 +56,10 @@ def get_args():
     parser.add_argument(
             "--regex",
             type=str,
-            default=None,
+            default="^(uce-\d+)(?:_p\d+.*)",
             help="""A regular expression to apply to the probe sequences for replacement""",
         )
-    parser.add_argument(
-            "--repl",
-            type=str,
-            default=None,
-            help="""The replacement text for matches to the regular expression in --regex""",
-        )
     args = parser.parse_args()
-    if args.regex is not None and args.repl is None:
-        sys.exit("If you are replacing text with a regular expression you must pass args.repl value")
-    elif args.repl is not None and args.regex is None:
-        sys.exit("If you are replacing text with a regular expression you must pass args.regex value")
     return args
 
 
@@ -124,13 +115,14 @@ def get_name(header, splitchar="_", items=2, regex=None, repl=None):
         return name
 
 
-def get_dupes(lastz_file, regex=None, repl=None):
+def get_dupes(lastz_file, regex):
     """Given a lastz_file of probes aligned to themselves, get duplicates"""
     matches = defaultdict(list)
     dupes = set()
+    # get names and strip probe designation since loci are the same
     for lz in lastz.Reader(lastz_file):
-        target_name = get_name(lz.name1, "|", 1)
-        query_name = get_name(lz.name2, "|", 1)
+        target_name = new_get_probe_name(lz.name1, regex)
+        query_name = new_get_probe_name(lz.name2, regex)
         matches[target_name].append(query_name)
     # see if one probe matches any other probes
     # other than the children of the locus
@@ -144,10 +136,8 @@ def get_dupes(lastz_file, regex=None, repl=None):
                     dupes.add(i)
         elif k != v[0]:
             dupes.add(k)
-    if not regex:
-        return dupes
-    else:
-        return set([re.sub(regex, repl, d).lower() for d in dupes])
+    # make sure all names are lowercase
+    return set([d.lower() for d in dupes])
 
 
 def contig_count(contig):
@@ -199,20 +189,18 @@ def get_contig_name(header):
     return match.groups()[0]
 
 
+def new_get_probe_name(header, regex):
+    match = re.search(regex, header)
+    return match.groups()[0]
+
+
 def main():
     args = get_args()
-    if args.regex and args.repl is not None:
-        # "s_[0-9]+$"
-        regex = re.compile(args.regex)
-        uces = set([get_name(read.identifier, "|", 1, regex=regex, repl=args.repl)
-            for read in fasta.FastaReader(args.query)])
-    else:
-        uces = set([get_name(read.identifier, "|", 1)
-            for read in fasta.FastaReader(args.query)])
-        regex = None
+    regex = re.compile(args.regex)
+    uces = set(new_get_probe_name(seq.id, regex) for seq in SeqIO.parse(open(args.query, 'rU'), 'fasta'))
     if args.dupefile:
         print "\t Getting dupes"
-        dupes = get_dupes(args.dupefile, regex, args.repl)
+        dupes = get_dupes(args.dupefile, regex)
     fasta_files = glob.glob(os.path.join(args.contigs, '*.fa*'))
     organisms = get_organism_names_from_fasta_files(fasta_files)
     conn, c = create_probe_database(
@@ -224,7 +212,7 @@ def main():
     for contig in fasta_files:
         critter = os.path.basename(contig).split('.')[0].replace('-', "_")
         output = os.path.join(
-                    args.output, \
+                    args.output,
                     os.path.splitext(os.path.basename(contig))[0] + '.lastz'
                 )
         contigs = contig_count(contig)
@@ -238,14 +226,15 @@ def main():
             )
         lzstdout, lztstderr = alignment.run()
         # parse the lastz results of the alignment
-        matches, orientation, revmatches = \
-                defaultdict(set), defaultdict(set), defaultdict(set)
+        matches = defaultdict(set)
+        orientation = defaultdict(set)
+        revmatches = defaultdict(set)
         probe_dupes = set()
         if not lztstderr:
             for lz in lastz.Reader(output):
                 # get strandedness of match
                 contig_name = get_contig_name(lz.name1)
-                uce_name = get_name(lz.name2, "|", 1, regex=regex, repl=args.repl)
+                uce_name = new_get_probe_name(lz.name2, regex)
                 if args.dupefile and uce_name in dupes:
                     probe_dupes.add(uce_name)
                 else:
