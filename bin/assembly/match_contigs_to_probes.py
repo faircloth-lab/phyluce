@@ -188,7 +188,7 @@ def main():
     regex = re.compile(args.regex)
     uces = set(new_get_probe_name(seq.id, regex) for seq in SeqIO.parse(open(args.query, 'rU'), 'fasta'))
     if args.dupefile:
-        print "\t Getting dupes"
+        print "Getting dupes..."
         dupes = get_dupes(args.dupefile, regex)
     else:
         dupes = set()
