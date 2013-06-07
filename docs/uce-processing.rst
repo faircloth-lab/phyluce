@@ -61,26 +61,23 @@ to make a directory to hold our output:
 
     mkdir /path/to/output/lastz
     
-Then, we want to align the contigs we assembled to the UCE loci represented
-in the uce-5k-probes.fasta file.  Since we're using "new-style" (standardized)
-probe names, we want to include the flags::
-
-    --regex "_p[1-9]+$" --repl ""
-    
-Which we use to strip the probe numbers off of particular loci in the
+Now, we want to find which probes match which UCE loci.  To do this, the code
+will also strip the probe numbers off of particular loci in the
 `uce-5k-probes.fasta` file (stripping off the probe numbers allows us to
-merge all probes down to a single locus).  Note, too, that we're passing the
-`uce-5k-probes.fasta.toself.lastz` to the code so that we can also exclude
-any UCE loci whose probes happen to overlap themselves:
+merge all probes down to a single locus).  The default regular expression assumes
+your probes are named similarly to `uce-NNN_pN`.  If that is not the case, you will
+need to input a different regular expression to convert the probe names to locus names.
+
+
+Note, too, that we're passing the `uce-5k-probes.fasta.toself.lastz` to the code
+so that we can also exclude any UCE loci whose probes happen to overlap themselves:
 
 .. code-block:: bash
-
 
     python phyluce/bin/assembly/match_contigs_to_probes.py \
         /path/to/velvet/assembly/contigs/ \
         /path/to/uce-5k-probes.fasta \
         /path/to/output/lastz \
-        --regex "_p[1-9]+$" --repl "" \
         --dupefile uce-5k-probes.fasta.toself.lastz
         
 When you run this code, you will see output similar to::
