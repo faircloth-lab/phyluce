@@ -20,7 +20,7 @@ from phyluce.helpers import is_dir, is_file
 from collections import defaultdict
 from Bio import SeqIO
 
-import pdb
+#import pdb
 
 
 def get_args():
