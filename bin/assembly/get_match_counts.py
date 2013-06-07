@@ -92,10 +92,6 @@ def get_args():
     return parser.parse_args()
 
 
-def get_name(header, splitchar="_", items=2):
-    return "_".join(header.split(splitchar)[:items]).lstrip('>')
-
-
 def get_uce_names(c):
     c.execute("SELECT uce FROM matches")
     return set([uce[0] for uce in c.fetchall()])
