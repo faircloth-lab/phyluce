@@ -69,13 +69,13 @@ def get_args():
     parser.add_argument(
             "--threshold",
             type=float,
-            default=0.5,
+            default=0.75,
             help="Threshold cutoff for trimming"
         )
     parser.add_argument(
             "--proportion",
             type=float,
-            default=0.3,
+            default=0.65,
             help="Proportional removal of gaps"
         )
     parser.add_argument(
@@ -101,8 +101,7 @@ def get_and_trim_alignments(params):
                 method='running',
                 window_size=window,
                 threshold=threshold,
-                proportion=proportion,
-                consensus=False
+                proportion=proportion
             )
         sys.stdout.write(".")
         sys.stdout.flush()
