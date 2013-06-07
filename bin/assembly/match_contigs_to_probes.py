@@ -23,41 +23,43 @@ from Bio import SeqIO
 import pdb
 
 
-
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
     parser.add_argument(
-            'contigs',
-            type=is_dir,
-            help="The directory containing the contigs to match against probes"
-        )
-    parser.add_argument('query',
-            type=is_file,
-            help="The query fasta or 2bit file"
-        )
+        'contigs',
+        type=is_dir,
+        help="The directory containing the contigs to match against probes"
+    )
     parser.add_argument(
-            'output',
-            type=is_dir,
-            help="The directory in which to store the lastz alignments"
-        )
+        'query',
+        type=is_file,
+        help="The query fasta or 2bit file"
+    )
     parser.add_argument(
-            '--coverage',
-            default=80,
-            type=int)
+        'output',
+        type=is_dir,
+        help="The directory in which to store the lastz alignments"
+    )
     parser.add_argument(
-            '--identity',
-            default=80,
-            type=int)
+        '--coverage',
+        default=80,
+        type=int
+    )
     parser.add_argument(
-            '--dupefile',
-            help="Path to self-to-self lastz results"
-        )
+        '--identity',
+        default=80,
+        type=int
+    )
     parser.add_argument(
-            "--regex",
-            type=str,
-            default="^(uce-\d+)(?:_p\d+.*)",
-            help="""A regular expression to apply to the probe sequences for replacement""",
-        )
+        '--dupefile',
+        help="Path to self-to-self lastz results"
+    )
+    parser.add_argument(
+        "--regex",
+        type=str,
+        default="^(uce-\d+)(?:_p\d+.*)",
+        help="""A regular expression to apply to the probe sequences for replacement""",
+    )
     args = parser.parse_args()
     return args
 
@@ -86,8 +88,7 @@ def create_probe_database(db, organisms, uces):
             else:
                 sys.exit(2)
         else:
-            raise sqlite3.OperationalError
-            pdb.set_trace()
+            raise sqlite3.OperationalError("Cannot create database")
     return conn, c
 
 
@@ -146,8 +147,7 @@ def contig_count(contig):
 
 def get_organism_names_from_fasta_files(ff):
     """Given a fasta file name, parse taxon name from file name"""
-    return [os.path.basename(f).split('.')[0].replace('-', "_")
-        for f in ff]
+    return [os.path.basename(f).split('.')[0].replace('-', "_") for f in ff]
 
 
 def check_contigs_for_dupes(matches):
@@ -161,8 +161,7 @@ def check_contigs_for_dupes(matches):
 
 def check_probes_for_dupes(revmatches):
     """Check for UCE probes that match more than one contig"""
-    dupe_set = set([i for uce, node in revmatches.iteritems()
-                if len(node) > 1 for i in list(node)])
+    dupe_set = set([i for uce, node in revmatches.iteritems() if len(node) > 1 for i in list(node)])
     return dupe_set
 
 
@@ -170,16 +169,16 @@ def pretty_print_output(critter, matches, contigs, pd, mc, mp):
     """Write some nice output to stdout"""
     unique_matches = sum([1 for node, uce in matches.iteritems()])
     out = "\t {0}: {1} ({2:.2f}%) uniques of {3} contigs, {4} dupe probe matches, " + \
-            "{5} UCE probes matching multiple contigs, {6} contigs matching multiple UCE probes"
+        "{5} UCE probes matching multiple contigs, {6} contigs matching multiple UCE probes"
     print out.format(
-            critter,
-            unique_matches,
-            float(unique_matches) / contigs * 100,
-            contigs,
-            len(pd),
-            len(mp),
-            len(mc)
-        )
+        critter,
+        unique_matches,
+        float(unique_matches) / contigs * 100,
+        contigs,
+        len(pd),
+        len(mp),
+        len(mc)
+    )
 
 
 def get_contig_name(header):
@@ -200,29 +199,31 @@ def main():
     if args.dupefile:
         print "\t Getting dupes"
         dupes = get_dupes(args.dupefile, regex)
+    else:
+        dupes = set()
     fasta_files = glob.glob(os.path.join(args.contigs, '*.fa*'))
     organisms = get_organism_names_from_fasta_files(fasta_files)
     conn, c = create_probe_database(
-            os.path.join(args.output, 'probe.matches.sqlite'),
-            organisms,
-            uces
-        )
+        os.path.join(args.output, 'probe.matches.sqlite'),
+        organisms,
+        uces
+    )
     print "Processing:"
     for contig in fasta_files:
         critter = os.path.basename(contig).split('.')[0].replace('-', "_")
         output = os.path.join(
-                    args.output,
-                    os.path.splitext(os.path.basename(contig))[0] + '.lastz'
-                )
+            args.output,
+            os.path.splitext(os.path.basename(contig))[0] + '.lastz'
+        )
         contigs = contig_count(contig)
         # align the probes to the contigs
         alignment = lastz.Align(
-                contig,
-                args.query,
-                args.coverage,
-                args.identity,
-                output
-            )
+            contig,
+            args.query,
+            args.coverage,
+            args.identity,
+            output
+        )
         lzstdout, lztstderr = alignment.run()
         # parse the lastz results of the alignment
         matches = defaultdict(set)
@@ -252,13 +253,13 @@ def main():
         store_lastz_results_in_db(c, matches, orientation, critter)
         conn.commit()
         pretty_print_output(
-                critter,
-                matches,
-                contigs,
-                probe_dupes,
-                contigs_matching_mult_uces,
-                uces_matching_mult_contigs
-            )
+            critter,
+            matches,
+            contigs,
+            probe_dupes,
+            contigs_matching_mult_uces,
+            uces_matching_mult_contigs
+        )
 
 if __name__ == '__main__':
     main()
