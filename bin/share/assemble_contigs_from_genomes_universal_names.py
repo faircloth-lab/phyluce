@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 29 March 2012 15:03 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -450,7 +450,12 @@ def main():
                             count,
                             len(record.sequence)
                         )
-                    fout.write(record)
+                    # ensure that resulting consensus has no gaps or
+                    # other odd characters (e.g. X)
+                    if re.match('[ACGTNacgtn]', record.sequence):
+                        fout.write(record)
+                    else:
+                        bad = True
                 else:
                     bad = True
             if not bad:
