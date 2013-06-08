@@ -10,17 +10,17 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 
 import os
 import re
-import sys
 import sqlite3
 import argparse
 import ConfigParser
-from seqtools.sequence import fasta
-from seqtools.sequence import transform
+from collections import defaultdict
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 from phyluce.helpers import is_dir
-from phyluce.helpers import get_name
 from phyluce.helpers import get_names_from_config
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -64,22 +64,22 @@ def get_nodes_for_uces(c, organism, uces, extend=False, notstrict=False):
         query = "SELECT lower({0}), uce FROM extended.match_map where uce in ({1})".format(organism, ','.join(uces))
     c.execute(query)
     rows = c.fetchall()
-    node_dict = {node[0].split('(')[0]:[node[1], node[0].split('(')[1].strip(')')] for node in rows if node[0] is not None}
-    if notstrict:
-        missing = [node[1] for node in rows if node[0] is None]
-    else:
-        missing = None
+    node_dict = defaultdict()
+    missing = []
+    for node in rows:
+        if node[0] is not None:
+            match = re.search('^(Node_\d+|comp\d+_c\d+_seq\d+)\(([+-])\)', node[0])
+            node_dict[match.groups()[0]] = (node[1], match.groups()[1])
+        elif notstrict:
+            missing.append(node[1])
+        else:
+            raise IOError("Complete matrices should have no missing data")
     return node_dict, missing
-
-
-def get_coverage(header):
-    return '_'.join(header.split('_')[-2:])
 
 
 def find_file(contigs, name):
     extensions = ['.fa', '.fasta', '.contigs.fasta', '.contigs.fa', '.gz', '.fasta.gz', '.fa.gz']
     for ext in extensions:
-        #pdb.set_trace()
         reads1 = os.path.join(contigs, name) + ext
         reads2 = os.path.join(contigs, name.replace('-', '_')) + ext
         for reads in [reads1, reads2]:
@@ -101,6 +101,24 @@ def find_file(contigs, name):
     return reads
 
 
+def get_contig_name(header):
+    """parse the contig name from the header of either velvet/trinity assembled contigs"""
+    match = re.search("^(Node_\d+|comp\d+_c\d+_seq\d+).*", header)
+    return match.groups()[0]
+
+
+def replace_and_remove_bases(regex, seq):
+    new_seq_string = str(seq.seq)
+    if regex.search(new_seq_string):
+        new_seq_string = re.sub(regex, "", new_seq_string)
+        print "\tReplaced < 20 ambiguous bases in {0}".format(seq.id)
+    new_seq_string = re.sub("^[acgtn]+", "", new_seq_string)
+    new_seq_string = re.sub("[acgtn]+$", "", new_seq_string)
+    new_seq = Seq(new_seq_string)
+    new_seq_record = SeqRecord(new_seq, id=seq.id, name='', description='')
+    return new_seq_record
+
+
 def main():
     args = get_args()
     config = ConfigParser.RawConfigParser(allow_no_value=True)
@@ -113,7 +131,7 @@ def main():
     organisms = get_names_from_config(config, 'Organisms')
     uces = get_names_from_config(config, 'Loci')
     #pdb.set_trace()
-    uce_fasta_out = fasta.FastaWriter(args.output)
+    uce_fasta_out = open(args.output, 'w')
     regex = re.compile("[N,n]{1,21}")
     for organism in organisms:
         print "Getting {0} reads...".format(organism)
@@ -139,40 +157,32 @@ def main():
                 name = name.rstrip('*')
                 reads = find_file(args.extend_dir, name)
                 node_dict, missing = get_nodes_for_uces(c, organism.rstrip('*'), uces, extend=True)
-        for read in fasta.FastaReader(reads):
-            name = get_name(read.identifier).lower()
-            coverage = get_coverage(read.identifier)
+        for seq in SeqIO.parse(open(reads, 'rU'), 'fasta'):
+            name = get_contig_name(seq.id).lower()
             if name in node_dict.keys():
-                uce_seq = fasta.FastaSequence()
-                uce_seq.identifier = ">{0}_{1} |{0}|{2}".format(node_dict[name][0], organism.rstrip('*'), coverage)
-                # deal with strandedness because aligners dont, which
+                seq.id = "{0}_{1} |{0}".format(node_dict[name][0], organism.rstrip('*'))
+                seq.name = ''
+                seq.description = ''
+                # deal with strandedness because aligners sometimes dont, which
                 # is annoying
                 if node_dict[name][1] == '-':
-                    uce_seq.sequence = transform.DNA_reverse_complement(read.sequence)
-                else:
-                    uce_seq.sequence = read.sequence
-                # replace any occurrences of <21 Ns in a given sequence with
-                # blanks.  These should gap out during alignment.
-                if regex.search(uce_seq.sequence):
-                    uce_seq.sequence = re.sub(regex, "", uce_seq.sequence)
-                    print "\tReplaced < 20 ambiguous bases in {0}".format(uce_seq.identifier.split(' ')[0])
-                # Replace and leading/trailing lowercase bases from velvet
-                # assemblies. Lowercase bases indicate low coverage, and these 
+                    seq.seq = seq.seq.reverse_complement()
+                # Replace any occurrences of <21 Ns in a given sequence with
+                # blanks.  These should gap out during alignment. Also, replace
+                # leading/trailing lowercase bases from velvet assemblies.
+                # Lowercase bases indicate low coverage, and these
                 # have been problematic in downstream alignments).
-                uce_seq.sequence = re.sub("^[acgtn]+", "", uce_seq.sequence)
-                uce_seq.sequence = re.sub("[acgtn]+$", "", uce_seq.sequence)
-                uce_fasta_out.write(uce_seq)
+                seq = replace_and_remove_bases(regex, seq)
+                uce_fasta_out.write(seq.format('fasta'))
                 written.append(str(node_dict[name][0]))
             else:
                 pass
-        #pdb.set_trace()
         if args.notstrict and missing:
             args.notstrict.write("[{0}]\n".format(organism))
             for name in missing:
                 args.notstrict.write("{0}\n".format(name))
                 written.append(name)
         assert set(written) == set(uces), "UCE names do not match"
-        #assert set(written) == set(uces), pdb.set_trace()
     uce_fasta_out.close()
 
 if __name__ == '__main__':
