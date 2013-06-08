@@ -14,7 +14,6 @@ sizes based on complete enumeration and sampling approaces.
 
 """
 
-import os
 import sys
 import random
 import sqlite3
@@ -26,69 +25,75 @@ import multiprocessing
 from collections import Counter
 from collections import defaultdict
 
-import pdb
+#import pdb
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
     parser.add_argument(
-            'db',
-            help='The database holding probe matches'
-        )
+        'db',
+        help='The database holding probe matches'
+    )
     parser.add_argument(
-            'config',
-            help='The config file containing match information'
-        )
+        'config',
+        help='The config file containing match information'
+    )
     parser.add_argument(
-            'group',
-            help='The config group whose results you want',
-            type=str
-        )
+        'group',
+        help='The config group whose results you want',
+        type=str
+    )
     parser.add_argument(
-            '--output',
-            nargs='?',
-            type=argparse.FileType('w'),
-            default=sys.stdout
-        )
+        '--output',
+        nargs='?',
+        type=argparse.FileType('w'),
+        default=sys.stdout
+    )
     parser.add_argument(
-            '--optimize',
-            action="store_true",
-            help='Return optimum groups of probes by enumeration (default) or sampling.'
-        )
+        '--optimize',
+        action="store_true",
+        help='Return optimum groups of probes by enumeration (default) or sampling.'
+    )
     parser.add_argument(
-            '--random',
-            action="store_true",
-            help='Optimize by sampling'
-        )
+        '--random',
+        action="store_true",
+        help='Optimize by sampling'
+    )
     parser.add_argument(
-            '--samples',
-            type=int,
-            default=10,
-            help='The number of samples to take'
-        )
-    parser.add_argument('--sample-size',
-            dest='sample_size',
-            type=int,
-            default=10,
-            help='The group size of samples'
-        )
-    parser.add_argument('--extend',
-            dest='extend',
-            help='The match database to add as an extension'
-        )
-    parser.add_argument('--incomplete-matrix',
-            dest='notstrict',
-            action="store_true",
-            help='Do not do strict matching',
-        )
-    parser.add_argument('--silent',
-            dest='silent',
-            action="store_true",
-            help='Don\'t print probe names'
-        )
-    parser.add_argument('--keep-counts',
-            dest='keep_counts',
-            action="store_true"
-        )
+        '--samples',
+        type=int,
+        default=10,
+        help='The number of samples to take'
+    )
+    parser.add_argument(
+        '--sample-size',
+        dest='sample_size',
+        type=int,
+        default=10,
+        help='The group size of samples'
+    )
+    parser.add_argument(
+        '--extend',
+        dest='extend',
+        help='The match database to add as an extension'
+    )
+    parser.add_argument(
+        '--incomplete-matrix',
+        dest='notstrict',
+        action="store_true",
+        help='Do not do strict matching',
+    )
+    parser.add_argument(
+        '--silent',
+        dest='silent',
+        action="store_true",
+        help='Don\'t print probe names'
+    )
+    parser.add_argument(
+        '--keep-counts',
+        dest='keep_counts',
+        action="store_true"
+    )
     return parser.parse_args()
 
 
@@ -232,8 +237,7 @@ def sample_match_groups(args, c, organisms, uces, all_counts=[]):
             print "best group\n\t{0}\n".format(sorted(best_group))
             print "Times not in best group per iteration\n\t{0}\n".format(Counter(missing))
         else:
-            args.output.write('\n'.join(["{},{}".format(str(i), str(j)) for
-                i, j in all_counts]))
+            args.output.write('\n'.join(["{},{}".format(str(i), str(j)) for i, j in all_counts]))
     return best_uces, best_group
 
 
@@ -252,17 +256,17 @@ def dont_sample_match_groups(args, c, organisms, uces):
     organismal_matches = get_all_matches_by_organism(c, organisms)
     if not args.notstrict:
         shared_uces, losses = return_complete_matrix(
-                organismal_matches,
-                organisms,
-                uces,
-                fast=False
-            )
+            organismal_matches,
+            organisms,
+            uces,
+            fast=False
+        )
         print "Shared UCEs in complete matrix: {0}\n".format(len(shared_uces))
     else:
         shared_uces, losses = return_incomplete_matrix(
-                organismal_matches,
-                uces
-            )
+            organismal_matches,
+            uces
+        )
         print "All UCEs in incomplete matrix: {0}\n".format(len(shared_uces))
     if losses:
         sorted_losses = sorted(losses.iteritems(), key=operator.itemgetter(1))
@@ -290,10 +294,9 @@ def main():
         shared_uces = dont_sample_match_groups(args, c, organisms, uces)
     if args.output and organisms and not args.silent:
         args.output.write("[Organisms]\n{0}\n[Loci]\n{1}\n".format(
-                    '\n'.join(sorted(organisms)),
-                    '\n'.join(sorted(shared_uces))
-                    )
-                )
+            '\n'.join(sorted(organisms)),
+            '\n'.join(sorted(shared_uces))
+        ))
     args.output.close()
 
 if __name__ == '__main__':
