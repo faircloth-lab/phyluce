@@ -152,9 +152,14 @@ def return_complete_matrix(organismal_matches, organisms, uces, fast=True):
     return uces, losses
 
 
-def return_incomplete_matrix(organismal_matches, organisms, uces):
-    setlist = [organismal_matches[organism] for organism in organisms]
-    return uces.union(*setlist), None
+def return_incomplete_matrix(organismal_matches, uces):
+    matches = []
+    for k, v in organismal_matches.iteritems():
+        matches.extend(v)
+    setlist = set(matches)
+    # return the intersection of UCEs and the setlist, as this ensures
+    # we're returning those loci that we expect
+    return setlist.intersection(uces), None
 
 
 def optimize_group_match_runner(combos):
@@ -252,14 +257,13 @@ def dont_sample_match_groups(args, c, organisms, uces):
                 uces,
                 fast=False
             )
-        print "Shared UCEs: {0}\n".format(len(shared_uces))
+        print "Shared UCEs in complete matrix: {0}\n".format(len(shared_uces))
     else:
         shared_uces, losses = return_incomplete_matrix(
                 organismal_matches,
-                organisms,
                 uces
             )
-        print "All UCEs: {0}\n".format(len(shared_uces))
+        print "All UCEs in incomplete matrix: {0}\n".format(len(shared_uces))
     if losses:
         sorted_losses = sorted(losses.iteritems(), key=operator.itemgetter(1))
         sorted_losses.reverse()
