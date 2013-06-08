@@ -45,7 +45,7 @@ class Align(GenericAlign):
         # dialign makes an extra file for fasta output
         #fasta = "{}.{}".format(aln, 'fa')
         # run MAFFT on the temp file
-        cmd = [mafft, "--maxiterate", "1000", self.input]
+        cmd = [mafft, "--adjustdirection", "--maxiterate", "1000", self.input]
         # just pass all ENV params
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,

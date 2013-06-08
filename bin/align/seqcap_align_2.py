@@ -210,7 +210,7 @@ def main(args):
     opts = [[args.window, args.threshold, args.notrim, args.proportion] \
             for i in range(len(loci))]
     params = zip(loci.items(), opts)
-    if args.cores:
+    if args.cores > 1:
         assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         alignments = pool.map(align, params)

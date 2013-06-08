@@ -445,7 +445,7 @@ def main():
                     aln = Align(temp)
                     aln.run_alignment()
                     record = fasta.FastaSequence()
-                    record.sequence = aln.alignment_consensus.tostring()
+                    record.sequence = aln._alignment_consensus(aln.alignment)
                     record.identifier = ">Node_{0}_length_{1}_cov_1000".format(
                             count,
                             len(record.sequence)

@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 08 March 2012 12:03 PST (-0800)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -41,7 +41,7 @@ class GenericAlign(object):
             os.remove(self.input)
         except:
             pass
-    
+
     def _get_ends(self, seq):
         """find the start and end of sequence data for a given alignment row"""
         f = re.compile("^([-]+)")
@@ -64,7 +64,7 @@ class GenericAlign(object):
             return r * len(match.groups()[0])
         else:
             pass
-    
+
     def _replace_ends(self, seq):
         """replace the ends of a given alignment with a character (usually gap/missing data)"""
         seq = re.sub('^([-]+)', self._gap_replacement, seq)
@@ -86,7 +86,7 @@ class GenericAlign(object):
             id=name,
             name=name,
             description=name)
-    
+
     def running_average(self, alignment, window_size, threshold, proportion):
         """
         compute the running average of base differences on a column-by-column
@@ -140,8 +140,8 @@ class GenericAlign(object):
             start_clip = None
             end_clip = None
         return start_clip, end_clip
-    
-    def stage_one_trimming(self, alignment, window_size, threshold, proportion):
+
+    def stage_one_trimming(self, alignment, window_size, threshold, proportion, replace_ends=False):
         """
         First stage (of 3) alignment trimming to find and trim edges of a given
         alignment.  Calls running_average function above to determine reasonable
@@ -151,14 +151,20 @@ class GenericAlign(object):
         # alignments
         start, end = self.running_average(alignment, window_size, threshold, proportion)
         # create a new alignment object to hold our alignment
-        s1_trimmed = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-"))
+        s1_trimmed = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
         for sequence in alignment:
             if start >= 0 and end:
                 trim = sequence[start:end]
                 # ensure we don't just add a taxon with only gaps/missing
                 # data
                 if set(trim) != set(['-']) and set(trim) != (['?']):
-                    s1_trimmed.append(sequence[start:end])
+                    if not replace_ends:
+                        s1_trimmed.append(sequence[start:end])
+                    else:
+                        # replace end gaps with missing data character ?
+                        # called on third iteration of trimming
+                        repl = self._replace_ends(str(sequence[start:end].seq))
+                        s1_trimmed.append(self._record_formatter(repl, sequence.id))
                 else:
                     s1_trimmed = None
                     break
@@ -166,7 +172,7 @@ class GenericAlign(object):
                 s1_trimmed = None
                 break
         return s1_trimmed
-    
+
     def stage_two_trimming(self, s1_trimmed, window_size=5):
         """
         Alignment row-by-row trimming.  After stage one trimming, iterate
@@ -182,8 +188,6 @@ class GenericAlign(object):
         consensus_array = numpy.array(list(self._alignment_consensus(s1_trimmed)))
         # iterate over each alignment sequence
         for sequence in s1_trimmed:
-            #if sequence.id == 'phaenicophaeus_curvirostris2':
-            #    pdb.set_trace()
             start, end = self._get_ends(sequence)
             # convert sequence to array
             orig_seq_array = numpy.array(list(sequence))
@@ -213,10 +217,7 @@ class GenericAlign(object):
             orig_seq_array[:start + bad_start] = '-'
             orig_seq_array[start + bad_end:] = '-'
             trim = ''.join(orig_seq_array)
-            # feed those up to replacement engine to set all
-            # missing/trimmed data at edges to "?" which is
-            # missing data designator
-            #trim = self._replace_ends(trim)
+            # ensure alignment consists of something other than '-' or '?'
             if set(trim) != set(['-']) and set(trim) != (['?']):
                 s2_trimmed.append(self._record_formatter(trim, sequence.id))
             else:
@@ -229,16 +230,21 @@ class GenericAlign(object):
         Trim a given alignment from one of the alignment engines.  Uses three-pass
         approach - one to trim alignment block ends, one to trim row data, and a
         third to re-trim alignment block ends after trimming row data.
-        
+
         Returns self.trimmed
         """
         if method == 'notrim':
             self.trimmed = self.alignment
         else:
-            s1_trimmed = self.stage_one_trimming(self.alignment, window_size, threshold, proportion)
-            s2_trimmed = self.stage_two_trimming(s1_trimmed)
-            # cleanup any edges on which we've masked the data
-            self.trimmed = self.stage_one_trimming(s2_trimmed, window_size, threshold, proportion)
+            try:
+                s1_trimmed = self.stage_one_trimming(self.alignment, window_size, threshold, proportion)
+                s2_trimmed = self.stage_two_trimming(s1_trimmed)
+                # cleanup any edges on which we've masked the data
+                self.trimmed = self.stage_one_trimming(s2_trimmed, window_size, threshold, proportion, replace_ends=True)
+            # very generic exception statement here - self.alignment will have None
+            # value and will cause print statement below > stdout
+            except:
+                pass
         # report failed (complete) trimming
         if not self.trimmed:
             print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description)

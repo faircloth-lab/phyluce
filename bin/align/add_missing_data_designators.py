@@ -14,10 +14,12 @@ import copy
 import glob
 import argparse
 import ConfigParser
-from Bio import AlignIO
 from collections import defaultdict
+from Bio import AlignIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC, Gapped
-from Bio.Align.Generic import Alignment
+from Bio.Align import MultipleSeqAlignment
 
 import pdb
 
@@ -72,6 +74,12 @@ def get_names_from_config(config, group):
     except ConfigParser.NoSectionError:
         return None
 
+def record_formatter(seq, name):
+        """return a string formatted as a biopython sequence record"""
+        return SeqRecord(Seq(seq, Gapped(IUPAC.ambiguous_dna, "-?")),
+            id=name,
+            name=name,
+            description=name)
 
 def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, min_taxa=3):
     local_organisms = copy.deepcopy(organisms)
@@ -80,8 +88,7 @@ def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, m
             new_align = None
             break
         elif len(a) >= min_taxa:
-            #pdb.set_trace()
-            new_align = Alignment(Gapped(IUPAC.unambiguous_dna, "-"))
+            new_align = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
             overall_length = len(a[0])
             for seq in a:
                 if genera and any(sp for sp in genera if sp in seq.name):
@@ -90,7 +97,7 @@ def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, m
                     new_seq_name = '_'.join(seq.name.split('_')[-2:])
                 else:
                     new_seq_name = seq.name.lower()
-                new_align.add_sequence(new_seq_name, str(seq.seq))
+                new_align.append(record_formatter(str(seq.seq), new_seq_name))
                 local_organisms.remove(new_seq_name)
             for org in local_organisms:
                 if genera and any(sp for sp in genera if sp in seq.name):
@@ -99,12 +106,15 @@ def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, m
                     loc = '_'.join(seq.name.split('_')[:-2])
                 else:
                     loc = seq.name
+                # strip any reversal characters from mafft
+                loc = loc.lstrip('_R_')
                 if missing:
                     try:
                         assert loc in missing[org], "Locus missing"
                     except:
                         assert loc in missing['{}*'.format(org)], "Locus missing"
-                new_align.add_sequence(org, '?' * overall_length)
+                missing_string = '?' * overall_length
+                new_align.append(record_formatter(missing_string, org))
     return new_align
 
 
