@@ -25,33 +25,40 @@ from phyluce.helpers import get_names_from_config
 
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
-    parser.add_argument('contigs',
-            help='The directory containing the contigs to match against probes',
-            type=is_dir
-        )
-    parser.add_argument('db',
-            help='The database holding the match and match_map tables from match_contigs_to_probes.py'
-        )
-    parser.add_argument('config',
-            help='The config file holding the organismal group whose fastas we want'
-        )
-    parser.add_argument('--output',
-            help='The output file'
-        )
-    parser.add_argument('--extend-db',
-            dest='extend_db',
-            help='The match database to add as an extension'
-        )
-    parser.add_argument('--extend-dir',
-            dest='extend_dir',
-            help='The directory holding extension fastas/contigs'
-        )
-    parser.add_argument('--incomplete-matrix',
-            dest='notstrict',
-            help='The outfile for incomplete-matrix data',
-            type=argparse.FileType('w'),
-            default=False
-        )
+    parser.add_argument(
+        'contigs',
+        help='The directory containing the contigs to match against probes',
+        type=is_dir
+    )
+    parser.add_argument(
+        'db',
+        help='The database holding the match and match_map tables from match_contigs_to_probes.py'
+    )
+    parser.add_argument(
+        'config',
+        help='The config file holding the organismal group whose fastas we want'
+    )
+    parser.add_argument(
+        '--output',
+        help='The output file'
+    )
+    parser.add_argument(
+        '--extend-db',
+        dest='extend_db',
+        help='The match database to add as an extension'
+    )
+    parser.add_argument(
+        '--extend-dir',
+        dest='extend_dir',
+        help='The directory holding extension fastas/contigs'
+    )
+    parser.add_argument(
+        '--incomplete-matrix',
+        dest='notstrict',
+        help='The outfile for incomplete-matrix data',
+        type=argparse.FileType('w'),
+        default=False
+    )
     return parser.parse_args()
 
 
@@ -94,10 +101,9 @@ def find_file(contigs, name):
             break
     if reads is None:
         raise ValueError("Cannot find the a fasta file for {} with any of the extensions ({}) ".format(
-                name,
-                ', '.join(extensions)
-            )
-        )
+            name,
+            ', '.join(extensions)
+        ))
     return reads
 
 
@@ -130,14 +136,12 @@ def main():
         c.execute(query)
     organisms = get_names_from_config(config, 'Organisms')
     uces = get_names_from_config(config, 'Loci')
-    #pdb.set_trace()
     uce_fasta_out = open(args.output, 'w')
     regex = re.compile("[N,n]{1,21}")
     for organism in organisms:
         print "Getting {0} reads...".format(organism)
         written = []
         # going to need to do something more generic w/ suffixes
-        #pdb.set_trace()
         name = organism.replace('_', '-')
         if args.notstrict:
             if not organism.endswith('*'):
