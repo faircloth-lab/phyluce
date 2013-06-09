@@ -172,11 +172,16 @@ def get_input_data(config, dir):
         conf = ConfigParser.ConfigParser()
         conf.optionxform = str
         conf.read(config)
-        groups = conf.items('groups')
+        groups = conf.items('samples')
+        for sample in groups:
+            try:
+                assert os.path.isdir(sample[1])
+            except:
+                raise IOError("{} is not a directory".format(sample[1]))
     else:
-        groups = ()
+        groups = []
         for name in glob.glob(os.path.join(dir, '*')):
-            groups += ((os.path.basename(name), name),)
+            groups.append((os.path.basename(name), name))
     return groups
 
 
@@ -332,8 +337,7 @@ def main():
     args = get_args()
     # setup logger
     log = setup_logging(args.verbosity)
-    log.info("=== Starting ASSEMBLO-Trinity ===")
-    pdb.set_trace()
+    log.info("=================== Starting ASSEMBLO-Trinity ===================")
     # get the input data
     log.info("Getting input filenames and creating output directories")
     input = get_input_data(args.config, args.dir)
@@ -352,15 +356,18 @@ def main():
     # I usually symlink to `trinity`
     try:
         trinity = which('trinity')[0]
-    except:
+    except EnvironmentError:
         trinity = which('Trinity.pl')[0]
-    finally:
+    except:
         raise EnvironmentError("Cannot find Trinity.  Ensure it is installed and in your $PATH")
     for group in input:
         sample, dir = group
+        # pretty print taxon status
+        text = " Processing {} ".format(sample)
+        log.info(text.center(65, "-"))
         # make a directory for sample-specific assemblies
         sample_dir = os.path.join(args.output, sample)
-        #os.makedirs(sample_dir)
+        os.makedirs(sample_dir)
         # determine how many files we're dealing with
         fastq = get_fastq_input_files(dir, args.subfolder, log)
         # copy the read data over, combine singletons with read 1
