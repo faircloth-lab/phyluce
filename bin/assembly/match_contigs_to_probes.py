@@ -16,11 +16,11 @@ import copy
 import sqlite3
 import argparse
 from phyluce import lastz
-from phyluce.helpers import is_dir, is_file
+from phyluce.helpers import is_dir, is_file, FullPaths
 from collections import defaultdict
 from Bio import SeqIO
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -37,7 +37,8 @@ def get_args():
     )
     parser.add_argument(
         'output',
-        type=is_dir,
+        type=str,
+        action=FullPaths,
         help="The directory in which to store the lastz alignments"
     )
     parser.add_argument(
@@ -186,6 +187,10 @@ def new_get_probe_name(header, regex):
 def main():
     args = get_args()
     regex = re.compile(args.regex)
+    if not os.path.isdir(args.output):
+        os.makedirs(args.output)
+    else:
+        raise IOError("The directory {} already exists.  Please check and remove by hand.".format(args.output))
     uces = set(new_get_probe_name(seq.id, regex) for seq in SeqIO.parse(open(args.query, 'rU'), 'fasta'))
     if args.dupefile:
         print "Getting dupes..."
@@ -216,6 +221,8 @@ def main():
             output
         )
         lzstdout, lztstderr = alignment.run()
+        if lztstderr:
+            raise EnvironmentError("lastz: {}".format(lztstderr))
         # parse the lastz results of the alignment
         matches = defaultdict(set)
         orientation = defaultdict(set)
