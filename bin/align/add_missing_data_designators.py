@@ -47,12 +47,6 @@ def get_args():
             help="Name of conf file containing notstrict species and data"
             )
     parser.add_argument(
-            '--genera',
-            dest='genera',
-            action='append',
-            help="Name of conf file containing notstrict species and data"
-        )
-    parser.add_argument(
             '--min-taxa',
             dest='min_taxa',
             help="The minimum number of taxa to keep (default = 3)",
@@ -91,23 +85,19 @@ def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, m
             new_align = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
             overall_length = len(a[0])
             for seq in a:
-                if genera and any(sp for sp in genera if sp in seq.name):
-                    new_seq_name = '_'.join(seq.name.split('_')[-1:])
-                elif not verbatim:
-                    new_seq_name = '_'.join(seq.name.split('_')[-2:])
+                # strip any reversal characters from mafft
+                seq.name = seq.name.lstrip('_R_')
+                if not verbatim:
+                    new_seq_name = '_'.join(seq.name.split('_')[1:])
                 else:
                     new_seq_name = seq.name.lower()
                 new_align.append(record_formatter(str(seq.seq), new_seq_name))
                 local_organisms.remove(new_seq_name)
             for org in local_organisms:
-                if genera and any(sp for sp in genera if sp in seq.name):
-                    loc = '_'.join(seq.name.split('_')[:-1])
-                elif not verbatim:
+                if not verbatim:
                     loc = '_'.join(seq.name.split('_')[:-2])
                 else:
                     loc = seq.name
-                # strip any reversal characters from mafft
-                loc = loc.lstrip('_R_')
                 if missing:
                     try:
                         assert loc in missing[org], "Locus missing"
