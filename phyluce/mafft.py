@@ -36,14 +36,11 @@ class Align(GenericAlign):
         super(Align, self).__init__(input)
 
     def run_alignment(self, clean=True):
-        # dialign requires ENV variable be set for dialign_dir
         mafft = which("mafft")
         # create results file
         fd, aln = tempfile.mkstemp(suffix='.mafft')
         os.close(fd)
         aln_stdout = open(aln, 'w')
-        # dialign makes an extra file for fasta output
-        #fasta = "{}.{}".format(aln, 'fa')
         # run MAFFT on the temp file
         cmd = [mafft, "--adjustdirection", "--maxiterate", "1000", self.input]
         # just pass all ENV params
