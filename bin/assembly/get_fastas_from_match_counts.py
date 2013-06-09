@@ -75,7 +75,7 @@ def get_nodes_for_uces(c, organism, uces, extend=False, notstrict=False):
     missing = []
     for node in rows:
         if node[0] is not None:
-            match = re.search('^(Node_\d+|comp\d+_c\d+_seq\d+)\(([+-])\)', node[0])
+            match = re.search('^(node_\d+|comp\d+_c\d+_seq\d+)\(([+-])\)', node[0])
             node_dict[match.groups()[0]] = (node[1], match.groups()[1])
         elif notstrict:
             missing.append(node[1])
