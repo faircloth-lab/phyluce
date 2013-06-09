@@ -130,7 +130,10 @@ def align(params):
                 threshold=threshold,
                 proportion=proportion
             )
-    sys.stdout.write(".")
+    if align.trimed:
+        sys.stdout.write(".")
+    else:
+        sys.stdout.write("X")
     sys.stdout.flush()
     return (name, aln)
 

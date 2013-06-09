@@ -242,12 +242,10 @@ class GenericAlign(object):
                 # cleanup any edges on which we've masked the data
                 self.trimmed = self.stage_one_trimming(s2_trimmed, window_size, threshold, proportion, replace_ends=True)
             # very generic exception statement here - self.alignment will have None
-            # value and will cause print statement below > stdout
+            # value, "X" will write to stdout, and we'll report failed loci at end
+            # of run.
             except:
                 pass
-        # report failed (complete) trimming
-        if not self.trimmed:
-            print "\tAlignment {0} dropped due to trimming".format(self.alignment._records[0].description)
 
 if __name__ == '__main__':
     aln = GenericAlign('../test-data/uce-7117.nex')
