@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-File: get_indels_from_alignments.py
+File: get_smilogram_from_alignments.py
 Author: Brant Faircloth
 
 Created by Brant Faircloth on 07 August 2012 21:08 PDT (-0700)
@@ -32,7 +32,7 @@ import pdb
 
 def get_args():
     parser = argparse.ArgumentParser(
-            description="""Count indels in alignments, relative to (but excluding) the outgroup"""
+            description="""Record variant positions in alignments"""
         )
     parser.add_argument(
             'input',
@@ -86,7 +86,7 @@ def create_differences_database(db):
                 length int
             )'''
         )
-        c.execute('''CREATE TABLE differences (
+        c.execute('''CREATE TABLE by_taxon (
                 idx INTEGER PRIMARY KEY AUTOINCREMENT,
                 taxon text,
                 locus text,
@@ -99,8 +99,23 @@ def create_differences_database(db):
         c.execute('''CREATE TABLE by_locus (
                 idx INTEGER PRIMARY KEY AUTOINCREMENT,
                 locus text,
+                majallele real,
                 substitutions real,
-                count int,
+                deletions real,
+                insertions real,
+                missing real,
+                bases real,
+                position int,
+                position_from_center int,
+                type text,
+                FOREIGN KEY (locus) REFERENCES loci(locus)
+            )'''
+        )
+        c.execute('''CREATE TABLE by_locus_missing (
+                idx INTEGER PRIMARY KEY AUTOINCREMENT,
+                locus text,
+                present real,
+                absent real,
                 position int,
                 position_from_center int,
                 type text,
@@ -164,7 +179,9 @@ def worker(work):
         results[taxon.id] = {
                     'insertion': [],
                     'deletion': [],
-                    'substitution': []
+                    'substitution': [],
+                    'majallele':[],
+                    None:[]
                 }
     # get rid of end gappiness, since that makes things a problem
     # for indel ID. Substitute "?" at the 5' and 3' gappy ends.
@@ -177,9 +194,13 @@ def worker(work):
         bases = re.sub('N|n|\?', "", col)
         # count total number of sites considered
         base_count[idx] = len(bases)
-        # if all the bases besides N|n are the same; skip
-        if len(set(bases)) == 1 or len(bases) == 0:
+        # if all the bases are replace N|n|?, skip
+        if len(bases) == 0:
             pass
+        # if there is only 1 base, make it the major allele
+        elif len(set(bases)) == 1:
+            major = bases[0].lower()
+        # if there are multiple alleles, pick the major allele
         else:
             # count all the bases in a column
             count = Counter(bases)
@@ -200,16 +221,18 @@ def worker(work):
                 # randomly select 1 of the bases
                 major = choice(common_bases)
             # now, check for indels/substitutions
-            for pos, base in enumerate(col):
-                base = base.lower()
-                if (base == major) or (base in ['N', 'n', '?']):
-                    pass
-                elif major == '-' and base != '-':
-                    results[name_map[pos]]['insertion'].append(idx)
-                elif base == '-' and major != '-':
-                    results[name_map[pos]]['deletion'].append(idx)
-                elif base != '-' and major != '-':
-                    results[name_map[pos]]['substitution'].append(idx)
+        for pos, base in enumerate(col):
+            base = base.lower()
+            if (base in ['N', 'n', '?']):
+                results[name_map[pos]][None].append(idx)
+            elif (base == major):
+                results[name_map[pos]]['majallele'].append(idx)
+            elif major == '-' and base != '-':
+                results[name_map[pos]]['insertion'].append(idx)
+            elif base == '-' and major != '-':
+                results[name_map[pos]]['deletion'].append(idx)
+            elif base != '-' and major != '-':
+                results[name_map[pos]]['substitution'].append(idx)
     sys.stdout.write('.')
     sys.stdout.flush()
     return (locus, results, aln.get_alignment_length(), base_count)
@@ -240,7 +263,7 @@ def main():
                 if positions != []:
                     #pdb.set_trace()
                     for pos in positions:
-                        c.execute('''INSERT INTO differences (
+                        c.execute('''INSERT INTO by_taxon (
                             taxon,
                             locus,
                             position,
@@ -259,40 +282,86 @@ def main():
         # positions relative to centerline of the UCE (AKA the "smilogram")
         #
         # NOTE:  currently only doing this for substitutions
-        variable_locations = []
+        maj, subs, dels, ins, n = [],[],[],[],[]
         # get all substitution locations across individuals
         for k, v in result.iteritems():
-            variable_locations.extend(v['substitution'])
+            maj.extend(v['majallele'])
+            subs.extend(v['substitution'])
+            dels.extend(v['deletion'])
+            ins.extend(v['insertion'])
+            n.extend(v[None])
         # get a count of variability by position in BP
-        cnt = Counter(variable_locations)
+        maj_cnt = Counter(maj)
+        subs_cnt = Counter(subs)
+        dels_cnt = Counter(dels)
+        ins_cnt = Counter(ins)
+        n_cnt = Counter(n)
         # iterate over counts of all positions - having subs and not having subs
         # then add those + any sub location to the DB
         for pos in sorted(bases.keys()):
             c.execute('''INSERT INTO by_locus (
                     locus,
+                    majallele,
                     substitutions,
-                    count,
+                    deletions,
+                    insertions,
+                    missing,
+                    bases,
+                    position,
+                    position_from_center,
+                    type
+                )
+                VALUES (?,?,?,?,?,?,?,?,?,?)''', (
+                    locus,
+                    maj_cnt[pos],
+                    subs_cnt[pos],
+                    dels_cnt[pos],
+                    ins_cnt[pos],
+                    n_cnt[pos],
+                    bases[pos],
+                    pos,
+                    pos - center,
+                    'substitutions'
+                    ))
+            c.execute('''INSERT INTO by_locus_missing (
+                    locus,
+                    present,
+                    absent,
                     position,
                     position_from_center,
                     type
                 )
                 VALUES (?,?,?,?,?,?)''', (
                     locus,
-                    cnt[pos],
                     bases[pos],
+                    len(result.keys()) - bases[pos],
                     pos,
                     pos - center,
-                    'substitutions'
+                    'missing'
                     ))
     conn.commit()
     if args.smilogram:
+        # get data for substitution smilogram
         outf = open("{0}-smilogram.csv".format(args.output), 'w')
         outf.write('substitutions,bp,freq,distance_from_center\n')
         c.execute('''CREATE TEMP TABLE ssb AS
-            SELECT sum(substitutions) AS ss, sum(count), sum(substitutions)/sum(count), position_from_center
+            SELECT sum(substitutions) AS ss, sum(bases), sum(substitutions)/sum(bases), position_from_center
             FROM by_locus GROUP BY position_from_center
             ''')
         c.execute('''SELECT * FROM ssb WHERE ss != 0''')
+        results = c.fetchall()
+        for row in results:
+            outf.write("{0}\n".format(','.join(map(str, row))))
+        outf.close()
+        
+        # get data for missing data smilogram
+        outf = open("{0}-missing.csv".format(args.output), 'w')
+        outf.write('substitutions,bp,freq,distance_from_center\n')
+        c.execute('''CREATE TEMP TABLE ssc AS
+            SELECT sum(present) as pres, sum(absent), sum(absent)/(sum(absent) + sum(present)), position_from_center
+            FROM by_locus_missing GROUP BY position_from_center
+            ''')
+        c.execute('''SELECT * FROM ssc WHERE pres != 0''')
         results = c.fetchall()
         for row in results:
             outf.write("{0}\n".format(','.join(map(str, row))))
