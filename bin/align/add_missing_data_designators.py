@@ -75,7 +75,7 @@ def record_formatter(seq, name):
             name=name,
             description=name)
 
-def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, min_taxa=3):
+def add_gaps_to_align(organisms, missing, align, verbatim=False, min_taxa=3):
     local_organisms = copy.deepcopy(organisms)
     for a in align:
         if len(a) < min_taxa:
@@ -95,7 +95,7 @@ def add_gaps_to_align(organisms, missing, align, verbatim=False, genera=False, m
                 local_organisms.remove(new_seq_name)
             for org in local_organisms:
                 if not verbatim:
-                    loc = '_'.join(seq.name.split('_')[:-2])
+                    loc = '_'.join(seq.name.split('_')[:1])
                 else:
                     loc = seq.name
                 if missing:
@@ -130,8 +130,7 @@ def main():
     organisms = get_names_from_config(config, 'Organisms')
     for count, nex in enumerate(glob.glob(os.path.join(args.input, '*.nex*'))):
         align = AlignIO.parse(nex, "nexus")
-        new_align = add_gaps_to_align(organisms, missing, align, args.verbatim, args.genera,
-                args.min_taxa)
+        new_align = add_gaps_to_align(organisms, missing, align, args.verbatim, args.min_taxa)
         if new_align is not None:
             outf = os.path.join(args.output, os.path.basename(nex))
             AlignIO.write(new_align, open(outf, 'w'), 'nexus')
