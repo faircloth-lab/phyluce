@@ -8,9 +8,6 @@ Created by Brant Faircloth on 24 March 2010 23:09 PDT (-0700).
 Copyright (c) 2010 Brant Faircloth. All rights reserved.
 """
 
-import pdb
-import sys
-import os
 import time
 import argparse
 from phyluce import lastz
@@ -68,18 +65,16 @@ def get_args():
 
 
 def main():
-    start_time      = time.time()
+    start_time = time.time()
     print 'Started: ', time.strftime("%a %b %d, %Y  %H:%M:%S", time.localtime(start_time))
-    options, arg    = interface()
-    alignment = lastz.Align(options.target, options.query, options.coverage, \
-        options.identity, options.output)
+    args = get_args()
+    alignment = lastz.Align(args.target, args.query, args.coverage, args.identity, args.output, args.min_match)
     lzstdout, lztstderr = alignment.run()
     if lztstderr:
         raise IOError(lztstderr)
-    end_time        = time.time()
+    end_time = time.time()
     print 'Ended: ', time.strftime("%a %b %d, %Y  %H:%M:%S", time.localtime(end_time))
     print 'Time for execution: ', (end_time - start_time)/60, 'minutes'
 
 if __name__ == '__main__':
     main()
-
