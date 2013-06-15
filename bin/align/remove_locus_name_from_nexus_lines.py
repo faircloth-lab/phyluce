@@ -66,7 +66,6 @@ def main():
         new_align = MultipleSeqAlignment([], generic_dna)
         for align in AlignIO.parse(f, 'nexus'):
             for seq in list(align):
-                pdb.set_trace()
                 fname = os.path.splitext(os.path.basename(f))[0]
                 new_seq_name = re.sub("^(_R_)*{}_*".format(fname), "", seq.name)
                 all_taxa.add(new_seq_name)
