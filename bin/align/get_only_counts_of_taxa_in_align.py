@@ -12,16 +12,15 @@ of alignments having more than "--percent" of "--taxa" taxa.
 """
 
 
-import pdb
 import os
-import sys
 import glob
-import numpy
+import math
 import shutil
 import argparse
 from Bio import AlignIO
 from phyluce.helpers import is_dir
 
+#import pdb
 
 
 def get_args():
@@ -29,32 +28,32 @@ def get_args():
     parser.add_argument('nexus', help='The directory containing the nexus files', type=is_dir)
     parser.add_argument('taxa', type=int, help='The number of taxa expected')
     parser.add_argument('output', type=is_dir, help='The output dir in which to store copies of the alignments')
-    parser.add_argument('--percent', dest = 'percent', type=float, default = 0.5, help='The percent of taxa to require')
+    parser.add_argument('--percent', type=float, default=0.5, help='The percent of taxa to require')
     return parser.parse_args()
 
 
 def get_files(input_dir):
     return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
 
+
 def main():
     args = get_args()
     # iterate through all the files to determine the longest alignment
     files = get_files(args.nexus)
-    #align_lengths = [[AlignIO.read(f, 'nexus').get_alignment_length(),os.path.split(f)[1]] \
-    #                        for f in files]
-    counts = []
-    frac = []
+    min_count = int(math.floor(args.percent * args.taxa))
+    counts = 0
     for f in files:
         aln = AlignIO.read(f, 'nexus')
-        proportion = round(args.percent * args.taxa)
-        if len(aln) < int(proportion):
+        if len(aln) < min_count:
             pass
         else:
-            counts.append(1)
-            frac.append(len(aln)/float(args.taxa))
-            shutil.copyfile(f,os.path.join(args.output, os.path.basename(f)))
-    print "Copied {0} alignments containing an proportion of {1} taxa".format(sum(counts), round(sum(frac)/len(frac), 2))
-    #pdb.set_trace()
+            counts += 1
+            shutil.copyfile(f, os.path.join(args.output, os.path.basename(f)))
+    print "Copied {0} alignments containing ≥ {1} proportion of taxa (n = {2})".format(
+        counts,
+        args.percent,
+        min_count
+    )
 
 if __name__ == '__main__':
     main()
