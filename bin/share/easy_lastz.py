@@ -12,47 +12,60 @@ import pdb
 import sys
 import os
 import time
-import optparse
-import tempfile
-import subprocess
-import bx.seq.twobit
+import argparse
 from phyluce import lastz
+from phyluce.helpers import FullPaths
+
+#import pdb
 
 
-def interface():
-    '''Get the starting parameters from a configuration file'''
-    usage = "usage: %prog [options]"
-    
-    p = optparse.OptionParser(usage)
-    
-    p.add_option('--target', dest = 'target', action='store', \
-type='string', default = None, help='The path to the target file (2bit)', \
-metavar='FILE')
-    p.add_option('--query', dest = 'query', action='store', \
-type='string', default = None, help='The path to the query file (2bit)', \
-metavar='FILE')
-    p.add_option('--output', dest = 'output', action='store', \
-type='string', default = None, help='The path to the output file', \
-metavar='FILE')
-    p.add_option('--coverage', dest = 'coverage', action='store', \
-type='float', default = 83, help='The fraction of bases in the \
-entire input sequence (target or query, whichever is shorter) that are \
-included in the alignment block, expressed as a percentage')
-    p.add_option('--identity', dest = 'identity', action='store', \
-type='float', default = 92.5, help='The fraction of aligned bases \
-(excluding columns containing gaps or non-ACGT characters) that are \
-matches, expressed as a percentage')
-    
-    (options,arg) = p.parse_args()
-    for f in [options.target, options.query, options.output]:
-        if not f:
-            p.print_help()
-            sys.exit(2)
-        if f != options.output and not os.path.isfile(f):
-            print "You must provide a valid path to the query/target file."
-            p.print_help()
-            sys.exit(2)
-    return options, arg
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Run lastz in an easy way"""
+    )
+    parser.add_argument(
+        "--target",
+        required=True,
+        type=str,
+        action=FullPaths,
+        help="""The path to the target file (2bit/fasta)"""
+    )
+    parser.add_argument(
+        "--query",
+        required=True,
+        type=str,
+        action=FullPaths,
+        help="""The path to the query file (2bit/fasta)"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        type=str,
+        action=FullPaths,
+        help="""The path to the output file"""
+    )
+    parser.add_argument(
+        "--identity",
+        type=float,
+        default=92.5,
+        help="""The minimum percent identity to require for a match"""
+    )
+    cov_or_match = parser.add_mutually_exclusive_group(required=False)
+    cov_or_match.add_argument(
+        "--coverage",
+        type=float,
+        default=83.0,
+        help="""The minimum coverage (%) required for a match"""
+    )
+    cov_or_match.add_argument(
+        "--min_match",
+        type=int,
+        default=None,
+        help="""The minimum number of base pairs required for a match"""
+    )
+    return parser.parse_args()
+
 
 def main():
     start_time      = time.time()
