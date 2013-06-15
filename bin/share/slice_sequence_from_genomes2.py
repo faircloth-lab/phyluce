@@ -78,6 +78,12 @@ def get_args():
         default="INFO",
         help="""The logging level to use"""
     )
+    parser.add_argument(
+        "--contig_orient",
+        action="store_true",
+        default=False,
+        help="""Check orientation by contigs versus probes - useful for multi-species probe sets""",
+    )
     return parser.parse_args()
 
 
@@ -167,7 +173,7 @@ def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_pos
     return SeqRecord(Seq(sequence), id=name, name='', description='')
 
 
-def parse_lastz_file(lz):
+def parse_lastz_file(lz, contig_orient):
     all_uce_names = set()
     uce_matches = defaultdict(lambda: defaultdict(list))
     orientation = defaultdict(lambda: defaultdict(set))
@@ -179,7 +185,13 @@ def parse_lastz_file(lz):
         # keep a record of all UCEs matched
         all_uce_names.add(uce_name)
         uce_matches[uce_name][contig_name].append([lz.zstart1, lz.end1])
-        orientation[uce_name][contig_name].add(lz.strand2)
+        # usually, we get orientation matches by probes. but for mixed species
+        # probes, they may be in several orientations, which can cause problems,
+        # so check their orientation relative to the contig
+        if contig_orient:
+            orientation[uce_name][contig_name].add(lz.strand1)
+        else:
+            orientation[uce_name][contig_name].add(lz.strand2)
     return all_uce_names, uce_matches, orientation
 
 
@@ -230,7 +242,7 @@ def main():
                 tb = twobit.TwoBitFile(file(twobit_name))
                 # parse the lastz results of the alignment
                 lz = os.path.join(args.lastz, long_name)
-                all_uce_names, uce_matches, orientation = parse_lastz_file(lz)
+                all_uce_names, uce_matches, orientation = parse_lastz_file(lz, args.contig_orient)
                 # we need to check nodes for dupe matches to the same probes
                 uce_loci_matching_mult_contigs = check_loci_for_dupes(uce_matches)
                 # delete those loci that hit multiple probes or had multiple probes hit them
@@ -261,8 +273,8 @@ def main():
                             sorted_positions = sorted(positions)
                             if len(sorted_positions) > 1:
                                 for i in range(1, len(sorted_positions)):
-                                    # drop those contigs where probes fall > 100 bp apart
-                                    if sorted_positions[i][0] - sorted_positions[i-1][0] > 100:
+                                    # drop those contigs where probes fall > 500 bp apart
+                                    if sorted_positions[i][0] - sorted_positions[i-1][1] > 500:
                                         bad = True
                                         length_drop.add(uce_name)
                                         break
