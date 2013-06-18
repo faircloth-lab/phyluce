@@ -39,6 +39,12 @@ def get_args():
         action=FullPaths,
         help="""The output directory to create and in which to store the fastas""",
     )
+    parser.add_argument(
+        "--by-taxon",
+        action="store_true",
+        default=False,
+        help="""Split file by taxon and not by locus""",
+    )
     return parser.parse_args()
 
 
@@ -54,15 +60,22 @@ def main():
     else:
         os.makedirs(args.output_dir)
     print "Reading fasta..."
-    with open(args.input, 'rU') as input:
-        for seq in SeqIO.parse(input, 'fasta'):
-            uce = seq.id.split('_')[0]
-            seqdict[uce].append(seq)
+    if not args.by_taxon:
+        with open(args.input, 'rU') as input:
+            for seq in SeqIO.parse(input, 'fasta'):
+                uce = seq.id.split('_')[0]
+                seqdict[uce].append(seq)
+    elif args.by_taxon:
+        with open(args.input, 'rU') as input:
+            for seq in SeqIO.parse(input, 'fasta'):
+                taxon = '-'.join(seq.id.split('_')[1:])
+                seqdict[taxon].append(seq)
     print "Writing fasta..."
     for uce, sequences in seqdict.iteritems():
         with open(os.path.join(args.output_dir, '{}.unaligned.fasta'.format(uce)), 'w') as outf:
             for sequence in sequences:
                 outf.write(sequence.format('fasta'))
+
 
 if __name__ == '__main__':
     main()
