@@ -302,7 +302,6 @@ def run_trinity_se(trinity, fastq, cores, clean, log):
 
 def generate_symlinks(contig_dir, sample, fastq, clean, log):
     log.info("Symlinking assembled contigs into {}".format(contig_dir))
-    pdb.set_trace()
     try:
         if not clean:
             trinity_fname = os.path.join(fastq.r1.dir, "Trinity.fasta")
@@ -376,7 +375,6 @@ def main():
             copy_read_data(fastq, sample_dir, log)
             combine_read_data(fastq, log)
             run_trinity_pe(trinity, fastq, args.cores, args.clean, log)
-            #pdb.set_trace()
         # we don't need to combine singleton files here.  copy
         # the read data over and run the assembly for PE data
         elif fastq.r1 and fastq.r2:
@@ -389,8 +387,6 @@ def main():
             run_trinity_se(trinity, fastq, args.cores, args.clean, log)
         # generate symlinks to assembled contigs
         generate_symlinks(contig_dir, sample, fastq, args.clean, log)
-    # pretty print some stuff
-    #pdb.set_trace()
 
 
 if __name__ == '__main__':
