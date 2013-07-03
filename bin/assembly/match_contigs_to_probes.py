@@ -61,6 +61,12 @@ def get_args():
         default="^(uce-\d+)(?:_p\d+.*)",
         help="""A regular expression to apply to the probe sequences for replacement""",
     )
+    parser.add_argument(
+        "--keep-duplicates",
+        type=str,
+        default=None,
+        help="""A file in which to store duplicate hit data""",
+    )
     args = parser.parse_args()
     return args
 
@@ -151,24 +157,32 @@ def check_contigs_for_dupes(matches):
     return dupe_set
 
 
-def check_probes_for_dupes(revmatches):
+def check_loci_for_dupes(revmatches):
     """Check for UCE probes that match more than one contig"""
-    dupe_set = set([i for uce, node in revmatches.iteritems() if len(node) > 1 for i in list(node)])
-    return dupe_set
+    dupe_contigs = []
+    dupe_uces = []
+    for uce, node in revmatches.iteritems():
+        if len(node) > 1:
+            dupe_contigs.extend(node)
+            dupe_uces.append(uce)
+    #dupe_contigs = set([i for uce, node in revmatches.iteritems() if len(node) > 1 for i in list(node)])
+    #pdb.set_trace()
+    return set(dupe_contigs), set(dupe_uces)
 
 
-def pretty_print_output(critter, matches, contigs, pd, mc, mp):
+def pretty_print_output(critter, matches, contigs, pd, mc, uce_dupe_uces):
     """Write some nice output to stdout"""
     unique_matches = sum([1 for node, uce in matches.iteritems()])
     out = "\t {0}: {1} ({2:.2f}%) uniques of {3} contigs, {4} dupe probe matches, " + \
-        "{5} UCE probes matching multiple contigs, {6} contigs matching multiple UCE probes"
+        "{5} UCE loci removed for matching multiple contigs, {6} contigs " + \
+        "removed for matching multiple UCE loci"
     print out.format(
         critter,
         unique_matches,
         float(unique_matches) / contigs * 100,
         contigs,
         len(pd),
-        len(mp),
+        len(uce_dupe_uces),
         len(mc)
     )
 
@@ -193,7 +207,7 @@ def main():
         raise IOError("The directory {} already exists.  Please check and remove by hand.".format(args.output))
     uces = set(new_get_probe_name(seq.id, regex) for seq in SeqIO.parse(open(args.query, 'rU'), 'fasta'))
     if args.dupefile:
-        print "Getting dupes..."
+        print "Checking for duplicate probe sequences..."
         dupes = get_dupes(args.dupefile, regex)
     else:
         dupes = set()
@@ -205,6 +219,11 @@ def main():
         uces
     )
     print "Processing:"
+    # open a file for duplicate writing, if we're interested
+    if args.keep_duplicates is not None:
+        dupefile = open(args.keep_duplicates, 'w')
+    else:
+        dupefile = None
     for contig in fasta_files:
         critter = os.path.basename(contig).split('.')[0].replace('-', "_")
         output = os.path.join(
@@ -241,8 +260,21 @@ def main():
                     revmatches[uce_name].add(contig_name)
         # we need to check nodes for dupe matches to the same probes
         contigs_matching_mult_uces = check_contigs_for_dupes(matches)
-        uces_matching_mult_contigs = check_probes_for_dupes(revmatches)
-        nodes_to_drop = contigs_matching_mult_uces.union(uces_matching_mult_contigs)
+        uce_dupe_contigs, uce_dupe_uces = check_loci_for_dupes(revmatches)
+        nodes_to_drop = contigs_matching_mult_uces.union(uce_dupe_contigs)
+        # write out duplicates if requested
+        if dupefile is not None:
+            if len(uce_dupe_uces) != 0:
+                dupefile.write("[{} - probes hitting multiple contigs]\n".format(critter))
+                for uce in uce_dupe_uces:
+                    dupefile.write("{}:{}\n".format(uce, ', '.join(revmatches[uce])))
+                dupefile.write("\n")
+            if len(contigs_matching_mult_uces) != 0:
+                dupefile.write("[{} - contigs hitting multiple probes]\n".format(critter))
+                for dupe in contigs_matching_mult_uces:
+                    dupefile.write("{}:{}\n".format(dupe, ', '.join(matches[dupe])))
+                dupefile.write("\n")
+        #pdb.set_trace()
         # remove dupe and/or dubious nodes/contigs
         match_copy = copy.deepcopy(matches)
         for k in match_copy.keys():
@@ -256,8 +288,9 @@ def main():
             contigs,
             probe_dupes,
             contigs_matching_mult_uces,
-            uces_matching_mult_contigs
+            uce_dupe_uces
         )
+    dupefile.close()
 
 if __name__ == '__main__':
     main()
