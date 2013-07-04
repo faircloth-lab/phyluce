@@ -27,8 +27,6 @@ import multiprocessing
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 from phyluce.generic_align import GenericAlign
 
-#import pdb
-
 
 def get_args():
     """Get arguments from CLI"""
@@ -98,12 +96,15 @@ def get_and_trim_alignments(params):
         aln._read(input_format)
         # dont return consensus
         aln.trim_alignment(
-                method='running',
-                window_size=window,
-                threshold=threshold,
-                proportion=proportion
-            )
-        sys.stdout.write(".")
+            method='running',
+            window_size=window,
+            threshold=threshold,
+            proportion=proportion
+        )
+        if aln.trimmed:
+            sys.stdout.write(".")
+        else:
+            sys.stdout.write("X")
         sys.stdout.flush()
         return (name, aln)
     except ValueError, e:
@@ -117,16 +118,16 @@ def write_alignments_to_outdir(outdir, alignments, format):
     print '\nWriting output files...'
     for tup in alignments:
         locus, aln = tup
-        if aln.trimmed_alignment is not None:
+        if aln.trimmed is not None:
             outname = "{}{}".format(
-                    os.path.join(outdir, locus),
-                    get_file_extensions(format)[0]
-                )
+                os.path.join(outdir, locus),
+                get_file_extensions(format)[0]
+            )
             outf = open(outname, 'w')
-            outf.write(aln.trimmed_alignment.format(format))
+            outf.write(aln.trimmed.format(format))
             outf.close()
         else:
-            print "\tSkipped writing {0}, there was no record".format(locus)
+            print "Dropped {0} from output".format(locus)
 
 
 def main():
