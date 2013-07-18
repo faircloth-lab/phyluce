@@ -109,7 +109,7 @@ def get_and_trim_alignments(params):
         return (name, aln)
     except ValueError, e:
         if e.message == 'No records found in handle':
-            return (name, False)
+            return (name, aln)
         else:
             raise ValueError('Something is wrong with alignment {0}'.format(name))
 
