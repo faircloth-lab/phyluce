@@ -33,7 +33,7 @@ def get_args():
 
 
 def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
+    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex*'))
 
 
 def main():
