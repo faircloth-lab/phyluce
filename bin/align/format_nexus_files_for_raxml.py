@@ -33,6 +33,12 @@ def get_args():
             action=FullPaths,
             help="""The output file for the concatenated phylip data""",
         )
+    parser.add_argument(
+        "--nexus",
+        action="store_true",
+        default=False,
+        help="""Export as NEXUS format""",
+    )
     return parser.parse_args()
 
 
@@ -43,8 +49,12 @@ def main():
     data = [(fname, Nexus.Nexus(fname)) for fname in nexus_files]
     print "Concatenating files..."
     concatenated = Nexus.combine(data)
-    print "Writing to phylip..."
-    concatenated.export_phylip(args.output)
+    if not args.nexus:
+        print "Writing to PHYLIP format..."
+        concatenated.export_phylip(args.output)
+    else:
+        print "Writing to NEXUS format..."
+        concatenated.write_nexus_data(args.output)
 
 
 if __name__ == '__main__':
