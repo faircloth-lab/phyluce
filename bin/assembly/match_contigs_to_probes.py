@@ -290,7 +290,8 @@ def main():
             contigs_matching_mult_uces,
             uce_dupe_uces
         )
-    dupefile.close()
+    if dupefile is not None:
+        dupefile.close()
 
 if __name__ == '__main__':
     main()
