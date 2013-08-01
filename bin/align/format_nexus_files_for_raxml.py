@@ -17,22 +17,23 @@ import argparse
 from Bio.Nexus import Nexus
 from phyluce.helpers import is_dir, FullPaths
 
+#import pdb
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
             description="""Convert individual nexus files to concatenated phylip format""")
     parser.add_argument(
-            "input",
-            type=is_dir,
-            action=FullPaths,
-            help="""The input directory of nexus files"""
-        )
+        "input",
+        type=is_dir,
+        action=FullPaths,
+        help="""The input directory of nexus files"""
+    )
     parser.add_argument(
-            "output",
-            action=FullPaths,
-            help="""The output file for the concatenated phylip data""",
-        )
+        "output",
+        action=FullPaths,
+        help="""The output file for the concatenated phylip data""",
+    )
     parser.add_argument(
         "--nexus",
         action="store_true",
