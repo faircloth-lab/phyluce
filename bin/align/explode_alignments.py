@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 29 January 2013 10:01 PST (-0800)
 Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -61,7 +61,14 @@ def get_args():
             "--exclude",
             type=str,
             nargs='+',
+            default = [],
             help="""Taxa/taxon to exclude""",
+        )
+    parser.add_argument(
+            "--by-taxon",
+            action="store_true",
+            default=False,
+            help="""Explode file by taxon instead of by-locus""",
         )
     return parser.parse_args()
 
@@ -85,35 +92,61 @@ def main():
         print "Original taxon count = ", len(names.keys())
         for taxon in args.exclude:
             del names[taxon]
-    for file in files:
-        sys.stdout.write('.')
-        sys.stdout.flush()
-        basename = os.path.basename(file)
-        locus = os.path.splitext(basename)[0]
-        new_file = locus + ".fasta"
-        taxon_count = []
-        #pdb.set_trace()
-        outp = open(os.path.join(args.output, new_file), 'w')
-        aln = AlignIO.read(file, args.input_format)
-        count = 0
-        for taxon in aln:
-            name = taxon.id.replace(locus, '').lstrip('_')
-            if name not in args.exclude:
-                try:
-                    shortname = names[name]
-                except:
-                    pdb.set_trace()
+    #pdb.set_trace()
+    if args.by_taxon:
+        d = {}
+        for file in files:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            basename = os.path.basename(file)
+            locus = os.path.splitext(basename)[0]
+            aln = AlignIO.read(file, args.input_format)
+            for taxon in aln:
+                name = taxon.id.replace(locus, '').lstrip('_')
+                if name not in args.exclude:
+                    try:
+                        shortname = names[name]
+                    except:
+                        shortname = name
+                if shortname not in d.keys():
+                    new_file = shortname + ".fasta"
+                    d[shortname] = open(os.path.join(args.output, new_file), 'w')
                 seq = str(taxon.seq).replace('-', '')
-                #pdb.set_trace()
+                seq = str(taxon.seq).replace('?', '')
                 if not len(seq) == 0:
-                    outp.write(">{0}\n{1}\n".format(shortname, seq))
-                    count += 1
-                else:
-                    print locus
-        taxon_count.append(count)
-        outp.close()
-    print "\n"
-    print "Final taxon count = ", set(taxon_count)
+                    d[shortname].write(">{0}\n{1}\n".format(taxon.id, seq))
+        for k, v in d.iteritems():
+            v.close()
+    else:
+        for file in files:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            basename = os.path.basename(file)
+            locus = os.path.splitext(basename)[0]
+            new_file = locus + ".fasta"
+            taxon_count = []
+            #pdb.set_trace()
+            outp = open(os.path.join(args.output, new_file), 'w')
+            aln = AlignIO.read(file, args.input_format)
+            count = 0
+            for taxon in aln:
+                name = taxon.id.replace(locus, '').lstrip('_')
+                if name not in args.exclude:
+                    try:
+                        shortname = names[name]
+                    except:
+                        shortname = name
+                    seq = str(taxon.seq).replace('-', '')
+                    seq = str(taxon.seq).replace('?', '')
+                    if not len(seq) == 0:
+                        outp.write(">{0}\n{1}\n".format(shortname, seq))
+                        count += 1
+                    else:
+                        print locus
+            taxon_count.append(count)
+            outp.close()
+        print "\n"
+        print "Final taxon count = ", set(taxon_count)
 
 if __name__ == '__main__':
     main()
