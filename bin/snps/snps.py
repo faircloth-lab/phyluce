@@ -70,6 +70,12 @@ def get_args():
         default=False,
         help="""Cleanup all intermediate Trinity files""",
     )
+    parser.add_argument(
+        "--no-remove-duplicates",
+        action="store_true",
+        default=False,
+        help="""Do not remove duplicate reads.""",
+    )
     return parser.parse_args()
 
 
@@ -309,7 +315,10 @@ def main():
             # get flowcell id
             fc = flowcells[sample]
             bam = add_rg_header_info(log, sample, sample_dir, fc, bam)
-            bam = mark_and_remove_dupes(log, sample, sample_dir, bam)
+            if not args.no_remove_duplicates:
+                bam = mark_and_remove_dupes(log, sample, sample_dir, bam)
+            else:
+                log.info("You have selected to keep apparent duplicate reads")
         #if fastq.singleton:
             # bwa align singleton reads
         #    pass
