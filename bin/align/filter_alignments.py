@@ -26,7 +26,7 @@ import argparse
 from Bio import AlignIO
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -84,12 +84,18 @@ def get_files(input_dir, input_format):
 
 
 def align_contains_taxa(args, aln):
+    containing = False
+    #pdb.set_trace()
     for taxon in aln:
         if taxon.id in args.containing:
+            # if there's no seq data, then the focus taxon is not really present
             if (set(taxon.seq) == set('-')) or (set(taxon.seq) == set('?')):
                 containing = False
             else:
                 containing = True
+            break
+        else:
+            pass
     return containing
 
 
@@ -136,7 +142,7 @@ def main():
             else:
                 taxa = True
             if containing and taxa and length:
-                print "{0}\t{1}".format(os.path.basename(f))
+                print "{0}".format(os.path.basename(f))
             if containing and taxa and length and args.output:
                 name = os.path.basename(f)
                 shutil.copy(f, os.path.join(args.output, name))
