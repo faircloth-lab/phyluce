@@ -3,6 +3,7 @@ import os
 import sys
 import glob
 import argparse
+import ConfigParser
 from Bio import AlignIO
 from Bio.Align import MultipleSeqAlignment as Alignment
 from multiprocessing import Pool
@@ -49,6 +50,12 @@ def get_args():
             action="store_true",
             default=False,
             help="""Convert names to a 6 or 7 character representation""",
+        )
+    parser.add_argument(
+            "--name-conf",
+            action=FullPaths,
+            type=str,
+            help="""A config-formatted file containing full-name:shortname mappings""",
         )
     return parser.parse_args()
 
@@ -120,8 +127,12 @@ def convert_files_worker(params):
 def main():
     args = get_args()
     files = get_files(args.indir, args.input_format)
-    if args.shorten_name:
+    if args.shorten_name and not args.name_conf:
         name_map = shorten_name(args, files[0])
+    elif args.shorten_name and args.name_conf:
+        conf = ConfigParser.ConfigParser()
+        conf.readfp(open(args.name_conf))
+        name_map = dict(conf.items('taxa'))
     else:
         name_map = None
     params = [[f, args, name_map] for f in files]
