@@ -36,17 +36,18 @@ def get_args():
             "input",
             action=FullPaths,
             type=is_dir,
-            help="""The input files containing nexus files to filter"""
+            help="""The input directory containing nexus files to filter"""
         )
     parser.add_argument(
             "output",
             action=FullPaths,
             type=is_dir,
-            help="""Help text""",
+            help="""The output directory containing the converted files""",
         )
     parser.add_argument(
-            "taxa",
+            "--taxa",
             type=int,
+            default=None,
             help="""The expected number of taxa in all alignments""",
         )
     return parser.parse_args()
@@ -72,7 +73,8 @@ def main():
                 seq.id = new_seq_name
                 seq.name = new_seq_name
                 new_align.append(seq)
-        assert len(all_taxa) == args.taxa, "Taxon names are not identical"
+        if args.taxa is not None:
+            assert len(all_taxa) == args.taxa, "Taxon names are not identical"
         outf = os.path.join(args.output, os.path.split(f)[1])
         try:
             AlignIO.write(new_align, open(outf, 'w'), 'nexus')
