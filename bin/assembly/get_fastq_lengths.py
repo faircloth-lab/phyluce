@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 21 July 2012 12:07 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 import os
@@ -19,7 +19,7 @@ import argparse
 import subprocess
 from phyluce.helpers import is_dir, FullPaths
 
-import pdb
+#import pdb
 
 
 def get_args():
