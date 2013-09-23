@@ -40,6 +40,12 @@ def get_args():
         default=False,
         help="""Export as NEXUS format""",
     )
+    parser.add_argument(
+        "--add-charsets",
+        action="store_true",
+        default=False,
+        help="""Add charsets to phylip file""",
+    )
     return parser.parse_args()
 
 
@@ -47,15 +53,22 @@ def main():
     args = get_args()
     print "Reading files..."
     nexus_files = glob.glob(os.path.join(args.input, '*.nex*'))
-    data = [(fname, Nexus.Nexus(fname)) for fname in nexus_files]
+    data = [(os.path.basename(fname), Nexus.Nexus(fname)) for fname in nexus_files]
     print "Concatenating files..."
     concatenated = Nexus.combine(data)
     if not args.nexus:
+        if args.add_charsets:
+            sets = concatenated.append_sets()
+            with open(args.output + ".charsets", 'w') as outf:
+                outf.write(sets)
         print "Writing to PHYLIP format..."
         concatenated.export_phylip(args.output)
     else:
         print "Writing to NEXUS format..."
-        concatenated.write_nexus_data(args.output)
+        if args.add_charsets:
+            concatenated.write_nexus_data(args.output)
+        else:
+            concatenated.write_nexus_data(args.output, append_sets=False)
 
 
 if __name__ == '__main__':
