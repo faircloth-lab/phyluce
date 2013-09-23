@@ -7,8 +7,7 @@ change_taxa_names.py
 Created by Brant Faircloth on 22 September 2010 12:48 PDT (-0700).
 Copyright (c) 2010 Brant C. Faircloth. All rights reserved.
 
-PURPOSE:  Add the filename to the taxa name in each of the output nexus files - for use
-with *BEAST.
+PURPOSE:  Remove the UCE locus name from nexus alignments.
 
 USAGE:  python remove_locus_name_from_nexus_lines.py \
     --input my/input/folder/nexus \
@@ -31,7 +30,7 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Program description""")
+            description="""Remove the UCE locus name from nexus alignments.""")
     parser.add_argument(
             "input",
             action=FullPaths,
@@ -42,7 +41,7 @@ def get_args():
             "output",
             action=FullPaths,
             type=is_dir,
-            help="""The output directory containing the converted files""",
+            help="""The output directory to hold the converted nexus files""",
         )
     parser.add_argument(
             "--taxa",
@@ -63,7 +62,6 @@ def main():
     files = get_files(args.input)
     all_taxa = set([])
     for count, f in enumerate(files):
-        #new_align = Alignment(Gapped(IUPAC.unambiguous_dna, "-"))
         new_align = MultipleSeqAlignment([], generic_dna)
         for align in AlignIO.parse(f, 'nexus'):
             for seq in list(align):
@@ -78,9 +76,9 @@ def main():
         outf = os.path.join(args.output, os.path.split(f)[1])
         try:
             AlignIO.write(new_align, open(outf, 'w'), 'nexus')
+            print count
         except ValueError:
-            pdb.set_trace()
-        print count
+            raise IOError("Cannot write output file.")
     print "Taxon names in alignments: {0}".format(','.join(list(all_taxa)))
 
 if __name__ == '__main__':
