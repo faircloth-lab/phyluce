@@ -353,6 +353,7 @@ def main():
         pass
     # Get path to trinity.  Standard name is `Trinity.pl`.
     # I usually symlink to `trinity`
+    #TODO:  Change this to system "which" - this is just to flaky in certain cases
     try:
         trinity = which('trinity')[0]
     except EnvironmentError:
