@@ -18,6 +18,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from phyluce.helpers import FullPaths, is_dir, is_file, get_names_from_config
+from phyluce.log import setup_logging
 
 #import pdb
 
@@ -53,15 +54,29 @@ def get_args():
     )
     parser.add_argument(
         '--incomplete-matrix',
+        action=FullPaths,
+        default=False,
         help='The path to the outfile for incomplete-matrix records.  Required when processing an incomplete data matrix.',
-        type=argparse.FileType('w'),
-        default=False
     )
     parser.add_argument(
         '--output',
         required=True,
         action=FullPaths,
         help='The path to the output FASTA file you want to create.'
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
     )
     parser.add_argument(
         '--extend-db',
@@ -129,81 +144,108 @@ def get_contig_name(header):
     return match.groups()[0]
 
 
-def replace_and_remove_bases(regex, seq):
+def replace_and_remove_bases(regex, seq, count):
     new_seq_string = str(seq.seq)
     if regex.search(new_seq_string):
         new_seq_string = re.sub(regex, "", new_seq_string)
-        print "\tReplaced < 20 ambiguous bases in {0}".format(seq.id)
+        #print "\tReplaced < 20 ambiguous bases in {0}".format(seq.id)
+        count += 1
     new_seq_string = re.sub("^[acgtn]+", "", new_seq_string)
     new_seq_string = re.sub("[acgtn]+$", "", new_seq_string)
     new_seq = Seq(new_seq_string)
     new_seq_record = SeqRecord(new_seq, id=seq.id, name='', description='')
-    return new_seq_record
+    return new_seq_record, count
 
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args.verbosity, args.log_path)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
+    # parse the config file - allowing no values (e.g. no ":" in config file)
     config = ConfigParser.RawConfigParser(allow_no_value=True)
     config.read(args.match_count_config)
+    # connect to the database
     conn = sqlite3.connect(args.uce_locus_db)
     c = conn.cursor()
+    # attach to external database, if passed as option
     if args.extend_db:
+        log.info("Attaching extended database {}".format(os.path.basename(args.extend)))
         query = "ATTACH DATABASE '{0}' AS extended".format(args.extend_db)
         c.execute(query)
     organisms = get_names_from_config(config, 'Organisms')
+    log.info("There are {} taxa in the match-count-config file named {}".format(
+        len(organisms),
+        os.path.basename(args.match_count_config)
+    ))
     uces = get_names_from_config(config, 'Loci')
-    uce_fasta_out = open(args.output, 'w')
+    if not args.incomplete_matrix:
+        log.info("There are {} shared UCE loci in a COMPLETE matrix".format(len(uces)))
+    else:
+        log.info("There are {} UCE loci in an INCOMPLETE matrix".format(len(uces)))
     regex = re.compile("[N,n]{1,21}")
-    for organism in organisms:
-        print "Getting {0} reads...".format(organism)
-        written = []
-        # going to need to do something more generic w/ suffixes
-        name = organism.replace('_', '-')
-        if args.incomplete_matrix:
-            if not organism.endswith('*'):
-                reads = find_file(args.contigs, name)
-                node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=False, notstrict=True)
-            elif args.extend_contigs:
-                # remove the asterisk
-                name = name.rstrip('*')
-                reads = find_file(args.extend_contigs, name)
-                node_dict, missing = get_nodes_for_uces(c, organism.rstrip('*'), uces, extend=True, notstrict=True)
-        else:
-            if not name.endswith('*'):
-                reads = find_file(args.contigs, name)
-                node_dict, missing = get_nodes_for_uces(c, organism, uces)
-            elif name.endswith('*') and args.extend_contigs:
-                # remove the asterisk
-                name = name.rstrip('*')
-                reads = find_file(args.extend_contigs, name)
-                node_dict, missing = get_nodes_for_uces(c, organism.rstrip('*'), uces, extend=True)
-        for seq in SeqIO.parse(open(reads, 'rU'), 'fasta'):
-            name = get_contig_name(seq.id).lower()
-            if name in node_dict.keys():
-                seq.id = "{0}_{1} |{0}".format(node_dict[name][0], organism.rstrip('*'))
-                seq.name = ''
-                seq.description = ''
-                # deal with strandedness because aligners sometimes dont, which
-                # is annoying
-                if node_dict[name][1] == '-':
-                    seq.seq = seq.seq.reverse_complement()
-                # Replace any occurrences of <21 Ns in a given sequence with
-                # blanks.  These should gap out during alignment. Also, replace
-                # leading/trailing lowercase bases from velvet assemblies.
-                # Lowercase bases indicate low coverage, and these
-                # have been problematic in downstream alignments).
-                seq = replace_and_remove_bases(regex, seq)
-                uce_fasta_out.write(seq.format('fasta'))
-                written.append(str(node_dict[name][0]))
+    if args.incomplete_matrix:
+        incomplete_outf = open(args.incomplete_matrix, 'w')
+    with open(args.output, 'w') as uce_fasta_out:
+        for organism in organisms:
+            text = "Getting UCE loci for {0}".format(organism)
+            log.info(text.center(65, "-"))
+            written = []
+            # going to need to do something more generic w/ suffixes
+            name = organism.replace('_', '-')
+            if args.incomplete_matrix:
+                if not organism.endswith('*'):
+                    reads = find_file(args.contigs, name)
+                    node_dict, missing = get_nodes_for_uces(c, organism, uces, extend=False, notstrict=True)
+                elif args.extend_contigs:
+                    # remove the asterisk
+                    name = name.rstrip('*')
+                    reads = find_file(args.extend_contigs, name)
+                    node_dict, missing = get_nodes_for_uces(c, organism.rstrip('*'), uces, extend=True, notstrict=True)
             else:
-                pass
-        if args.incomplete_matrix and missing:
-            args.incomplete_matrix.write("[{0}]\n".format(organism))
-            for name in missing:
-                args.incomplete_matrix.write("{0}\n".format(name))
-                written.append(name)
-        assert set(written) == set(uces), "UCE names do not match"
-    uce_fasta_out.close()
+                if not name.endswith('*'):
+                    reads = find_file(args.contigs, name)
+                    node_dict, missing = get_nodes_for_uces(c, organism, uces)
+                elif name.endswith('*') and args.extend_contigs:
+                    # remove the asterisk
+                    name = name.rstrip('*')
+                    reads = find_file(args.extend_contigs, name)
+                    node_dict, missing = get_nodes_for_uces(c, organism.rstrip('*'), uces, extend=True)
+            count = 0
+            log.info("There are {} UCE loci for {}".format(len(node_dict), organism))
+            log.info("Parsing and renaming contigs for {}".format(organism))
+            for seq in SeqIO.parse(open(reads, 'rU'), 'fasta'):
+                name = get_contig_name(seq.id).lower()
+                if name in node_dict.keys():
+                    seq.id = "{0}_{1} |{0}".format(node_dict[name][0], organism.rstrip('*'))
+                    seq.name = ''
+                    seq.description = ''
+                    # deal with strandedness because aligners sometimes dont, which
+                    # is annoying
+                    if node_dict[name][1] == '-':
+                        seq.seq = seq.seq.reverse_complement()
+                    # Replace any occurrences of <21 Ns in a given sequence with
+                    # blanks.  These should gap out during alignment. Also, replace
+                    # leading/trailing lowercase bases from velvet assemblies.
+                    # Lowercase bases indicate low coverage, and these
+                    # have been problematic in downstream alignments).
+                    seq, count = replace_and_remove_bases(regex, seq, count)
+                    uce_fasta_out.write(seq.format('fasta'))
+                    written.append(str(node_dict[name][0]))
+                else:
+                    pass
+            if count > 0:
+                log.info("Replaced <20 ambiguous bases (N) in {} contigs for {}".format(count, organism))
+            if args.incomplete_matrix and missing:
+                log.info("Writing missing locus information to {}".format(args.incomplete_matrix))
+                incomplete_outf.write("[{0}]\n".format(organism))
+                for name in missing:
+                    incomplete_outf.write("{0}\n".format(name))
+                    written.append(name)
+            assert set(written) == set(uces), "UCE names do not match"
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
