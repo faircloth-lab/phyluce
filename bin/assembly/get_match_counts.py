@@ -8,9 +8,9 @@ Created by Brant Faircloth on 03 June 2011.
 Copyright 2011 Brant C. Faircloth. All rights reserved.
 
 Used to determine, for a group specified within a config file, the number of
-UCE loci returned for all members of that group.  Also returns optimum group
-sizes based on complete enumeration and sampling approaces.
-
+UCE loci returned for all members of that group.  Will also determine loci in
+incomplete matrix, if requested.  Finally, can return optimum group sizes based
+on complete enumeration and sampling approaces.
 
 """
 
@@ -24,30 +24,48 @@ import ConfigParser
 import multiprocessing
 from collections import Counter
 from collections import defaultdict
+from phyluce.helpers import FullPaths, is_file
 
 #import pdb
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
+    parser = argparse.ArgumentParser(description="Given an SQL database of UCE loci and a taxon-set file, " +
+        "output those taxa and those loci in complete and incomplete data matrices."
+        )
     parser.add_argument(
-        'db',
-        help='The database holding probe matches'
+        '--uce-locus-db',
+        required=True,
+        action=FullPaths,
+        type=is_file,
+        help='The SQL database file holding probe matches to UCE loci (usually "lastz/probe.matches.sqlite")'
     )
     parser.add_argument(
-        'config',
+        '--taxon-list',
+        required=True,
+        action=FullPaths,
+        type=is_file,
         help='The config file containing match information'
     )
     parser.add_argument(
-        'group',
-        help='The config group whose results you want',
-        type=str
+        '--taxon-group',
+        required=True,
+        type=str,
+        help='The [group] in the config file whose results you want',
+    )
+    parser.add_argument(
+        '--incomplete-matrix',
+        dest='notstrict',
+        action="store_true",
+        default=False,
+        help='Generate an incomplete matrix of data',
     )
     parser.add_argument(
         '--output',
         nargs='?',
         type=argparse.FileType('w'),
-        default=sys.stdout
+        default=sys.stdout,
+        help="The path to the output file you want to create"
     )
     parser.add_argument(
         '--optimize',
@@ -76,12 +94,6 @@ def get_args():
         '--extend',
         dest='extend',
         help='The match database to add as an extension'
-    )
-    parser.add_argument(
-        '--incomplete-matrix',
-        dest='notstrict',
-        action="store_true",
-        help='Do not do strict matching',
     )
     parser.add_argument(
         '--silent',
@@ -279,13 +291,14 @@ def dont_sample_match_groups(args, c, organisms, uces):
 def main():
     args = get_args()
     config = ConfigParser.RawConfigParser(allow_no_value=True)
-    config.read(args.config)
-    conn = sqlite3.connect(args.db)
+    config.read(args.taxon_list)
+    conn = sqlite3.connect(args.uce_locus_db)
     c = conn.cursor()
     if args.extend:
         query = "ATTACH DATABASE '{0}' AS extended".format(args.extend)
         c.execute(query)
-    organisms = get_taxa_from_config(config, args.group)
+    organisms = get_taxa_from_config(config, args.taxon_group)
+    #pdb.set_trace()
     uces = get_uce_names(c)
     all_counts = []
     if args.optimize:
