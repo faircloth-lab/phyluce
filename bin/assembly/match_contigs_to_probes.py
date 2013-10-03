@@ -17,6 +17,7 @@ import sqlite3
 import argparse
 from phyluce import lastz
 from phyluce.helpers import is_dir, is_file, FullPaths
+from phyluce.log import setup_logging
 from collections import defaultdict
 from Bio import SeqIO
 
@@ -53,6 +54,20 @@ def get_args():
         help="The directory in which to store the resulting SQL database and LASTZ files."
     )
     parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
         '--min-coverage',
         default=80,
         type=int,
@@ -84,8 +99,9 @@ def get_args():
     return args
 
 
-def create_probe_database(db, organisms, uces):
+def create_probe_database(log, db, organisms, uces):
     """Create the UCE-match database"""
+    log.info("Creating the UCE-match database")
     conn = sqlite3.connect(db)
     c = conn.cursor()
     c.execute("PRAGMA foreign_keys = ON")
@@ -100,6 +116,7 @@ def create_probe_database(db, organisms, uces):
         c.executemany("INSERT INTO matches(uce) values (?)", all_uces)
         c.executemany("INSERT INTO match_map(uce) values (?)", all_uces)
     except sqlite3.OperationalError, e:
+        log.critical("Database already exists")
         if e[0] == 'table matches already exists':
             answer = raw_input("Database already exists.  Overwrite [Y/n]? ")
             if answer == "Y" or "YES":
@@ -108,6 +125,7 @@ def create_probe_database(db, organisms, uces):
             else:
                 sys.exit(2)
         else:
+            log.critical("Cannot create database")
             raise sqlite3.OperationalError("Cannot create database")
     return conn, c
 
@@ -126,8 +144,9 @@ def store_lastz_results_in_db(c, matches, orientation, critter):
         c.execute(insert_string)
 
 
-def get_dupes(lastz_file, regex):
+def get_dupes(log, lastz_file, regex):
     """Given a lastz_file of probes aligned to themselves, get duplicates"""
+    log.info("Checking probe/bait sequences for duplicates")
     matches = defaultdict(list)
     dupes = set()
     # get names and strip probe designation since loci are the same
@@ -183,20 +202,22 @@ def check_loci_for_dupes(revmatches):
     return set(dupe_contigs), set(dupe_uces)
 
 
-def pretty_print_output(critter, matches, contigs, pd, mc, uce_dupe_uces):
-    """Write some nice output to stdout"""
+def pretty_log_output(log, critter, matches, contigs, pd, mc, uce_dupe_uces):
+    """Write some nice output to the logfile/stdout"""
     unique_matches = sum([1 for node, uce in matches.iteritems()])
-    out = "\t {0}: {1} ({2:.2f}%) uniques of {3} contigs, {4} dupe probe matches, " + \
+    out = "{0}: {1} ({2:.2f}%) uniques of {3} contigs, {4} dupe probe matches, " + \
         "{5} UCE loci removed for matching multiple contigs, {6} contigs " + \
         "removed for matching multiple UCE loci"
-    print out.format(
-        critter,
-        unique_matches,
-        float(unique_matches) / contigs * 100,
-        contigs,
-        len(pd),
-        len(uce_dupe_uces),
-        len(mc)
+    log.info(
+        out.format(
+            critter,
+            unique_matches,
+            float(unique_matches) / contigs * 100,
+            contigs,
+            len(pd),
+            len(uce_dupe_uces),
+            len(mc)
+        )
     )
 
 
@@ -213,6 +234,9 @@ def new_get_probe_name(header, regex):
 
 def main():
     args = get_args()
+    log, my_name = setup_logging(args.verbosity, args.log_path)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
     regex = re.compile(args.regex)
     if not os.path.isdir(args.output):
         os.makedirs(args.output)
@@ -220,23 +244,24 @@ def main():
         raise IOError("The directory {} already exists.  Please check and remove by hand.".format(args.output))
     uces = set(new_get_probe_name(seq.id, regex) for seq in SeqIO.parse(open(args.probes, 'rU'), 'fasta'))
     if args.dupefile:
-        print "Checking for duplicate probe sequences..."
-        dupes = get_dupes(args.dupefile, regex)
+        dupes = get_dupes(log, args.dupefile, regex)
     else:
         dupes = set()
     fasta_files = glob.glob(os.path.join(args.contigs, '*.fa*'))
     organisms = get_organism_names_from_fasta_files(fasta_files)
     conn, c = create_probe_database(
+        log,
         os.path.join(args.output, 'probe.matches.sqlite'),
         organisms,
         uces
     )
-    print "Processing:"
+    log.info("Processing contig data")
     # open a file for duplicate writing, if we're interested
     if args.keep_duplicates is not None:
         dupefile = open(args.keep_duplicates, 'w')
     else:
         dupefile = None
+    log.info("{}".format("-" * 65))
     for contig in fasta_files:
         critter = os.path.basename(contig).split('.')[0].replace('-', "_")
         output = os.path.join(
@@ -277,6 +302,7 @@ def main():
         nodes_to_drop = contigs_matching_mult_uces.union(uce_dupe_contigs)
         # write out duplicates if requested
         if dupefile is not None:
+            log.info("Writing duplicates file for {}".format(critter))
             if len(uce_dupe_uces) != 0:
                 dupefile.write("[{} - probes hitting multiple contigs]\n".format(critter))
                 for uce in uce_dupe_uces:
@@ -295,7 +321,8 @@ def main():
                 del matches[k]
         store_lastz_results_in_db(c, matches, orientation, critter)
         conn.commit()
-        pretty_print_output(
+        pretty_log_output(
+            log,
             critter,
             matches,
             contigs,
@@ -305,6 +332,11 @@ def main():
         )
     if dupefile is not None:
         dupefile.close()
+    log.info("{}".format("-" * 65))
+    log.info("The LASTZ alignments are in {}".format(args.output))
+    log.info("The UCE match database is in {}".format(os.path.join(args.output, "probes.matches.sqlite")))
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
