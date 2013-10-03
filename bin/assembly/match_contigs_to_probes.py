@@ -248,8 +248,8 @@ def main():
         alignment = lastz.Align(
             contig,
             args.probes,
-            args.coverage,
-            args.identity,
+            args.min_coverage,
+            args.min_identity,
             output
         )
         lzstdout, lztstderr = alignment.run()
