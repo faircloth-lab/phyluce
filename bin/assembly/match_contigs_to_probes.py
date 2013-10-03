@@ -24,20 +24,27 @@ from Bio import SeqIO
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
+    parser = argparse.ArgumentParser(description="Match UCE probes/baits to assembled contigs " +
+        "and store the data in a relational database.  The matching process is dependent on the " +
+        "probe names in the file.  If the probe names are not like 'uce-1001_p1' where 'uce-' " +
+        "indicates we're searching for uce loci, '1001' indicates locus 1001, '_p1' indicates " +
+        "this is probe 1 for locus 1001, you will need to set the optional --regex parameter. " +
+        "So, if your probe names are 'MyProbe-A_probe1', the --regex will look like " +
+        "--regex='^(MyProbe-\W+)(?:_probe\d+.*)'"
+    )
     parser.add_argument(
         '--contigs',
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="The directory containing the contigs to match against probes"
+        help="The directory containing the assembled contigs in which you are searching for UCE loci"
     )
     parser.add_argument(
         '--probes',
         required=True,
         type=is_file,
         action=FullPaths,
-        help="The query fasta or 2bit file"
+        help="The bait/probe file in FASTA format"
     )
     parser.add_argument(
         '--output',
@@ -46,32 +53,32 @@ def get_args():
         help="The directory in which to store the resulting SQL database and LASTZ files"
     )
     parser.add_argument(
-        '--coverage',
+        '--min-coverage',
         default=80,
         type=int,
-        help="The minimum percent coverage required for a match"
+        help="The minimum percent coverage required for a match [default=80]"
     )
     parser.add_argument(
-        '--identity',
+        '--min-identity',
         default=80,
         type=int,
-        help="The minimum percent coverage required for a match"
+        help="The minimum percent identity required for a match [default=80]"
     )
     parser.add_argument(
         '--dupefile',
-        help="Path to self-to-self lastz results for potential duplicate probe removal"
+        help="Path to self-to-self lastz results for baits to remove potential duplicate probes"
     )
     parser.add_argument(
         "--regex",
         type=str,
         default="^(uce-\d+)(?:_p\d+.*)",
-        help="""A regular expression to apply to the probe names for replacement""",
+        help="""A regular expression to apply to the probe names for replacement [default='^(uce-\d+)(?:_p\d+.*)']""",
     )
     parser.add_argument(
         "--keep-duplicates",
         type=str,
         default=None,
-        help="""A optional output file in which to store duplicate hit data""",
+        help="""A optional output file in which to store those loci that appear to be duplicates""",
     )
     args = parser.parse_args()
     return args
