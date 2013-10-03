@@ -20,52 +20,58 @@ from phyluce.helpers import is_dir, is_file, FullPaths
 from collections import defaultdict
 from Bio import SeqIO
 
-import pdb
+#import pdb
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
     parser.add_argument(
-        'contigs',
+        '--contigs',
+        required=True,
         type=is_dir,
+        action=FullPaths,
         help="The directory containing the contigs to match against probes"
     )
     parser.add_argument(
-        'query',
+        '--probes',
+        required=True,
         type=is_file,
+        action=FullPaths,
         help="The query fasta or 2bit file"
     )
     parser.add_argument(
-        'output',
-        type=str,
+        '--output',
+        required=True,
         action=FullPaths,
-        help="The directory in which to store the lastz alignments"
+        help="The directory in which to store the resulting SQL database and LASTZ files"
     )
     parser.add_argument(
         '--coverage',
         default=80,
-        type=int
+        type=int,
+        help="The minimum percent coverage required for a match"
     )
     parser.add_argument(
         '--identity',
         default=80,
-        type=int
+        type=int,
+        help="The minimum percent coverage required for a match"
     )
     parser.add_argument(
         '--dupefile',
-        help="Path to self-to-self lastz results"
+        help="Path to self-to-self lastz results for potential duplicate probe removal"
     )
     parser.add_argument(
         "--regex",
         type=str,
         default="^(uce-\d+)(?:_p\d+.*)",
-        help="""A regular expression to apply to the probe sequences for replacement""",
+        help="""A regular expression to apply to the probe names for replacement""",
     )
     parser.add_argument(
         "--keep-duplicates",
         type=str,
         default=None,
-        help="""A file in which to store duplicate hit data""",
+        help="""A optional output file in which to store duplicate hit data""",
     )
     args = parser.parse_args()
     return args
@@ -205,7 +211,7 @@ def main():
         os.makedirs(args.output)
     else:
         raise IOError("The directory {} already exists.  Please check and remove by hand.".format(args.output))
-    uces = set(new_get_probe_name(seq.id, regex) for seq in SeqIO.parse(open(args.query, 'rU'), 'fasta'))
+    uces = set(new_get_probe_name(seq.id, regex) for seq in SeqIO.parse(open(args.probes, 'rU'), 'fasta'))
     if args.dupefile:
         print "Checking for duplicate probe sequences..."
         dupes = get_dupes(args.dupefile, regex)
@@ -234,7 +240,7 @@ def main():
         # align the probes to the contigs
         alignment = lastz.Align(
             contig,
-            args.query,
+            args.probes,
             args.coverage,
             args.identity,
             output
