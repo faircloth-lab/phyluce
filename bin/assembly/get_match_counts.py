@@ -282,7 +282,7 @@ def dont_sample_match_groups(args, c, organisms, uces):
         )
         print "\nAll UCEs in incomplete matrix: {0}\n".format(len(shared_uces))
     if losses:
-        print "# of UCEs loci missing by taxon\n==============================="
+        print "# of UCE loci missing, by taxon\n==============================="
         sorted_losses = sorted(losses.iteritems(), key=operator.itemgetter(1))
         sorted_losses.reverse()
         for loss in sorted_losses:
