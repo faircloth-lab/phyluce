@@ -37,48 +37,48 @@ def get_args():
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="The directory containing the assembled contigs in which you are searching for UCE loci"
+        help="The directory containing the assembled contigs in which you are searching for UCE loci."
     )
     parser.add_argument(
         '--probes',
         required=True,
         type=is_file,
         action=FullPaths,
-        help="The bait/probe file in FASTA format"
+        help="The bait/probe file in FASTA format."
     )
     parser.add_argument(
         '--output',
         required=True,
         action=FullPaths,
-        help="The directory in which to store the resulting SQL database and LASTZ files"
+        help="The directory in which to store the resulting SQL database and LASTZ files."
     )
     parser.add_argument(
         '--min-coverage',
         default=80,
         type=int,
-        help="The minimum percent coverage required for a match [default=80]"
+        help="The minimum percent coverage required for a match [default=80]."
     )
     parser.add_argument(
         '--min-identity',
         default=80,
         type=int,
-        help="The minimum percent identity required for a match [default=80]"
+        help="The minimum percent identity required for a match [default=80]."
     )
     parser.add_argument(
         '--dupefile',
-        help="Path to self-to-self lastz results for baits to remove potential duplicate probes"
+        help="Path to self-to-self lastz results for baits to remove potential duplicate probes."
     )
     parser.add_argument(
         "--regex",
         type=str,
         default="^(uce-\d+)(?:_p\d+.*)",
-        help="""A regular expression to apply to the probe names for replacement [default='^(uce-\d+)(?:_p\d+.*)']""",
+        help="""A regular expression to apply to the probe names for replacement [default='^(uce-\d+)(?:_p\d+.*)'].""",
     )
     parser.add_argument(
         "--keep-duplicates",
         type=str,
         default=None,
-        help="""A optional output file in which to store those loci that appear to be duplicates""",
+        help="""A optional output file in which to store those loci that appear to be duplicates.""",
     )
     args = parser.parse_args()
     return args
