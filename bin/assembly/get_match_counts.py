@@ -38,34 +38,33 @@ def get_args():
         required=True,
         action=FullPaths,
         type=is_file,
-        help='The SQL database file holding probe matches to UCE loci (usually "lastz/probe.matches.sqlite")'
+        help='The SQL database file holding probe matches to UCE loci (usually "lastz/probe.matches.sqlite.")'
     )
     parser.add_argument(
-        '--taxon-list',
+        '--taxon-list-config',
         required=True,
         action=FullPaths,
         type=is_file,
-        help='The config file containing match information'
+        help='The config file containing lists of the taxa you want to include in matrices.'
     )
     parser.add_argument(
         '--taxon-group',
         required=True,
         type=str,
-        help='The [group] in the config file whose results you want',
+        help='The [group] in the config file whose specific data matrix you want to create.',
     )
     parser.add_argument(
         '--incomplete-matrix',
-        dest='notstrict',
         action="store_true",
         default=False,
-        help='Generate an incomplete matrix of data',
+        help='Generate an incomplete matrix of data.',
     )
     parser.add_argument(
         '--output',
         nargs='?',
         type=argparse.FileType('w'),
         default=sys.stdout,
-        help="The path to the output file you want to create"
+        help="The path to the output file you want to create."
     )
     parser.add_argument(
         '--optimize',
@@ -75,31 +74,31 @@ def get_args():
     parser.add_argument(
         '--random',
         action="store_true",
-        help='Optimize by sampling'
+        help='Optimize by sampling.'
     )
     parser.add_argument(
         '--samples',
         type=int,
         default=10,
-        help='The number of samples to take'
+        help='The number of samples to take.'
     )
     parser.add_argument(
         '--sample-size',
         dest='sample_size',
         type=int,
         default=10,
-        help='The group size of samples'
+        help='The group size of samples.'
     )
     parser.add_argument(
         '--extend',
         dest='extend',
-        help='The match database to add as an extension'
+        help='The match database to add as an extension.'
     )
     parser.add_argument(
         '--silent',
         dest='silent',
         action="store_true",
-        help='Don\'t print probe names'
+        help='Don\'t print probe names.'
     )
     parser.add_argument(
         '--keep-counts',
@@ -266,7 +265,7 @@ def get_taxa_from_config(config, group):
 def dont_sample_match_groups(args, c, organisms, uces):
     """text"""
     organismal_matches = get_all_matches_by_organism(c, organisms)
-    if not args.notstrict:
+    if not args.incomplete_matrix:
         shared_uces, losses = return_complete_matrix(
             organismal_matches,
             organisms,
@@ -291,7 +290,7 @@ def dont_sample_match_groups(args, c, organisms, uces):
 def main():
     args = get_args()
     config = ConfigParser.RawConfigParser(allow_no_value=True)
-    config.read(args.taxon_list)
+    config.read(args.taxon_list_config)
     conn = sqlite3.connect(args.uce_locus_db)
     c = conn.cursor()
     if args.extend:
