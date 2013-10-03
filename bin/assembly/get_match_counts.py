@@ -14,6 +14,7 @@ on complete enumeration and sampling approaces.
 
 """
 
+import os
 import sys
 import random
 import sqlite3
@@ -24,7 +25,8 @@ import ConfigParser
 import multiprocessing
 from collections import Counter
 from collections import defaultdict
-from phyluce.helpers import FullPaths, is_file
+from phyluce.helpers import FullPaths, is_file, is_dir
+from phyluce.log import setup_logging
 
 #import pdb
 
@@ -54,17 +56,30 @@ def get_args():
         help='The [group] in the config file whose specific data matrix you want to create.',
     )
     parser.add_argument(
+        '--output',
+        required=True,
+        action=FullPaths,
+        help="The path to the output file you want to create."
+    )
+    parser.add_argument(
         '--incomplete-matrix',
         action="store_true",
         default=False,
         help='Generate an incomplete matrix of data.',
     )
     parser.add_argument(
-        '--output',
-        nargs='?',
-        type=argparse.FileType('w'),
-        default=sys.stdout,
-        help="The path to the output file you want to create."
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
     )
     parser.add_argument(
         '--optimize',
@@ -108,7 +123,8 @@ def get_args():
     return parser.parse_args()
 
 
-def get_uce_names(c):
+def get_uce_names(log, c):
+    log.info("Getting UCE names from database")
     c.execute("SELECT uce FROM matches")
     return set([uce[0] for uce in c.fetchall()])
 
@@ -264,55 +280,72 @@ def get_taxa_from_config(config, group):
     return organisms
 
 
-def dont_sample_match_groups(args, c, organisms, uces):
+def dont_sample_match_groups(log, args, c, organisms, uces):
     """text"""
     organismal_matches = get_all_matches_by_organism(c, organisms)
     if not args.incomplete_matrix:
+        log.info("Getting UCE matches by organism to generate a COMPLETE matrix")
         shared_uces, losses = return_complete_matrix(
             organismal_matches,
             organisms,
             uces,
             fast=False
         )
-        print "\n# of UCEs in complete matrix\n============================\n{0}\n".format(len(shared_uces))
+        log.info("There are {} shared UCE loci in a COMPLETE matrix".format(len(shared_uces)))
     else:
+        log.info("Getting UCE matches by organism to generate a INCOMPLETE matrix")
         shared_uces, losses = return_incomplete_matrix(
             organismal_matches,
             uces
         )
-        print "\nAll UCEs in incomplete matrix: {0}\n".format(len(shared_uces))
+        log.info("There are {0} UCE loci in an INCOMPLETE matrix".format(len(shared_uces)))
     if losses:
-        print "# of UCE loci missing, by taxon\n==============================="
         sorted_losses = sorted(losses.iteritems(), key=operator.itemgetter(1))
         sorted_losses.reverse()
         for loss in sorted_losses:
-            print "{0}:{1}".format(loss[0], loss[1])
+            log.info("\tFailed to detect {} UCE loci in {}".format(loss[1], loss[0]))
     return shared_uces
 
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args.verbosity, args.log_path)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
+    # parse the config file - allowing no values (e.g. no ":" in config file)
     config = ConfigParser.RawConfigParser(allow_no_value=True)
     config.read(args.taxon_list_config)
+    # connect to the database
     conn = sqlite3.connect(args.uce_locus_db)
     c = conn.cursor()
+    # attach to external database, if passed as option
     if args.extend:
+        log.info("Attaching extended database {}".format(os.path.basename(args.extend)))
         query = "ATTACH DATABASE '{0}' AS extended".format(args.extend)
         c.execute(query)
     organisms = get_taxa_from_config(config, args.taxon_group)
-    #pdb.set_trace()
-    uces = get_uce_names(c)
+    log.info("There are {} taxa in the taxon-group '[{}]' in the config file {}".format(
+        len(organisms),
+        args.taxon_group,
+        os.path.basename(args.taxon_list_config)
+    ))
+    uces = get_uce_names(log, c)
+    log.info("There are {} total UCE loci in the database".format(len(uces)))
     all_counts = []
     if args.optimize:
         shared_uces, organisms = sample_match_groups(args, c, organisms, uces, all_counts)
     else:
-        shared_uces = dont_sample_match_groups(args, c, organisms, uces)
+        shared_uces = dont_sample_match_groups(log, args, c, organisms, uces)
     if args.output and organisms and not args.silent:
-        args.output.write("[Organisms]\n{0}\n[Loci]\n{1}\n".format(
-            '\n'.join(sorted(organisms)),
-            '\n'.join(sorted(shared_uces))
-        ))
-    args.output.close()
+        log.info("Writing the taxa and loci in the data matrix to {}".format(args.output))
+        with open(args.output, 'w') as outf:
+            outf.write("[Organisms]\n{0}\n[Loci]\n{1}\n".format(
+                '\n'.join(sorted(organisms)),
+                '\n'.join(sorted(shared_uces))
+            ))
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
