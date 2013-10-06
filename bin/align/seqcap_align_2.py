@@ -115,7 +115,7 @@ def align(params):
     locus, opts = params
     name, sequences = locus
     # get additional params from params tuple
-    window, threshold, notrim, proportion = opts
+    window, threshold, notrim, proportion, divergence = opts
     fasta = create_locus_specific_fasta(sequences)
     aln = Align(fasta)
     aln.run_alignment()
@@ -127,8 +127,9 @@ def align(params):
         aln.trim_alignment(
                 method='running',
                 window_size=window,
+                proportion=proportion,
                 threshold=threshold,
-                proportion=proportion
+                max_divergence=divergence
             )
     if aln.trimmed:
         sys.stdout.write(".")
