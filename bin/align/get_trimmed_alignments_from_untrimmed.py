@@ -26,6 +26,7 @@ import argparse
 import multiprocessing
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 from phyluce.generic_align import GenericAlign
+from phyluce.log import setup_logging
 
 
 def get_args():
@@ -58,6 +59,20 @@ def get_args():
             default='fasta',
             help="""The output alignment format""",
         )
+    parser.add_argument(
+            "--verbosity",
+            type=str,
+            choices=["INFO", "WARN", "CRITICAL"],
+            default="INFO",
+            help="""The logging level to use."""
+    )
+    parser.add_argument(
+            "--log-path",
+            action=FullPaths,
+            type=is_dir,
+            default=None,
+            help="""The path to a directory to hold logs."""
+    )
     parser.add_argument(
             "--window",
             type=int,
@@ -100,7 +115,6 @@ def get_args():
 def get_and_trim_alignments(params):
     trimming_params, align_file = params
     input_format, window, threshold, proportion, divergence, min_len = trimming_params
-    #pdb.set_trace()
     name = os.path.basename(os.path.splitext(align_file)[0])
     aln = GenericAlign(align_file)
     # call private method to read alignment into alignment object
@@ -128,8 +142,8 @@ def get_and_trim_alignments(params):
             raise ValueError('Something is wrong with alignment {0}'.format(name))
 
 
-def write_alignments_to_outdir(outdir, alignments, format):
-    print '\nWriting output files...'
+def write_alignments_to_outdir(log, outdir, alignments, format):
+    log.info('Writing output files')
     for tup in alignments:
         locus, aln = tup
         if aln.trimmed is not None:
@@ -141,29 +155,41 @@ def write_alignments_to_outdir(outdir, alignments, format):
             outf.write(aln.trimmed.format(format))
             outf.close()
         else:
-            print "Dropped {0} from output".format(locus)
+            log.warn("DROPPED {0} from output".format(locus))
 
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args.verbosity, args.log_path)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
     alignments = []
+    log.info("Getting aligned sequences for trimming")
     for ftype in get_file_extensions(args.input_format):
         alignments.extend(glob.glob(os.path.join(args.input, "*{}".format(ftype))))
     # package up needed arguments for map()
     package = [args.input_format, args.window, args.threshold, args.proportion, args.max_divergence, args.min_length]
     params = zip([package] * len(alignments), alignments)
-    # print some output for user
-    sys.stdout.write('Trimming')
-    sys.stdout.flush()
+    log.info("Alignment begins. 'X' indicates dropped alignments (these are reported after alignment)")
     # if --multprocessing, use Pool.map(), else use map()
     # can also extend to MPI map, but not really needed on multicore
     # machine
     if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores - 1)
         alignments = pool.map(get_and_trim_alignments, params)
     else:
         alignments = map(get_and_trim_alignments, params)
-    write_alignments_to_outdir(args.output, alignments, args.output_format)
+    # kick the stdout down one line since we were using sys.stdout
+    print("")
+    # drop back into logging
+    log.info("Alignment ends")
+    # write the output files
+    write_alignments_to_outdir(log, args.output, alignments, args.output_format)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == '__main__':
