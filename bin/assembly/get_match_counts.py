@@ -36,11 +36,11 @@ def get_args():
         "output those taxa and those loci in complete and incomplete data matrices."
         )
     parser.add_argument(
-        '--uce-locus-db',
+        '--locus-db',
         required=True,
         action=FullPaths,
         type=is_file,
-        help='The SQL database file holding probe matches to UCE loci (usually "lastz/probe.matches.sqlite.")'
+        help='The SQL database file holding probe matches to targeted loci (usually "lastz/probe.matches.sqlite.")'
     )
     parser.add_argument(
         '--taxon-list-config',
@@ -105,9 +105,10 @@ def get_args():
         help='The group size of samples.'
     )
     parser.add_argument(
-        '--extend',
-        dest='extend',
-        help='The match database to add as an extension.'
+        '--extend-locus-db',
+        action=FullPaths,
+        type=is_file,
+        help='An SQLlite database file holding probe matches to other targeted loci'
     )
     parser.add_argument(
         '--silent',
@@ -317,12 +318,12 @@ def main():
     config = ConfigParser.RawConfigParser(allow_no_value=True)
     config.read(args.taxon_list_config)
     # connect to the database
-    conn = sqlite3.connect(args.uce_locus_db)
+    conn = sqlite3.connect(args.locus_db)
     c = conn.cursor()
     # attach to external database, if passed as option
-    if args.extend:
-        log.info("Attaching extended database {}".format(os.path.basename(args.extend)))
-        query = "ATTACH DATABASE '{0}' AS extended".format(args.extend)
+    if args.extend_locus_db:
+        log.info("Attaching extended database {}".format(os.path.basename(args.extend_locus_db)))
+        query = "ATTACH DATABASE '{0}' AS extended".format(args.extend_locus_db)
         c.execute(query)
     organisms = get_taxa_from_config(config, args.taxon_group)
     log.info("There are {} taxa in the taxon-group '[{}]' in the config file {}".format(
