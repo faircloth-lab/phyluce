@@ -12,10 +12,10 @@ Description: Trim the edges of alignments files to remove nasties.
 Usage:
 
     python ~/Git/brant/phyluce/bin/align/trim_align_only.py \
-        sate-fasta-untrimmed \
-        sate-nexus-trimmed \
-        --output-format nexus \
-        --multiprocessing
+        --alignents sate-fasta-untrimmed \
+        --output sate-nexus-trimmed \
+        --output-format phylip \
+        --cores 12
 
 """
 
@@ -24,40 +24,42 @@ import sys
 import glob
 import argparse
 import multiprocessing
-from phyluce.helpers import is_dir, FullPaths, get_file_extensions
-from phyluce.generic_align import GenericAlign
+
 from phyluce.log import setup_logging
+from phyluce.generic_align import GenericAlign
+from phyluce.helpers import FullPaths, CreateDir, is_dir, get_file_extensions, write_alignments_to_outdir
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Use the PHYLUCE trimming algorithm to trim existing alignments""")
-    parser.add_argument(
-        "input",
-        action=FullPaths,
-        type=is_dir,
-        help="""The directory containing alignments"""
+        description="""Use the PHYLUCE trimming algorithm to trim existing alignments""",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "output",
+        "--alignments",
+        required=True,
         action=FullPaths,
         type=is_dir,
-        help="""The directory to contain trimmed alignments"""
+        help="""The directory containing alignments to be trimmed."""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=CreateDir,
+        help="""The directory in which to store the resulting alignments."""
     )
     parser.add_argument(
         "--input-format",
-        dest="input_format",
-        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-        default='fasta',
-        help="""The input alignment format""",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="fasta",
+        help="""The input alignment format.""",
     )
     parser.add_argument(
         "--output-format",
-        dest="output_format",
-        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-        default='fasta',
-        help="""The output alignment format""",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The output alignment format.""",
     )
     parser.add_argument(
         "--verbosity",
@@ -77,37 +79,40 @@ def get_args():
         "--window",
         type=int,
         default=20,
-        help="Sliding window size for trimming"
+        help="Sliding window size for trimming."
     )
     parser.add_argument(
         "--proportion",
         type=float,
         default=0.65,
-        help="The proportion of taxa required to have sequence at alignment ends"
+        help="The proportion of taxa required to have sequence at alignment ends."
     )
     parser.add_argument(
         "--threshold",
         type=float,
         default=0.65,
-        help="The proportion of residues required across the window in proportion of taxa"
+        help="""The proportion of residues required across the window in """ +
+        """proportion of taxa."""
     )
     parser.add_argument(
         "--max_divergence",
         type=float,
         default=0.20,
-        help="The max proportion of sequence divergence allowed between any row of the alignment and the alignment consensus"
+        help="""The max proportion of sequence divergence allowed between any row """ +
+        """of the alignment and the alignment consensus."""
     )
     parser.add_argument(
         "--min-length",
         type=int,
         default=100,
-        help="The minimum length of alignments to keep (Default: 100 bp)"
+        help="""The minimum length of alignments to keep."""
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""Process alignments with X number of --cores""",
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
     )
     return parser.parse_args()
 
@@ -122,7 +127,7 @@ def get_and_trim_alignments(params):
         aln._read(input_format)
         # dont return consensus
         aln.trim_alignment(
-            method='running',
+            method="running",
             window_size=window,
             proportion=proportion,
             threshold=threshold,
@@ -136,27 +141,10 @@ def get_and_trim_alignments(params):
         sys.stdout.flush()
         return (name, aln)
     except ValueError, e:
-        if e.message == 'No records found in handle':
+        if e.message == "No records found in handle":
             return (name, aln)
         else:
-            raise ValueError('Something is wrong with alignment {0}'.format(name))
-
-
-def write_alignments_to_outdir(log, outdir, alignments, format):
-    log.info('Writing output files')
-    for tup in alignments:
-        locus, aln = tup
-        if aln.trimmed is not None:
-            outname = "{}{}".format(
-                os.path.join(outdir, locus),
-                get_file_extensions(format)[0]
-            )
-            outf = open(outname, 'w')
-            outf.write(aln.trimmed.format(format))
-            outf.close()
-        else:
-            log.warn("DROPPED {0} from output".format(locus))
-
+            raise ValueError("Something is wrong with alignment {0}".format(name))
 
 def main():
     args = get_args()
