@@ -97,10 +97,16 @@ def get_args():
         help="The proportion of residues required across the window in proportion of taxa"
     )
     parser.add_argument(
-        "--max_divergence",
+        "--max-divergence",
         type=float,
         default=0.20,
         help="The max proportion of sequence divergence allowed between any row of the alignment and the alignment consensus"
+    )
+    parser.add_argument(
+        "--min-length",
+        type=int,
+        default=100,
+        help="The minimum length of alignments to keep (Default: 100 bp)"
     )
     parser.add_argument(
         '--ambiguous',
@@ -142,7 +148,7 @@ def align(params):
     locus, opts = params
     name, sequences = locus
     # get additional params from params tuple
-    window, threshold, notrim, proportion, divergence = opts
+    window, threshold, notrim, proportion, divergence, min_len = opts
     fasta = create_locus_specific_fasta(sequences)
     aln = Align(fasta)
     aln.run_alignment()
@@ -156,7 +162,8 @@ def align(params):
                 window_size=window,
                 proportion=proportion,
                 threshold=threshold,
-                max_divergence=divergence
+                max_divergence=divergence,
+                min_len=min_len
             )
     if aln.trimmed:
         sys.stdout.write(".")
@@ -187,11 +194,11 @@ def get_fasta_dict(log, args):
         if args.notstrict:
             if len(data) < 3:
                 del loci[locus]
-                log.warn("DROPPED locus {0}.  Too few taxa (N > 2).".format(locus))
+                log.warn("DROPPED locus {0}. Too few taxa (N < 3).".format(locus))
         else:
             if len(data) < args.species:
                 del loci[locus]
-                log.warn("DROPPED locus {0}.  Alignment does not contain all {} taxa.".format(locus, args.species))
+                log.warn("DROPPED locus {0}. Alignment does not contain all {} taxa.".format(locus, args.species))
     return loci
 
 
@@ -234,21 +241,30 @@ def main(args):
     log, my_name = setup_logging(args.verbosity, args.log_path)
     text = " Starting {} ".format(my_name)
     log.info(text.center(65, "="))
+    # create the fasta dictionary
     loci = get_fasta_dict(log, args)
     log.info("Aligning with {}".format(str(args.aligner).upper()))
-    opts = [[args.window, args.threshold, args.notrim, args.proportion, args.max_divergence] \
+    opts = [[args.window, args.threshold, args.notrim, args.proportion, args.max_divergence, args.min_length] \
             for i in range(len(loci))]
+    # combine loci and options
     params = zip(loci.items(), opts)
-    log.info("Alignment begins")
+    log.info("Alignment begins. 'X' indicates dropped alignments (these are reported after alignment)")
+    # During alignment, drop into sys.stdout for progress indicator
+    # because logging in multiprocessing is more painful than what
+    # we really need.  Return to logging when alignment completes.
     if args.cores > 1:
         assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         alignments = pool.map(align, params)
     else:
         alignments = map(align, params)
+    # kick the stdout down one line since we were using sys.stdout
     print("")
+    # drop back into logging
     log.info("Alignment ends")
+    # write the output files
     write_alignments_to_outdir(log, args.outdir, alignments)
+    # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
