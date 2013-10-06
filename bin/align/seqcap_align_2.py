@@ -8,7 +8,16 @@ Created by Brant Faircloth on 08 March 2012 11:03 PST (-0800)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
 Description: Parallel aligner for UCE fasta files generated with
-assembly/get_fastas_from_match_counts.py
+assembly/get_fastas_from_match_counts.py.
+
+Usage:
+
+    python ~/git/phyluce/bin/align/seqcap_align_2.py \
+        --fasta test.fasta \
+        --output test-nexus \
+        --taxa 41 \
+        --incomplete-matrix \
+        --output-format phylip
 
 """
 
@@ -19,13 +28,13 @@ import shutil
 import argparse
 import tempfile
 import multiprocessing
+from Bio import SeqIO
 from collections import defaultdict
 
-from seqtools.sequence import fasta
-from phyluce.helpers import FullPaths, is_dir, is_file
+from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file, write_alignments_to_outdir
 from phyluce.log import setup_logging
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -34,7 +43,7 @@ def get_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        '--fasta',
+        "--fasta",
         required=True,
         action=FullPaths,
         type=is_file,
@@ -44,8 +53,8 @@ def get_args():
     parser.add_argument(
         "--output",
         required=True,
-        action=FullPaths,
-        help="""The directory in which to store the resulting alignments """
+        action=CreateDir,
+        help="""The directory in which to store the resulting alignments."""
     )
     parser.add_argument(
         "--taxa",
@@ -65,6 +74,12 @@ def get_args():
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
         help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The output alignment format.""",
     )
     parser.add_argument(
         "--log-path",
@@ -134,24 +149,22 @@ def get_args():
     return parser.parse_args()
 
 
-def build_locus_dict(loci, locus, record, ambiguous=False):
+def build_locus_dict(log, loci, locus, record, ambiguous=False):
     if not ambiguous:
-        if not 'N' in record.sequence:
+        if not "N" in record.seq:
             loci[locus].append(record)
         else:
-            print 'Skipping {0} because it contains ambiguous bases'.format(record.identifier)
+            log.warn("Skipping {} because it contains ambiguous bases".format(locus))
     else:
         loci[locus].append(record)
     return loci
 
 
 def create_locus_specific_fasta(sequences):
-    fd, fasta_file = tempfile.mkstemp(suffix='.fasta')
-    os.close(fd)
-    fasta_writer = fasta.FastaWriter(fasta_file)
+    fd, fasta_file = tempfile.mkstemp(suffix=".fasta")
     for seq in sequences:
-        fasta_writer.write(seq)
-    fasta_writer.close()
+        os.write(fd, seq.format("fasta"))
+    os.close(fd)
     return fasta_file
 
 
@@ -165,11 +178,11 @@ def align(params):
     aln.run_alignment()
     if notrim:
         aln.trim_alignment(
-                method='notrim'
+                method="notrim"
             )
     else:
         aln.trim_alignment(
-                method='running',
+                method="running",
                 window_size=window,
                 proportion=proportion,
                 threshold=threshold,
@@ -185,15 +198,16 @@ def align(params):
 
 
 def get_fasta_dict(log, args):
-    log.info('Building the locus dictionary')
+    log.info("Building the locus dictionary")
     if args.ambiguous:
-        log.info('NOT removing sequences with ambiguous bases...')
+        log.info("NOT removing sequences with ambiguous bases...")
     else:
-        log.info('Removing ALL sequences with ambiguous bases...')
+        log.info("Removing ALL sequences with ambiguous bases...")
     loci = defaultdict(list)
-    for record in fasta.FastaReader(args.infile):
-        locus = record.identifier.split('|')[1]
-        loci = build_locus_dict(loci, locus, record, args.ambiguous)
+    with open(args.fasta, "rU") as infile:
+        for record in SeqIO.parse(infile, "fasta"):
+            locus = record.description.split("|")[1]
+            loci = build_locus_dict(log, loci, locus, record, args.ambiguous)
     # workon a copy so we can iterate and delete
     snapshot = copy.deepcopy(loci)
     # iterate over loci to check for all species at a locus
@@ -210,7 +224,7 @@ def get_fasta_dict(log, args):
 
 
 def create_output_dir(outdir):
-    print 'Creating output directory...'
+    print "Creating output directory..."
     if os.path.exists(outdir):
         answer = raw_input("Output directory exists, remove [Y/n]? ")
         if answer == "Y":
@@ -220,30 +234,7 @@ def create_output_dir(outdir):
     os.makedirs(outdir)
 
 
-def write_alignments_to_outdir(log, outdir, alignments, format='nexus'):
-    formats = {
-            'clustal': '.clw',
-            'emboss': '.emboss',
-            'fasta': '.fa',
-            'nexus': '.nex',
-            'phylip': '.phylip',
-            'stockholm': '.stockholm'
-        }
-    log.info('Writing output files')
-    for tup in alignments:
-        locus, aln = tup
-        if aln.trimmed is not None:
-            outname = "{}{}".format(os.path.join(outdir, locus), formats[format])
-            outf = open(outname, 'w')
-            outf.write(aln.trimmed.format(format))
-            outf.close()
-        else:
-            log.warn("DROPPED {0} from output".format(locus))
-
-
 def main(args):
-    # create the output directory
-    create_output_dir(args.outdir)
     # setup logging
     log, my_name = setup_logging(args.verbosity, args.log_path)
     text = " Starting {} ".format(my_name)
@@ -270,7 +261,7 @@ def main(args):
     # drop back into logging
     log.info("Alignment ends")
     # write the output files
-    write_alignments_to_outdir(log, args.outdir, alignments)
+    write_alignments_to_outdir(log, args.output, alignments, args.output_format)
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
@@ -279,10 +270,10 @@ def main(args):
 if __name__ == '__main__':
     args = get_args()
     # globally import Align method
-    if args.aligner == 'muscle':
+    if args.aligner == "muscle":
         from phyluce.muscle import Align
-    elif args.aligner == 'mafft':
+    elif args.aligner == "mafft":
         from phyluce.mafft import Align
-    elif args.aligner == 'dialign':
+    elif args.aligner == "dialign":
         from phyluce.dialign import Align
     main(args)
