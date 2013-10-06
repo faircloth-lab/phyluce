@@ -65,17 +65,29 @@ def get_args():
             help="Sliding window size for trimming"
         )
     parser.add_argument(
-            "--threshold",
-            type=float,
-            default=0.75,
-            help="Threshold cutoff for trimming"
-        )
-    parser.add_argument(
             "--proportion",
             type=float,
             default=0.65,
-            help="Proportional removal of gaps"
+            help="The proportion of taxa required to have sequence at alignment ends"
         )
+    parser.add_argument(
+            "--threshold",
+            type=float,
+            default=0.65,
+            help="The proportion of residues required across the window in proportion of taxa"
+        )
+    parser.add_argument(
+            "--max_divergence",
+            type=float,
+            default=0.20,
+            help="The max proportion of sequence divergence allowed between any row of the alignment and the alignment consensus"
+        )
+    parser.add_argument(
+        "--min-length",
+        type=int,
+        default=100,
+        help="The minimum length of alignments to keep (Default: 100 bp)"
+    )
     parser.add_argument(
             "--cores",
             type=int,
@@ -87,7 +99,7 @@ def get_args():
 
 def get_and_trim_alignments(params):
     trimming_params, align_file = params
-    input_format, window, threshold, proportion = trimming_params
+    input_format, window, threshold, proportion, divergence, min_len = trimming_params
     #pdb.set_trace()
     name = os.path.basename(os.path.splitext(align_file)[0])
     aln = GenericAlign(align_file)
@@ -98,8 +110,10 @@ def get_and_trim_alignments(params):
         aln.trim_alignment(
             method='running',
             window_size=window,
+            proportion=proportion,
             threshold=threshold,
-            proportion=proportion
+            max_divergence=divergence,
+            min_len=min_len
         )
         if aln.trimmed:
             sys.stdout.write(".")
@@ -136,7 +150,7 @@ def main():
     for ftype in get_file_extensions(args.input_format):
         alignments.extend(glob.glob(os.path.join(args.input, "*{}".format(ftype))))
     # package up needed arguments for map()
-    package = [args.input_format, args.window, args.threshold, args.proportion]
+    package = [args.input_format, args.window, args.threshold, args.proportion, args.max_divergence, args.min_length]
     params = zip([package] * len(alignments), alignments)
     # print some output for user
     sys.stdout.write('Trimming')
