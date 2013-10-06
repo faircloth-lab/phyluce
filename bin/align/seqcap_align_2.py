@@ -22,6 +22,8 @@ import multiprocessing
 from collections import defaultdict
 
 from seqtools.sequence import fasta
+from phyluce.helpers import FullPaths, is_dir
+from phyluce.log import setup_logging
 
 import pdb
 
@@ -46,6 +48,20 @@ def get_args():
             default='mafft',
             help='The aligner to use.'
         )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
     parser.add_argument('--faircloth',
             action='store_true',
             default=False,
@@ -62,30 +78,41 @@ def get_args():
             default=False,
             help='Do not trim alignments'
         )
-    parser.add_argument('--window',
-            type=int,
-            default=20,
-            help='Sliding window size for trimming'
+    parser.add_argument(
+        '--window',
+        type=int,
+        default=20,
+        help='Sliding window size for trimming'
+    )
+    parser.add_argument(
+        '--proportion',
+        type=float,
+        default=0.65,
+        help="The proportion of taxa required to have sequence at alignment ends"
+    )
+    parser.add_argument(
+        '--threshold',
+        type=float,
+        default=0.65,
+        help="The proportion of residues required across the window in proportion of taxa"
+    )
+    parser.add_argument(
+        "--max_divergence",
+        type=float,
+        default=0.20,
+        help="The max proportion of sequence divergence allowed between any row of the alignment and the alignment consensus"
+    )
+    parser.add_argument(
+        '--ambiguous',
+        action='store_true',
+        default=False,
+        help='Allow reads in alignments containing N-bases'
         )
-    parser.add_argument('--threshold',
-            type=float,
-            default=0.75,
-            help='Threshold cutoff for trimming'
-        )
-    parser.add_argument('--proportion',
-            type=float,
-            default=0.65,
-            help='Proportional removal of gaps'
-        )
-    parser.add_argument('--ambiguous',
-            action='store_true',
-            default=False,
-            help='Allow reads in alignments containing N-bases'
-        )
-    parser.add_argument('--cores',
-            type=int,
-            default=1,
-            help='Use multiple cores for alignment'
+    parser.add_argument(
+        '--cores',
+        type=int,
+        default=1,
+        help='Use multiple cores for alignment'
         )
     return parser.parse_args()
 
@@ -139,12 +166,12 @@ def align(params):
     return (name, aln)
 
 
-def get_fasta_dict(args):
-    print 'Building the locus dictionary...'
+def get_fasta_dict(log, args):
+    log.info('Building the locus dictionary')
     if args.ambiguous:
-        print 'NOT removing sequences with ambiguous bases...'
+        log.info('NOT removing sequences with ambiguous bases...')
     else:
-        print 'Removing ALL sequences with ambiguous bases...'
+        log.info('Removing ALL sequences with ambiguous bases...')
     loci = defaultdict(list)
     for record in fasta.FastaReader(args.infile):
         if not args.faircloth:
@@ -159,18 +186,12 @@ def get_fasta_dict(args):
     for locus, data in snapshot.iteritems():
         if args.notstrict:
             if len(data) < 3:
-                t = "\tDropping Locus {0} because it has fewer " + \
-                        "than the minimum number " + \
-                        "of taxa for alignment (N < 2)"
-                print(t).format(locus)
                 del loci[locus]
+                log.warn("DROPPED locus {0}.  Too few taxa (N > 2).".format(locus))
         else:
             if len(data) < args.species:
                 del loci[locus]
-                t = "\tDropping Locus {0} because it has fewer " + \
-                        "than the minimum number " + \
-                        "of taxa for alignment (N < 2)"
-                print(t).format(locus)
+                log.warn("DROPPED locus {0}.  Alignment does not contain all {} taxa.".format(locus, args.species))
     return loci
 
 
@@ -185,7 +206,7 @@ def create_output_dir(outdir):
     os.makedirs(outdir)
 
 
-def write_alignments_to_outdir(outdir, alignments, format='nexus'):
+def write_alignments_to_outdir(log, outdir, alignments, format='nexus'):
     formats = {
             'clustal': '.clw',
             'emboss': '.emboss',
@@ -194,7 +215,7 @@ def write_alignments_to_outdir(outdir, alignments, format='nexus'):
             'phylip': '.phylip',
             'stockholm': '.stockholm'
         }
-    print '\nWriting output files...'
+    log.info('Writing output files')
     for tup in alignments:
         locus, aln = tup
         if aln.trimmed is not None:
@@ -203,24 +224,33 @@ def write_alignments_to_outdir(outdir, alignments, format='nexus'):
             outf.write(aln.trimmed.format(format))
             outf.close()
         else:
-            print "Dropped {0} from output".format(locus)
+            log.warn("DROPPED {0} from output".format(locus))
 
 
 def main(args):
+    # create the output directory
     create_output_dir(args.outdir)
-    loci = get_fasta_dict(args)
-    sys.stdout.write("\nAligning with {}".format(str(args.aligner).upper()))
-    sys.stdout.flush()
-    opts = [[args.window, args.threshold, args.notrim, args.proportion] \
+    # setup logging
+    log, my_name = setup_logging(args.verbosity, args.log_path)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
+    loci = get_fasta_dict(log, args)
+    log.info("Aligning with {}".format(str(args.aligner).upper()))
+    opts = [[args.window, args.threshold, args.notrim, args.proportion, args.max_divergence] \
             for i in range(len(loci))]
     params = zip(loci.items(), opts)
+    log.info("Alignment begins")
     if args.cores > 1:
         assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         alignments = pool.map(align, params)
     else:
         alignments = map(align, params)
-    write_alignments_to_outdir(args.outdir, alignments)
+    print("")
+    log.info("Alignment ends")
+    write_alignments_to_outdir(log, args.outdir, alignments)
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == '__main__':
