@@ -24,7 +24,6 @@ Usage:
 import os
 import sys
 import copy
-import shutil
 import argparse
 import tempfile
 import multiprocessing
@@ -35,7 +34,6 @@ from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file, write_alignme
 from phyluce.log import setup_logging
 
 #import pdb
-
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -221,17 +219,6 @@ def get_fasta_dict(log, args):
                 del loci[locus]
                 log.warn("DROPPED locus {0}. Alignment does not contain all {} taxa.".format(locus, args.taxa))
     return loci
-
-
-def create_output_dir(outdir):
-    print "Creating output directory..."
-    if os.path.exists(outdir):
-        answer = raw_input("Output directory exists, remove [Y/n]? ")
-        if answer == "Y":
-            shutil.rmtree(outdir)
-        else:
-            sys.exit()
-    os.makedirs(outdir)
 
 
 def main(args):
