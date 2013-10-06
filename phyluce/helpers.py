@@ -142,7 +142,7 @@ def get_xml_data(xml, prnt = False):
     dbsnp = namedtuple('dbsnp', "rsid,type,genotype,het_type,het_value,het_std_error,freq_allele,freq_freq,"+ \
         "freq_sample_size,val_hapmap,val_other_pop,val_freq,val_2hit,val_cluster,"+ \
         "val_1000G,val_suspect")
-    validity_terms = set(['byHapMap', 'byOtherPop', 'suspect', 'byFrequency', 
+    validity_terms = set(['byHapMap', 'byOtherPop', 'suspect', 'byFrequency',
         'by1000G', 'by2Hit2Allele', 'byCluster'])
     if prnt:
         print "rsid,type,genotype,het-type,het-value,het-std-error,freq-allele,freq-freq,"+ \
@@ -173,7 +173,7 @@ def get_xml_data(xml, prnt = False):
                 validity['by1000G'],validity['suspect']
                 ]
         if prnt:
-            print "rs{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}".format(rsid, typ, geno, 
+            print "rs{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}".format(rsid, typ, geno,
                 het['type'],het['value'],het['stdError'], freq['allele'],freq['freq'],
                 freq['sampleSize'],validity['byHapMap'],validity['byOtherPop'],
                 validity['byFrequency'],validity['by2Hit2Allele'],validity['byCluster'],
@@ -181,6 +181,7 @@ def get_xml_data(xml, prnt = False):
         else:
             snps[rsid] = dbsnp._make(metadata)
     return snps
+
 
 def which(program):
     """ from http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python"""
@@ -254,7 +255,22 @@ def get_file_extensions(ftype):
         'nexus': ('.nexus', '.nex'),
         'phylip': ('.phylip', '.phy'),
         'clustal': ('.clustal', '.clw'),
-        'emboss': ('.emboss'),
-        'stockholm': ('.stockholm')
+        'emboss': ('.emboss',),
+        'stockholm': ('.stockholm',)
     }
     return ext[ftype]
+
+
+def write_alignments_to_outdir(log, outdir, alignments, format):
+    log.info('Writing output files')
+    for tup in alignments:
+        locus, aln = tup
+        if aln.trimmed is not None:
+            outname = "{}{}".format(
+                os.path.join(outdir, locus),
+                get_file_extensions(format)[0]
+            )
+            with open(outname, 'w') as outf:
+                outf.write(aln.trimmed.format(format))
+        else:
+            log.warn("DROPPED {0} from output".format(locus))
