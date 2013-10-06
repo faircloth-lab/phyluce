@@ -22,7 +22,7 @@ import multiprocessing
 from collections import defaultdict
 
 from seqtools.sequence import fasta
-from phyluce.helpers import FullPaths, is_dir
+from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.log import setup_logging
 
 import pdb
@@ -30,27 +30,34 @@ import pdb
 
 def get_args():
     parser = argparse.ArgumentParser(
-        description="""Align records in a file of UCE fastas"""
+        description="""Align and trim records in a monolothic FASTA file containing all loci for all taxa""",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        'infile',
-        help='The file containing fasta reads associated with UCE loci'
+        '--fasta',
+        required=True,
+        action=FullPaths,
+        type=is_file,
+        help="""The file containing FASTA reads associated with targted loci from """ +
+        """get_fastas_from_match_counts.py"""
     )
     parser.add_argument(
-        'outdir',
-        help='A directory for the output.'
+        "--output",
+        required=True,
+        action=FullPaths,
+        help="""The directory in which to store the resulting alignments """
     )
     parser.add_argument(
-        'species',
+        "--taxa",
+        required=True,
         type=int,
-        default=None, \
-        help='Number of species expected in each alignment.'
+        help="""Number of taxa expected in each alignment."""
     )
     parser.add_argument(
-        '--aligner',
-        choices=['dialign', 'muscle', 'mafft'],
-        default='mafft',
-        help='The aligner to use.'
+        "--aligner",
+        choices=["dialign", "muscle", "mafft"],
+        default="mafft",
+        help="""The alignment engine to use."""
     )
     parser.add_argument(
         "--verbosity",
@@ -67,65 +74,62 @@ def get_args():
         help="""The path to a directory to hold logs."""
     )
     parser.add_argument(
-        '--faircloth',
-        action='store_true',
+        "--incomplete-matrix",
+        dest="notstrict",
+        action="store_true",
         default=False,
-        help="""Take faircloth+stephens probe names"""
+        help="""Allow alignments that do not contain all --taxa."""
     )
     parser.add_argument(
-        '--incomplete-matrix',
-        dest='notstrict',
-        action='store_true',
+        "--no-trim",
+        action="store_true",
         default=False,
-        help='Allow alignments containing not all species'
+        help="""Align, but DO NOT trim alignments."""
     )
     parser.add_argument(
-        '--notrim',
-        action='store_true',
-        default=False,
-        help='Do not trim alignments'
-    )
-    parser.add_argument(
-        '--window',
+        "--window",
         type=int,
         default=20,
-        help='Sliding window size for trimming'
+        help="""Sliding window size for trimming."""
     )
     parser.add_argument(
-        '--proportion',
+        "--proportion",
         type=float,
         default=0.65,
-        help="The proportion of taxa required to have sequence at alignment ends"
+        help="""The proportion of taxa required to have sequence at alignment ends."""
     )
     parser.add_argument(
-        '--threshold',
+        "--threshold",
         type=float,
         default=0.65,
-        help="The proportion of residues required across the window in proportion of taxa"
+        help="""The proportion of residues required across the window in """ +
+        """proportion of taxa."""
     )
     parser.add_argument(
         "--max-divergence",
         type=float,
         default=0.20,
-        help="The max proportion of sequence divergence allowed between any row of the alignment and the alignment consensus"
+        help="""The max proportion of sequence divergence allowed between any row """ +
+        """of the alignment and the alignment consensus."""
     )
     parser.add_argument(
         "--min-length",
         type=int,
         default=100,
-        help="The minimum length of alignments to keep (Default: 100 bp)"
+        help="""The minimum length of alignments to keep."""
     )
     parser.add_argument(
-        '--ambiguous',
-        action='store_true',
+        "--ambiguous",
+        action="store_true",
         default=False,
-        help='Allow reads in alignments containing N-bases'
+        help="""Allow reads in alignments containing N-bases."""
     )
     parser.add_argument(
-        '--cores',
+        "--cores",
         type=int,
         default=1,
-        help='Use multiple cores for alignment'
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
     )
     return parser.parse_args()
 
@@ -188,11 +192,7 @@ def get_fasta_dict(log, args):
         log.info('Removing ALL sequences with ambiguous bases...')
     loci = defaultdict(list)
     for record in fasta.FastaReader(args.infile):
-        if not args.faircloth:
-            locus = record.identifier.split('|')[1]
-        else:
-            locus = '_'.join([record.identifier.split('|')[0], \
-                record.identifier.split('|')[1].split('_')[0]])
+        locus = record.identifier.split('|')[1]
         loci = build_locus_dict(loci, locus, record, args.ambiguous)
     # workon a copy so we can iterate and delete
     snapshot = copy.deepcopy(loci)
@@ -203,9 +203,9 @@ def get_fasta_dict(log, args):
                 del loci[locus]
                 log.warn("DROPPED locus {0}. Too few taxa (N < 3).".format(locus))
         else:
-            if len(data) < args.species:
+            if len(data) < args.taxa:
                 del loci[locus]
-                log.warn("DROPPED locus {0}. Alignment does not contain all {} taxa.".format(locus, args.species))
+                log.warn("DROPPED locus {0}. Alignment does not contain all {} taxa.".format(locus, args.taxa))
     return loci
 
 
@@ -251,7 +251,7 @@ def main(args):
     # create the fasta dictionary
     loci = get_fasta_dict(log, args)
     log.info("Aligning with {}".format(str(args.aligner).upper()))
-    opts = [[args.window, args.threshold, args.notrim, args.proportion, args.max_divergence, args.min_length] \
+    opts = [[args.window, args.threshold, args.no_trim, args.proportion, args.max_divergence, args.min_length] \
             for i in range(len(loci))]
     # combine loci and options
     params = zip(loci.items(), opts)
