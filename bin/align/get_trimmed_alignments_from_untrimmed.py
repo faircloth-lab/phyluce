@@ -34,69 +34,69 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Use the PHYLUCE trimming algorithm to trim existing alignments""")
     parser.add_argument(
-            "input",
-            action=FullPaths,
-            type=is_dir,
-            help="""The directory containing alignments"""
-        )
-    parser.add_argument(
-            "output",
-            action=FullPaths,
-            type=is_dir,
-            help="""The directory to contain trimmed alignments"""
-        )
-    parser.add_argument(
-            "--input-format",
-            dest="input_format",
-            choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-            default='fasta',
-            help="""The input alignment format""",
-        )
-    parser.add_argument(
-            "--output-format",
-            dest="output_format",
-            choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-            default='fasta',
-            help="""The output alignment format""",
-        )
-    parser.add_argument(
-            "--verbosity",
-            type=str,
-            choices=["INFO", "WARN", "CRITICAL"],
-            default="INFO",
-            help="""The logging level to use."""
+        "input",
+        action=FullPaths,
+        type=is_dir,
+        help="""The directory containing alignments"""
     )
     parser.add_argument(
-            "--log-path",
-            action=FullPaths,
-            type=is_dir,
-            default=None,
-            help="""The path to a directory to hold logs."""
+        "output",
+        action=FullPaths,
+        type=is_dir,
+        help="""The directory to contain trimmed alignments"""
     )
     parser.add_argument(
-            "--window",
-            type=int,
-            default=20,
-            help="Sliding window size for trimming"
-        )
+        "--input-format",
+        dest="input_format",
+        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
+        default='fasta',
+        help="""The input alignment format""",
+    )
     parser.add_argument(
-            "--proportion",
-            type=float,
-            default=0.65,
-            help="The proportion of taxa required to have sequence at alignment ends"
-        )
+        "--output-format",
+        dest="output_format",
+        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
+        default='fasta',
+        help="""The output alignment format""",
+    )
     parser.add_argument(
-            "--threshold",
-            type=float,
-            default=0.65,
-            help="The proportion of residues required across the window in proportion of taxa"
-        )
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
     parser.add_argument(
-            "--max_divergence",
-            type=float,
-            default=0.20,
-            help="The max proportion of sequence divergence allowed between any row of the alignment and the alignment consensus"
-        )
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--window",
+        type=int,
+        default=20,
+        help="Sliding window size for trimming"
+    )
+    parser.add_argument(
+        "--proportion",
+        type=float,
+        default=0.65,
+        help="The proportion of taxa required to have sequence at alignment ends"
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.65,
+        help="The proportion of residues required across the window in proportion of taxa"
+    )
+    parser.add_argument(
+        "--max_divergence",
+        type=float,
+        default=0.20,
+        help="The max proportion of sequence divergence allowed between any row of the alignment and the alignment consensus"
+    )
     parser.add_argument(
         "--min-length",
         type=int,
@@ -104,11 +104,11 @@ def get_args():
         help="The minimum length of alignments to keep (Default: 100 bp)"
     )
     parser.add_argument(
-            "--cores",
-            type=int,
-            default=1,
-            help="""Process alignments with X number of --cores""",
-            )
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments with X number of --cores""",
+    )
     return parser.parse_args()
 
 

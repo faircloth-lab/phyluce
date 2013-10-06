@@ -30,24 +30,28 @@ import pdb
 
 def get_args():
     parser = argparse.ArgumentParser(
-            description="""Align records in a file of UCE fastas"""
-        )
-    parser.add_argument('infile',
-            help='The file containing fasta reads associated with UCE loci'
-        )
-    parser.add_argument('outdir',
-            help='A directory for the output.'
-        )
-    parser.add_argument('species',
-            type=int,
-            default=None, \
-            help='Number of species expected in each alignment.'
-        )
-    parser.add_argument('--aligner',
-            choices=['dialign', 'muscle', 'mafft'],
-            default='mafft',
-            help='The aligner to use.'
-        )
+        description="""Align records in a file of UCE fastas"""
+    )
+    parser.add_argument(
+        'infile',
+        help='The file containing fasta reads associated with UCE loci'
+    )
+    parser.add_argument(
+        'outdir',
+        help='A directory for the output.'
+    )
+    parser.add_argument(
+        'species',
+        type=int,
+        default=None, \
+        help='Number of species expected in each alignment.'
+    )
+    parser.add_argument(
+        '--aligner',
+        choices=['dialign', 'muscle', 'mafft'],
+        default='mafft',
+        help='The aligner to use.'
+    )
     parser.add_argument(
         "--verbosity",
         type=str,
@@ -62,22 +66,25 @@ def get_args():
         default=None,
         help="""The path to a directory to hold logs."""
     )
-    parser.add_argument('--faircloth',
-            action='store_true',
-            default=False,
-            help='Take faircloth+stephens probe names'
-        )
-    parser.add_argument('--incomplete-matrix',
-            dest='notstrict',
-            action='store_true',
-            default=False,
-            help='Allow alignments containing not all species'
-        )
-    parser.add_argument('--notrim',
-            action='store_true',
-            default=False,
-            help='Do not trim alignments'
-        )
+    parser.add_argument(
+        '--faircloth',
+        action='store_true',
+        default=False,
+        help="""Take faircloth+stephens probe names"""
+    )
+    parser.add_argument(
+        '--incomplete-matrix',
+        dest='notstrict',
+        action='store_true',
+        default=False,
+        help='Allow alignments containing not all species'
+    )
+    parser.add_argument(
+        '--notrim',
+        action='store_true',
+        default=False,
+        help='Do not trim alignments'
+    )
     parser.add_argument(
         '--window',
         type=int,
@@ -113,13 +120,13 @@ def get_args():
         action='store_true',
         default=False,
         help='Allow reads in alignments containing N-bases'
-        )
+    )
     parser.add_argument(
         '--cores',
         type=int,
         default=1,
         help='Use multiple cores for alignment'
-        )
+    )
     return parser.parse_args()
 
 
