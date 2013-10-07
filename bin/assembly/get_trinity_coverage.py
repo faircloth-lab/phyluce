@@ -12,15 +12,14 @@ Description:
 """
 
 import os
-import sys
 import glob
 import shutil
-import logging
 import argparse
 from phyluce.helpers import FullPaths, is_file
 from phyluce.third_party import which
 from phyluce.raw_reads import get_input_data, get_fastq_input_files
 from phyluce.bwa import *
+from phyluce.logging import setup_logging
 
 import pdb
 
@@ -63,6 +62,13 @@ def get_args():
         help="""The logging level to use"""
     )
     parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
         "--clean",
         action="store_true",
         default=False,
@@ -75,24 +81,6 @@ def get_args():
         help="""Use bwa-mem instead of standard bwa""",
     )
     return parser.parse_args()
-
-
-def setup_logging(level):
-    log = logging.getLogger("Trinity Coverage")
-    console = logging.StreamHandler(sys.stdout)
-    if level == "INFO":
-        log.setLevel(logging.INFO)
-        console.setLevel(logging.INFO)
-    if level == "WARN":
-        log.setLevel(logging.WARN)
-        console.setLevel(logging.WARN)
-    if level == "CRITICAL":
-        log.setLevel(logging.CRITICAL)
-        console.setLevel(logging.CRITICAL)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    log.addHandler(console)
-    return log
 
 
 def cleanup_trinity_assembly_folder(log, pth):
@@ -108,9 +96,8 @@ def cleanup_trinity_assembly_folder(log, pth):
 def main():
     # get args and options
     args = get_args()
-    # setup logger
-    log = setup_logging(args.verbosity)
-    log.info("=================== Starting Trinity Coverage ===================")
+    # setup logging
+    log, my_name = setup_logging(args)
     # get the input data
     log.info("Getting input filenames")
     input = get_input_data(args.assemblo_config, None)
@@ -162,6 +149,9 @@ def main():
         overall_contigs = get_coverage_from_gatk(log, sample, assembly_pth, coverage)
         remove_gatk_coverage_files(log, assembly_pth, coverage)
         filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, overall_contigs)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 
