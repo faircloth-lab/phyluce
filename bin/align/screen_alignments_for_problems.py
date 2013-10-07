@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 07 March 2012 15:03 PST (-0800)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -16,76 +16,146 @@ import re
 import glob
 import shutil
 import argparse
+import multiprocessing
 from Bio import AlignIO
-from phyluce.helpers import is_dir, FullPaths, get_file_extensions
+from phyluce.helpers import is_dir, FullPaths, CreateDir, get_file_extensions, get_alignment_files
+from phyluce.log import setup_logging
 
 import pdb
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description="""Screen a given set of alignments
-        for problem bases""")
-    parser.add_argument('input',
-        type=is_dir,
-        action=FullPaths,
-        help="""The directory containing the nexus files""")
+    parser = argparse.ArgumentParser(
+        description="""Screen a given set of alignments for problematic nucleotides""",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
-            "--input-format",
-            dest="input_format",
-            choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-            default='fasta',
-            help="""The input alignment format""",
-        )
-    parser.add_argument('--output',
+        '--alignments',
         type=is_dir,
         action=FullPaths,
-        help="""The directory to copy good alignments to""")
+        help="""The directory containing alignments to be screened."""
+    )
+    parser.add_argument(
+        '--output',
+        action=CreateDir,
+        help="""The directory in which to store the resulting alignments."""
+    )
+    parser.add_argument(
+        '--do-not-screen-n',
+        action="store_true",
+        default=False,
+        help="""Screen alignments for taxa containing ambiguous (N) bases."""
+    )
+    parser.add_argument(
+        '--do-not-screen-x',
+        action="store_true",
+        default=False,
+        help="""Screen alignments for taxa containing ambiguous (X) bases."""
+    )
+    parser.add_argument(
+        "--input-format",
+        dest="input_format",
+        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
+        default='nexus',
+        help="""The input alignment format""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
+    )
     return parser.parse_args()
 
 
-def get_files(input_dir, input_format):
-    alignments = []
-    for ftype in get_file_extensions(input_format):
-        alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
-    return alignments
-
-
-def find_multiple_N_bases(regex, aln):
-    n = {}
-    for seq in list(aln):
-        result = regex.findall(str(seq.seq))
+def find_bad_bases(regex, aln):
+    result = False
+    for seq in aln:
+        result = regex.search(str(seq.seq))
         if result:
-            ncount = [len(i) for i in result]
-            n[seq.name] = ncount
-    return n
+            break
+    if result:
+        return True
+    else:
+        return False
 
 
-def find_any_X_bases(f, aln):
-    x_bases = False
-    for seq in list(aln):
-        if 'X' in str(seq.seq) or 'x' in str(seq.seq):
-            x_bases = True
-            print "X-bases in ", os.path.basename(f)
-    return x_bases
+def copy_file(file, output):
+    fname = os.path.basename(file)
+    outpath = os.path.join(output, fname)
+    shutil.copy(file, outpath)
+    return fname
+
+
+def screen_files(work):
+    file, n_bases, x_bases, format, output, do_not_screen_n, do_not_screen_x = work
+    aln = AlignIO.read(file, format)
+    name = os.path.basename(file)
+    if do_not_screen_n:
+        n_bases = False
+    else:
+        n_bases = find_bad_bases(n_bases, aln)
+    if do_not_screen_x:
+        x_bases = False
+    else:
+        x_bases = find_bad_bases(x_bases, aln)
+    if not n_bases and not x_bases:
+        copy_file(file, output)
+    elif n_bases:
+        return [name, 'N']
+    elif x_bases:
+        return [name, 'X']
 
 
 def main():
     args = get_args()
-    # iterate through all the files to determine the longest alignment
-    files = get_files(args.input, args.input_format)
+    # setup logging
+    log, my_name = setup_logging(args.verbosity, args.log_path)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
+    # find all alignments
+    files = get_alignment_files(args.alignments, args.input_format)
     # compile our regexes once
-    n_bases = re.compile("N{3,}")
-    for f in files:
-        aln = AlignIO.read(f, args.input_format)
-        n = find_multiple_N_bases(n_bases, aln)
-        x_bases = find_any_X_bases(f, aln)
-        for name, count in n.iteritems():
-            print "{0}\n\t{1}\n\t{2}".format(f, name, count)
-        if args.output and not x_bases:
-            #pdb.set_trace()
-            fname = os.path.basename(f)
-            outpath = os.path.join(args.output, fname)
-            shutil.copy(f, outpath)
+    n_bases = re.compile("N|n+")
+    x_bases = re.compile("X|x+")
+    work = [[file, n_bases, x_bases, args.input_format, args.output, args.do_not_screen_n, args.do_not_screen_x] for file in files]
+    log.info("Screening alignments for problematic bases".format(args.cores))
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
+        results = pool.map(screen_files, work)
+        pool.close()
+    else:
+        results = map(screen_files, work)
+    count = 0
+    for result in results:
+        if result is None:
+            count += 1
+        else:
+            log.warn("Removed locus {} due to presence of {} bases".format(
+                result[0],
+                result[1]
+            ))
+    log.info("Copied {} good alignments".format(count))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
 
 
 if __name__ == '__main__':
