@@ -13,7 +13,6 @@ of alignments having more than "--percent" of "--taxa" taxa.
 
 
 import os
-import glob
 import math
 import numpy
 import argparse
@@ -21,7 +20,7 @@ import multiprocessing
 from Bio import AlignIO
 from collections import Counter
 
-from phyluce.helpers import is_dir, FullPaths, get_file_extensions
+from phyluce.helpers import is_dir, FullPaths, get_alignment_files
 from phyluce.log import setup_logging
 
 import pdb
@@ -84,14 +83,6 @@ class AlignMeta:
         self.gaps = None
         self.characters = None
         self.nucleotides = None
-
-
-def get_files(log, input_dir, input_format):
-    log.info("Getting alignment files")
-    alignments = []
-    for ftype in get_file_extensions(input_format):
-        alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
-    return alignments
 
 
 def get_characters(aln, nucleotides):
@@ -217,7 +208,7 @@ def log_char_summary(log, sum_characters, sum_nucleotides):
     text = " Character count summary "
     log.info(text.center(65, "-"))
     log.info("[All characters]\t{:,}".format(sum_characters))
-    log.info("[Nucleotides only]\t{:,}".format(sum_nucleotides))
+    log.info("[Nucleotides]\t\t{:,}".format(sum_nucleotides))
 
 
 def log_matrix_summary(log, percentages):
@@ -245,10 +236,16 @@ def log_character_dist(log, all_bases):
     text = " Character counts "
     log.info(text.center(65, "-"))
     for k in sorted(all_bases.keys()):
-        log.info("[Characters] '{0}' is present {1:,} times".format(
-            k,
-            all_bases[k],
-        ))
+        if k in ['A','C','G','T','a','c','g','t', '-', '?']:
+            log.info("[Characters] '{0}' is present {1:,} times".format(
+                k,
+                all_bases[k],
+            ))
+        else:
+            log.warn("[Characters] '{0}' is present {1:,} times".format(
+                k,
+                all_bases[k],
+            ))
 
 
 def main():
@@ -258,7 +255,7 @@ def main():
     text = " Starting {} ".format(my_name)
     log.info(text.center(65, "="))
     # find all alignments
-    files = get_files(log, args.alignments, args.input_format)
+    files = get_alignment_files(log, args.alignments, args.input_format)
     work = [[file, args.input_format] for file in files]
     log.info("Computing summary statistics using {} cores".format(args.cores))
     if args.cores > 1:
