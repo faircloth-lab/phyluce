@@ -13,47 +13,105 @@ of alignments having more than "--percent" of "--taxa" taxa.
 
 
 import os
-import glob
 import math
 import shutil
 import argparse
+import multiprocessing
 from Bio import AlignIO
-from phyluce.helpers import is_dir
+from phyluce.helpers import FullPaths, CreateDir, is_dir, get_alignment_files
+from phyluce.log import setup_logging
 
 #import pdb
 
-
 def get_args():
-    parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
-    parser.add_argument('nexus', help='The directory containing the nexus files', type=is_dir)
-    parser.add_argument('taxa', type=int, help='The number of taxa expected')
-    parser.add_argument('output', type=is_dir, help='The output dir in which to store copies of the alignments')
-    parser.add_argument('--percent', type=float, default=0.5, help='The percent of taxa to require')
+    parser = argparse.ArgumentParser(
+        description="Screen a directory of alignments, only returning those containing >= --percent of taxa",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--alignments",
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="The directory containing the nexus files"
+    )
+    parser.add_argument(
+        "--taxa",
+        required=True,
+        type=int,
+        help="The number of taxa expected"
+    )
+    parser.add_argument(
+        "--output",
+        action=CreateDir,
+        help="The output dir in which to store copies of the alignments"
+    )
+    parser.add_argument(
+        "--percent",
+        type=float,
+        default=0.75,
+        help="The percent of taxa to require"
+    )
+    parser.add_argument(
+        "--input-format",
+        dest="input_format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The input alignment format.""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
+    )
     return parser.parse_args()
 
-
-def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex*'))
-
+def copy_over_files(work):
+    file, format, min_count, output = work
+    aln = AlignIO.read(file, format)
+    if len(aln) >= min_count:
+        shutil.copyfile(file, os.path.join(output, os.path.basename(file)))
+        return 1
+    else:
+        return 0
 
 def main():
     args = get_args()
-    # iterate through all the files to determine the longest alignment
-    files = get_files(args.nexus)
+    # setup logging
+    log, my_name = setup_logging(args)
+    # find all alignments
+    files = get_alignment_files(log, args.alignments, args.input_format)
+    # determine the minimum count of taxa needed in each alignment, given --percent
     min_count = int(math.floor(args.percent * args.taxa))
-    counts = 0
-    for f in files:
-        aln = AlignIO.read(f, 'nexus')
-        if len(aln) < min_count:
-            pass
-        else:
-            counts += 1
-            shutil.copyfile(f, os.path.join(args.output, os.path.basename(f)))
-    print "Copied {0} alignments containing ≥ {1} proportion of taxa (n = {2})".format(
-        counts,
+    work = [[file, args.input_format, min_count, args.output] for file in files]
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
+        results = pool.map(copy_over_files, work)
+    else:
+        results = map(copy_over_files, work)
+    log.info("Copied {0} alignments of {1} total containing ≥ {2} proportion of taxa (n = {3})".format(
+        sum(results),
+        len(results),
         args.percent,
         min_count
-    )
+    ))
 
 if __name__ == '__main__':
     main()
