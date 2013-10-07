@@ -33,16 +33,17 @@ def get_args():
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="The directory containing the nexus files"
+        help="The directory containing alignments to screen."
     )
     parser.add_argument(
         "--taxa",
         required=True,
         type=int,
-        help="The number of taxa expected"
+        help="The total number of taxa in all alignments."
     )
     parser.add_argument(
         "--output",
+        required=True,
         action=CreateDir,
         help="The output dir in which to store copies of the alignments"
     )
@@ -112,6 +113,9 @@ def main():
         args.percent,
         min_count
     ))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
