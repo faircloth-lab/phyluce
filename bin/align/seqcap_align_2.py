@@ -67,17 +67,17 @@ def get_args():
         help="""The alignment engine to use."""
     )
     parser.add_argument(
+        "--output-format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The output alignment format.""",
+    )
+    parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
         help="""The logging level to use."""
-    )
-    parser.add_argument(
-        "--output-format",
-        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
-        default="nexus",
-        help="""The output alignment format.""",
     )
     parser.add_argument(
         "--log-path",
