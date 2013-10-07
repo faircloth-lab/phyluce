@@ -33,7 +33,7 @@ from phyluce.helpers import FullPaths, CreateDir, is_dir, get_file_extensions, w
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Use the PHYLUCE trimming algorithm to trim existing alignments""",
+        description="""Use the PHYLUCE trimming algorithm to trim existing alignments in parallel""",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
