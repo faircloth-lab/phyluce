@@ -40,7 +40,7 @@ def get_args():
         required=True,
         action=FullPaths,
         type=is_file,
-        help='The SQL database file holding probe matches to targeted loci (usually "lastz/probe.matches.sqlite.")'
+        help='The SQL database file holding probe matches to targeted loci (usually "lastz/probe.matches.sqlite".)'
     )
     parser.add_argument(
         '--taxon-list-config',
