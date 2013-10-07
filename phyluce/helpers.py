@@ -30,7 +30,7 @@ class FullPaths(argparse.Action):
 class CreateDir(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         # get the full path
-        d = os.path.expanduser(values)
+        d = os.path.abspath(os.path.expanduser(values))
         # check to see if directory exists
         if os.path.exists(d):
             answer = raw_input("[WARNING] Output directory exists, REMOVE [Y/n]? ")
