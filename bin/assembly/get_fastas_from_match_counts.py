@@ -24,12 +24,14 @@ from phyluce.log import setup_logging
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Given an input SQL database of UCE locus matches, a config file " +
+    parser = argparse.ArgumentParser(
+        description="Given an input SQL database of UCE locus matches, a config file " +
         "containing the loci in your data matrix, and the contigs you have assembled, extract the fastas for each " +
         "locus for each taxon in the assembled contigs, and rename those to the appropriate UCE loci, outputting " +
         "the results as a single monolithic FASTA file containing all records. " +
         "Can also incorporate data from genome-enabled taxa or other studies using the --extend-db and --extend-contigs " +
-        "parameters."
+        "parameters.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
         '--contigs',
