@@ -181,11 +181,12 @@ def get_matrix_percentages(t_cnt):
     return percentages
 
 
-def log_length_summary(log, a_vars):
+def log_length_summary(log, loci, a_vars):
     a_total, a_mean, a_ci, a_min, a_max = a_vars
     text = " Alignment summary "
     log.info(text.center(65, "-"))
-    log.info("[Alignments] count:\t{:,}".format(a_total))
+    log.info("[Alignments] loci:\t{:,}".format(loci))
+    log.info("[Alignments] length:\t{:,}".format(a_total))
     log.info("[Alignments] mean:\t{:.2f}".format(a_mean))
     log.info("[Alignments] 95% CI:\t{:.2f}".format(a_ci))
     log.info("[Alignments] min:\t{}".format(a_min))
@@ -244,7 +245,7 @@ def log_character_dist(log, all_bases):
     text = " Character counts "
     log.info(text.center(65, "-"))
     for k in sorted(all_bases.keys()):
-        log.info("[Characters] {0} is present {1:,} times".format(
+        log.info("[Characters] '{0}' is present {1:,} times".format(
             k,
             all_bases[k],
         ))
@@ -264,12 +265,11 @@ def main():
         assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         summary = pool.map(get_stats, work)
-        pool.close()
     else:
         summary = map(get_stats, work)
     # alignments
     a_vars = get_lengths(summary)
-    log_length_summary(log, a_vars)
+    log_length_summary(log, len(summary), a_vars)
     # taxa
     t_vars = get_taxa(summary)
     log_taxa_summary(log, t_vars)
