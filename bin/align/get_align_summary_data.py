@@ -190,7 +190,7 @@ def log_length_summary(log, loci, a_vars):
     log.info("[Alignments] mean:\t{:.2f}".format(a_mean))
     log.info("[Alignments] 95% CI:\t{:.2f}".format(a_ci))
     log.info("[Alignments] min:\t{}".format(a_min))
-    log.info("[Alignments] max:\t{}".format(a_max))
+    log.info("[Alignments] max:\t{:,}".format(a_max))
 
 
 def log_taxa_summary(log, t_vars):
