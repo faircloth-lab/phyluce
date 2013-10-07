@@ -13,151 +13,283 @@ of alignments having more than "--percent" of "--taxa" taxa.
 
 
 import os
-import re
-import sys
 import glob
+import math
 import numpy
-import shutil
 import argparse
+import multiprocessing
 from Bio import AlignIO
-from collections import Counter, defaultdict
+from collections import Counter
+
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
+from phyluce.log import setup_logging
 
 import pdb
 
 
 def get_args():
     parser = argparse.ArgumentParser(
-            description="""Compute summary parameters for alignments"""
-        )
+        description="""Compute summary statistics for alignments in parallel""",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
-            'input',
-            type=is_dir,
-            action=FullPaths,
-            help='The directory containing the alignment files'
-        )
+        "--alignments",
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The directory containing alignments to be summarized."""
+    )
     parser.add_argument(
-            '--min-taxa',
-            type=int,
-            help='The minimum number of taxa to count'
-        )
+        "--input-format",
+        dest="input_format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The input alignment format.""",
+    )
     parser.add_argument(
-            "--input-format",
-            dest="input_format",
-            choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-            default='fasta',
-            help="""The input alignment format""",
-        )
+        "--show-taxon-counts",
+        action="store_true",
+        default=False,
+        help="""Show the count of loci with X taxa.""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
+    )
     return parser.parse_args()
 
 
-def get_files(input_dir, input_format):
+class AlignMeta:
+    def __init__(self):
+        self.length = None
+        self.taxa = None
+        self.missing = None
+        self.gaps = None
+        self.characters = None
+        self.nucleotides = None
+
+
+def get_files(log, input_dir, input_format):
+    log.info("Getting alignment files")
     alignments = []
     for ftype in get_file_extensions(input_format):
         alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
     return alignments
 
 
-def pretty_printer(result):
-    print "{:<65}{:<20}".format(result[0], result[1])
+def get_characters(aln, nucleotides):
+    cnt = Counter()
+    percent_missing = []
+    for seq in aln:
+        seq_string = str(seq.seq).upper()
+        cnt.update(seq_string)
+        percent_missing.append(float(seq_string.count("?")) / len(seq_string))
+    return cnt, numpy.mean(numpy.array(percent_missing))
 
 
-def compute_lengths(lengths, characters, ambiguities):
-    print "\nLengths\n-----"
-    l = numpy.array(lengths)
-    sm = ["Total length(aln)", sum(l)]
-    avg = ["Mean length(aln)", numpy.mean(l)]
-    ci = ["95 CI length(aln)", \
-            1.96 * (numpy.std(l, ddof=1) / numpy.sqrt(len(l)))
-            ]
-    mn = ["Minimum length(aln)", min(l)]
-    mx = ["Maximum length(aln)", max(l)]
-    char = ["Total characters(aln)", sum(characters)]
-    avg_amb = [numpy.mean(v) for k, v in ambiguities.iteritems()]
-    min_amb = ["Minimum avg. ambiguities(aln)", min(avg_amb)]
-    max_amb = ["Maximum avg. ambiguities(aln)", max(avg_amb)]
-    min_percent_amb = ["Percent avg. ambiguities(aln) as fxn of mean(length)", min(avg_amb) / numpy.mean(l) * 100]
-    max_percent_amb = ["Percent avg. ambiguities(aln) as fxn of mean(length)", max(avg_amb) / numpy.mean(l) * 100]
-    for result in [sm, char, avg, ci, mn, mx, min_amb, max_amb, min_percent_amb, max_percent_amb]:
-        pretty_printer(result)
+def get_stats(work):
+    file, format = work
+    aln = AlignIO.read(file, format)
+    nucleotides = set(["A", "C", "G", "T"])
+    meta = AlignMeta()
+    meta.length = aln.get_alignment_length()
+    meta.taxa = len(aln)
+    meta.characters, meta.percent_missing = get_characters(aln, nucleotides)
+    meta.nucleotides = Counter()
+    for k, v in meta.characters.iteritems():
+        if k in nucleotides:
+            meta.nucleotides.update({k:v})
+    meta.gaps = meta.characters["-"]
+    meta.missing = meta.characters["?"]
+    return meta
 
 
-def compute_taxa(counts):
-    print "\nTaxa\n-----"
-    avg = ["Average(taxa)", sum(counts) / float(len(counts))]
-    ci = [
-                "95 CI(taxa)",
-                1.96 * numpy.std(numpy.array(counts), ddof=1) / \
-                numpy.sqrt(len(counts))
-            ]
-    mn = ["min(taxa)", min(counts)]
-    mx = ["max(taxa)", max(counts)]
-    cnt = ["Count(taxa:# alns)", dict(Counter(counts))]
-    for result in [avg, ci, mn, mx, cnt]:
-        pretty_printer(result)
+def get_lengths(summary):
+    lengths = numpy.array([aln.length for aln in summary])
+    total = numpy.sum(lengths)
+    mean = numpy.mean(lengths)
+    ci  = 1.96 * (numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths)))
+    min = numpy.min(lengths)
+    max = numpy.max(lengths)
+    return total, mean, ci, min, max
 
 
-def compute_bases(bases, trimmed):
-    print "\nBase composition\n-----"
-    bssm = {base:sum(bases[base]) for base in bases}
-    sm = ["Bases", bssm]
-    al = ["Sum(all)", sum(bssm.values())]
-    nogpsm = sum([bssm[i] for i in ['A', 'C', 'G', 'T']])
-    nogp = ["Sum(nucleotide only)", nogpsm]
-    trim = ["Missing data from trim (%)", round(sum(trimmed) / float(sum(bssm.values())) * 100, 2)]
-    for result in [sm, al, nogp, trim]:
-        pretty_printer(result)
+def get_taxa(summary):
+    taxa = numpy.array([aln.taxa for aln in summary])
+    mean = numpy.mean(taxa)
+    ci  = 1.96 * (numpy.std(taxa, ddof=1) / numpy.sqrt(len(taxa)))
+    min = numpy.min(taxa)
+    max = numpy.max(taxa)
+    cnt = Counter(taxa)
+    return cnt, mean, ci, min, max
+
+
+def get_percent_missing(summary):
+    missing = numpy.array([aln.percent_missing for aln in summary])
+    mean = numpy.mean(missing)
+    ci  = 1.96 * (numpy.std(missing, ddof=1) / numpy.sqrt(len(missing)))
+    min = numpy.min(missing)
+    max = numpy.max(missing)
+    return mean, ci, min, max
+
+
+def total_characters(summary):
+    all = Counter()
+    for aln in summary:
+        all.update(aln.characters)
+    return all, sum(all.values())
+
+
+def total_nucleotides(summary):
+    all = Counter()
+    for aln in summary:
+        all.update(aln.nucleotides)
+    return sum(all.values())
+
+
+def get_matrix_percentages(t_cnt):
+    # get max taxa in alignments
+    mx = max(t_cnt.keys())
+    # get percentages
+    stops = {}
+    for i in numpy.arange(0.5, 1, 0.05):
+        stops[i] = math.floor(i * mx)
+    percentages = {}
+    for percent, stop in stops.iteritems():
+        total = 0
+        for cnt, aln in t_cnt.iteritems():
+            if cnt >= stop:
+                total += aln
+        percentages[percent] = total
+    return percentages
+
+
+def log_length_summary(log, a_vars):
+    a_total, a_mean, a_ci, a_min, a_max = a_vars
+    text = " Alignment summary "
+    log.info(text.center(65, "-"))
+    log.info("[Alignments] count:\t{:,}".format(a_total))
+    log.info("[Alignments] mean:\t{:.2f}".format(a_mean))
+    log.info("[Alignments] 95% CI:\t{:.2f}".format(a_ci))
+    log.info("[Alignments] min:\t{}".format(a_min))
+    log.info("[Alignments] max:\t{}".format(a_max))
+
+
+def log_taxa_summary(log, t_vars):
+    t_cnt, t_mean, t_ci, t_min, t_max = t_vars
+    text = " Taxon summary "
+    log.info(text.center(65, "-"))
+    log.info("[Taxa] mean:\t\t{:.2f}".format(t_mean))
+    log.info("[Taxa] 95% CI:\t{:.2f}".format(t_ci))
+    log.info("[Taxa] min:\t\t{}".format(t_min))
+    log.info("[Taxa] max:\t\t{}".format(t_max))
+
+
+def log_missing_summary(log, m_vars):
+    m_mean, m_ci, m_min, m_max = m_vars
+    text = " Missing data from trim summary "
+    log.info(text.center(65, "-"))
+    log.info("[Missing] mean:\t{:.2f}".format(m_mean * 100))
+    log.info("[Missing] 95% CI:\t{:.2f}".format(m_ci * 100))
+    log.info("[Missing] min:\t{:.2f}".format(m_min * 100))
+    log.info("[Missing] max:\t{:.2f}".format(m_max * 100))
+
+
+def log_char_summary(log, sum_characters, sum_nucleotides):
+    text = " Character count summary "
+    log.info(text.center(65, "-"))
+    log.info("[All characters]\t{:,}".format(sum_characters))
+    log.info("[Nucleotides only]\t{:,}".format(sum_nucleotides))
+
+
+def log_matrix_summary(log, percentages):
+    text = " Data matrix completeness summary "
+    log.info(text.center(65, "-"))
+    for k in sorted(percentages.keys()):
+        log.info("[Matrix {0}%]\t\t{1} alignments".format(
+            int(k * 100),
+            percentages[k],
+        ))
+
+
+def log_taxa_dist(log, show_taxon_counts, t_cnt):
+    if show_taxon_counts:
+        text = " Alignment counts by taxa present "
+        log.info(text.center(65, "-"))
+        for k in sorted(t_cnt.keys()):
+            log.info("[Taxa] {0} alignments contain {1:,} taxa".format(
+                t_cnt[k],
+                k,
+            ))
+
+
+def log_character_dist(log, all_bases):
+    text = " Character counts "
+    log.info(text.center(65, "-"))
+    for k in sorted(all_bases.keys()):
+        log.info("[Characters] {0} is present {1:,} times".format(
+            k,
+            all_bases[k],
+        ))
 
 
 def main():
     args = get_args()
-    # iterate through all the files to determine the longest alignment
-    files = get_files(args.input, args.input_format)
-    counts = []
-    lengths = []
-    trimmed = []
-    characters = []
-    bases = defaultdict(list)
-    ambiguities = defaultdict(list)
-    repl = re.compile('\?|n|N|-')
-    for f in files:
-        try:
-            aln = AlignIO.read(f, args.input_format)
-            l = aln.get_alignment_length()
-            lengths.append(l)
-            name = os.path.basename(f)
-            if l < 100:
-                print "{0} is < 100 bp long".format(name)
-            for col_num in xrange(len(aln[0])):
-                col = aln[:, col_num]
-                # get characters
-                informative = re.sub(repl, '', col)
-                col_count = Counter(informative)
-                if len(informative) > 0:
-                    if max(col_count) > 2:
-                        characters.append(1)
-                for base in col:
-                    bases[base.upper()].append(1)
-            if args.min_taxa:
-                if len(aln) >= args.min_taxa:
-                    counts.append(len(aln))
-                else:
-                    print "{0} has fewer than {1} taxa".format(f, args.min_taxa)
-            else:
-                counts.append(len(aln))
-            for read in aln:
-                left = len(read.seq) - len(str(read.seq).lstrip('-'))
-                right = len(read.seq) - len(str(read.seq).rstrip('-'))
-                trimmed.append(left + right)
-                ambiguities[read.id].append(read.seq.count('N') + read.seq.count('n'))
-        except ValueError, e:
-            if e.message == 'No records found in handle':
-                print 'No records found in {0}'.format(os.path.basename(f))
-            else:
-                raise ValueError('Something is wrong with alignment {0}'.format(os.path.basename(f)))
-    compute_lengths(lengths, characters, ambiguities)
-    compute_taxa(counts)
-    compute_bases(bases, trimmed)
+    # setup logging
+    log, my_name = setup_logging(args.verbosity, args.log_path)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
+    # find all alignments
+    files = get_files(log, args.alignments, args.input_format)
+    work = [[file, args.input_format] for file in files]
+    log.info("Computing summary statistics using {} cores".format(args.cores))
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
+        summary = pool.map(get_stats, work)
+        pool.close()
+    else:
+        summary = map(get_stats, work)
+    # alignments
+    a_vars = get_lengths(summary)
+    log_length_summary(log, a_vars)
+    # taxa
+    t_vars = get_taxa(summary)
+    log_taxa_summary(log, t_vars)
+    # missing
+    m_vars = get_percent_missing(summary)
+    log_missing_summary(log, m_vars)
+    # characters
+    all_bases, sum_characters = total_characters(summary)
+    sum_nucleotides = total_nucleotides(summary)
+    log_char_summary(log, sum_characters, sum_nucleotides)
+    # matrix
+    percentages = get_matrix_percentages(t_vars[0])
+    log_matrix_summary(log, percentages)
+    # taxa dist.
+    log_taxa_dist(log, args.show_taxon_counts, t_vars[0])
+    # character dist
+    log_character_dist(log, all_bases)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == '__main__':
