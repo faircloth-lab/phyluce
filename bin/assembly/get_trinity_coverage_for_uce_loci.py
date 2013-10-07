@@ -172,6 +172,15 @@ def main():
     # get the input data
     log.info("Fetching input filenames")
     assemblies = glob.glob(os.path.join(args.assemblies, "*"))
+    # remove the contigs/contigs-trimmed directories
+    for i in ['contigs', 'contigs-trimmed']:
+        try:
+            assemblies.remove(i)
+        except:
+            log.warn("There does not appear to be a `{}` directory in {}".format(
+                i,
+                args.assemblies
+            ))
     loci = get_match_count_loci(log, args.match_count_output)
     # setup database connection
     conn = sqlite3.connect(args.locus_db)
