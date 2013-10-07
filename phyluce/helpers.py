@@ -11,6 +11,7 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 import os
 import re
 import sys
+import glob
 import argparse
 import ConfigParser
 from phyluce import lastz
@@ -259,6 +260,14 @@ def get_file_extensions(ftype):
         'stockholm': ('.stockholm',)
     }
     return ext[ftype]
+
+
+def get_alignment_files(log, input_dir, input_format):
+    log.info("Getting alignment files")
+    alignments = []
+    for ftype in get_file_extensions(input_format):
+        alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
+    return alignments
 
 
 def write_alignments_to_outdir(log, outdir, alignments, format):
