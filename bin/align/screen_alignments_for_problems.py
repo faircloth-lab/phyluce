@@ -125,11 +125,11 @@ def screen_files(work):
 def main():
     args = get_args()
     # setup logging
-    log, my_name = setup_logging(args.verbosity, args.log_path)
-    text = " Starting {} ".format(my_name)
-    log.info(text.center(65, "="))
+    log, my_name = setup_logging(args)
+    #text = " Starting {} ".format(my_name)
+    #log.info(text.center(65, "="))
     # find all alignments
-    files = get_alignment_files(args.alignments, args.input_format)
+    files = get_alignment_files(log, args.alignments, args.input_format)
     # compile our regexes once
     n_bases = re.compile("N|n+")
     x_bases = re.compile("X|x+")

@@ -223,9 +223,7 @@ def get_fasta_dict(log, args):
 
 def main(args):
     # setup logging
-    log, my_name = setup_logging(args.verbosity, args.log_path)
-    text = " Starting {} ".format(my_name)
-    log.info(text.center(65, "="))
+    log, my_name = setup_logging(args)
     # create the fasta dictionary
     loci = get_fasta_dict(log, args)
     log.info("Aligning with {}".format(str(args.aligner).upper()))

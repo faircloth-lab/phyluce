@@ -311,9 +311,7 @@ def dont_sample_match_groups(log, args, c, organisms, uces):
 def main():
     args = get_args()
     # setup logging
-    log, my_name = setup_logging(args.verbosity, args.log_path)
-    text = " Starting {} ".format(my_name)
-    log.info(text.center(65, "="))
+    log, my_name = setup_logging(args)
     # parse the config file - allowing no values (e.g. no ":" in config file)
     config = ConfigParser.RawConfigParser(allow_no_value=True)
     config.read(args.taxon_list_config)

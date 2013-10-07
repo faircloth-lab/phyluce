@@ -15,26 +15,26 @@ import os
 import sys
 import logging
 
-#import pdb
+import pdb
 
-def setup_logging(level, pth=None):
+def setup_logging(args):
     import __main__ as main
     my_name = os.path.basename(os.path.splitext(main.__file__)[0])
     log = logging.getLogger(my_name)
     console = logging.StreamHandler(sys.stdout)
-    if pth is not None:
-        logfile = logging.FileHandler(os.path.join(pth, "{}.log".format(my_name)))
+    if args.log_path is not None:
+        logfile = logging.FileHandler(os.path.join(args.log_path, "{}.log".format(my_name)))
     else:
         logfile = logging.FileHandler("{}.log".format(my_name))
-    if level == "INFO":
+    if args.verbosity == "INFO":
         log.setLevel(logging.INFO)
         console.setLevel(logging.INFO)
         logfile.setLevel(logging.INFO)
-    if level == "WARN":
+    if args.verbosity == "WARN":
         log.setLevel(logging.WARN)
         console.setLevel(logging.WARN)
         logfile.setLevel(logging.WARN)
-    if level == "CRITICAL":
+    if args.verbosity == "CRITICAL":
         log.setLevel(logging.CRITICAL)
         console.setLevel(logging.CRITICAL)
         logfile.setLevel(logging.CRITICAL)
@@ -43,4 +43,8 @@ def setup_logging(level, pth=None):
     logfile.setFormatter(formatter)
     log.addHandler(console)
     log.addHandler(logfile)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
+    for arg, value in sorted(vars(args).items()):
+        log.info("Argument --%s: %r", arg, value)
     return log, my_name

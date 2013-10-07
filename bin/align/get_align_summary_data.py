@@ -251,9 +251,7 @@ def log_character_dist(log, all_bases):
 def main():
     args = get_args()
     # setup logging
-    log, my_name = setup_logging(args.verbosity, args.log_path)
-    text = " Starting {} ".format(my_name)
-    log.info(text.center(65, "="))
+    log, my_name = setup_logging(args)
     # find all alignments
     files = get_alignment_files(log, args.alignments, args.input_format)
     work = [[file, args.input_format] for file in files]

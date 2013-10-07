@@ -234,9 +234,7 @@ def new_get_probe_name(header, regex):
 
 def main():
     args = get_args()
-    log, my_name = setup_logging(args.verbosity, args.log_path)
-    text = " Starting {} ".format(my_name)
-    log.info(text.center(65, "="))
+    log, my_name = setup_logging(args)
     regex = re.compile(args.regex)
     if not os.path.isdir(args.output):
         os.makedirs(args.output)
