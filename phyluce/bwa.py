@@ -205,6 +205,23 @@ def new_bam_name(bam, append):
     return new_bam
 
 
+def picard_create_reference_dict(log, sample, sample_dir, reference):
+    log.info("Creating FASTA dict for {}".format(sample))
+    outf = os.path.splitext(reference)[0] + ".dict"
+    cmd = [
+        JAVA,
+        JAVA_PARAMS,
+        "-jar",
+        os.path.join(JAR_PATH, "CreateSequenceDictionary.jar"),
+        "R={}".format(reference),
+        "O={}".format(outf)
+    ]
+    picard_ref_dict_fname = os.path.join(sample_dir, '{}.picard-reference-dict-out.log'.format(sample))
+    with open(picard_ref_dict_fname, 'w') as picard_out:
+        proc = subprocess.Popen(cmd, stdout=picard_out, stderr=subprocess.STDOUT)
+        proc.communicate()
+
+
 def picard_clean_up_bam(log, sample, sample_dir, bam, type):
     log.info("Cleaning BAM for {}".format(sample))
     new_bam = new_bam_name(bam, "CL")

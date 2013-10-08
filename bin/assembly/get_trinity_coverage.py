@@ -15,11 +15,11 @@ import os
 import glob
 import shutil
 import argparse
-from phyluce.helpers import FullPaths, is_file
+from phyluce.helpers import FullPaths, is_file, is_dir
 from phyluce.third_party import which
 from phyluce.raw_reads import get_input_data, get_fastq_input_files
 from phyluce.bwa import *
-from phyluce.logging import setup_logging
+from phyluce.log import setup_logging
 
 import pdb
 
@@ -123,6 +123,7 @@ def main():
         # create the bwa index
         bwa_create_index_files(log, assembly)
         samtools_create_faidx(log, sample, assembly_pth, assembly)
+        picard_create_reference_dict(log, sample, assembly_pth, assembly)
         bam = False
         bam_se = False
         if args.bwa_mem and fastq.r1 and fastq.r2:
