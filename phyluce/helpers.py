@@ -255,6 +255,7 @@ def get_file_extensions(ftype):
         'fasta': ('.fasta', '.fsa', '.aln', '.fa'),
         'nexus': ('.nexus', '.nex'),
         'phylip': ('.phylip', '.phy'),
+        'phylip-relaxed': ('.phylip', '.phy'),
         'clustal': ('.clustal', '.clw'),
         'emboss': ('.emboss',),
         'stockholm': ('.stockholm',)
