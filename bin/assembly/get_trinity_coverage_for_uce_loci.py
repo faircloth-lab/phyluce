@@ -52,11 +52,19 @@ def get_args():
         action=FullPaths,
         help="""The SQL database file holding probe matches to targeted loci (usually "lastz/probe.matches.sqlite")."""
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         "--output",
-        required=True,
         action=CreateDir,
+        default=None,
         help="""The output directory to hold the UCE coverage files"""
+    )
+    group.add_argument(
+        "--resume",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The output directory in which to resume after a failure."""
     )
     parser.add_argument(
         "--verbosity",
@@ -166,51 +174,52 @@ def create_per_base_coverage_file(log, output, assembly, organism, locus_map, lo
 def main():
     # get args and options
     args = get_args()
+    # if we're resuming, we need to set output = resume
+    # so that we can check previously created files.
+    if args.resume:
+        args.output = args.resume
     # setup logging
     log, my_name = setup_logging(args)
     log.info("Creating the output directory")
     # get the input data
     log.info("Fetching input filenames")
-    assemblies = glob.glob(os.path.join(args.assemblies, "*"))
+    assemblies = sorted(glob.glob(os.path.join(args.assemblies, "*")))
     # remove the contigs/contigs-trimmed directories
-    for i in ['contigs', 'contigs-trimmed']:
-        try:
-            assemblies.remove(i)
-        except:
-            log.warn("There does not appear to be a `{}` directory in {}".format(
-                i,
-                args.assemblies
-            ))
+    extra = set(['contigs', 'contigs-trimmed'])
+    assemblies = [assembly for assembly in assemblies if os.path.basename(assembly) not in extra]
     loci = get_match_count_loci(log, args.match_count_output)
     # setup database connection
     conn = sqlite3.connect(args.locus_db)
     cur = conn.cursor()
     for assembly in assemblies:
         organism = os.path.basename(assembly)
-        reference = os.path.join(assembly, "Trinity.fasta")
-        bams = glob.glob(os.path.join(assembly, "*.bam"))
-        try:
-            assert len(bams) == 1
-            bam = bams[0]
-        except:
-            raise IOError("There appears to be more than one BAM file for {}".format(organism))
-        # pretty print taxon status
-        text = " Processing {} ".format(organism)
-        log.info(text.center(65, "-"))
-        locus_map = get_sqlite_loci_for_taxon(log, args.locus_db, cur, organism, loci)
-        locus_map_names = set(locus_map.keys())
-        create_per_base_coverage_file(log, args.output, assembly, organism, locus_map, locus_map_names)
-        coverages_dict = create_per_locus_coverage_file(log, args.output, assembly, organism, locus_map, locus_map_names)
-        # pass the same intervals as targets and base - we don't care that much here about bait performance
-        hs_metrics_file = picard_calculate_hs_metrics(log, organism, args.output, reference, bam, coverages_dict["interval_list"], coverages_dict["interval_list"])
-        on_target_dict = picard_get_percent_reads_on_target(log, hs_metrics_file, organism)
-        log.info("\t{} contigs, mean trimmed length = {:.1f}, mean trimmed coverage = {:.1f}x, unique reads aligned = {:.1f}%, on-target bases = {:.1f}%".format(
-            coverages_dict["count"],
-            coverages_dict["mean_length_trimmed"],
-            coverages_dict["mean_trim_cov"],
-            float(on_target_dict["PCT_PF_UQ_READS_ALIGNED"]) * 100,
-            float(on_target_dict["PCT_SELECTED_BASES"]) * 100
-        ))
+        if args.resume and os.path.exists(os.path.join(args.output, "{}.reads-on-target.txt".format(organism))):
+            log.warn("Skipping previously processed {} data (--resume)".format(organism))
+        else:
+            reference = os.path.join(assembly, "Trinity.fasta")
+            bams = glob.glob(os.path.join(assembly, "*.bam"))
+            try:
+                assert len(bams) == 1
+                bam = bams[0]
+            except:
+                raise IOError("There appears to be more than one BAM file for {}".format(organism))
+            # pretty print taxon status
+            text = " Processing {} ".format(organism)
+            log.info(text.center(65, "-"))
+            locus_map = get_sqlite_loci_for_taxon(log, args.locus_db, cur, organism, loci)
+            locus_map_names = set(locus_map.keys())
+            create_per_base_coverage_file(log, args.output, assembly, organism, locus_map, locus_map_names)
+            coverages_dict = create_per_locus_coverage_file(log, args.output, assembly, organism, locus_map, locus_map_names)
+            # pass the same intervals as targets and base - we don't care that much here about bait performance
+            hs_metrics_file = picard_calculate_hs_metrics(log, organism, args.output, reference, bam, coverages_dict["interval_list"], coverages_dict["interval_list"])
+            on_target_dict = picard_get_percent_reads_on_target(log, hs_metrics_file, organism)
+            log.info("\t{} contigs, mean trimmed length = {:.1f}, mean trimmed coverage = {:.1f}x, on-target bases (uce contigs) = {:.1f}%, unique reads aligned (all contigs) = {:.1f}%".format(
+                coverages_dict["count"],
+                coverages_dict["mean_length_trimmed"],
+                coverages_dict["mean_trim_cov"],
+                float(on_target_dict["PCT_SELECTED_BASES"]) * 100,
+                float(on_target_dict["PCT_PF_UQ_READS_ALIGNED"]) * 100,
+            ))
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
