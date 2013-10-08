@@ -353,6 +353,19 @@ def samtools_index(log, sample, sample_dir, bam):
         proc.communicate()
 
 
+def samtools_create_faidx(log, sample, sample_dir, fasta):
+    log.info("Indexing fasta for {}".format(sample))
+    cmd = [
+        "samtools",
+        "faidx",
+        fasta
+    ]
+    samtools_out_fname = os.path.join(sample_dir, '{}.samtools-faidx-out.log'.format(sample))
+    with open(samtools_out_fname, 'w') as samtools_out:
+        proc = subprocess.Popen(cmd, stdout=samtools_out, stderr=subprocess.STDOUT)
+        proc.communicate()
+
+
 def gatk_coverage(log, sample, assembly_pth, assembly, cores, bam):
     log.info("Computing coverage with GATK for {}".format(sample))
     cwd = os.getcwd()

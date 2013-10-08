@@ -122,6 +122,7 @@ def main():
         fastq = get_fastq_input_files(reads, args.subfolder, log)
         # create the bwa index
         bwa_create_index_files(log, assembly)
+        samtools_create_faidx(log, sample, assembly_pth, assembly)
         bam = False
         bam_se = False
         if args.bwa_mem and fastq.r1 and fastq.r2:
