@@ -19,6 +19,7 @@ import pdb
 
 def setup_logging(args):
     import __main__ as main
+    import __init__ as init
     my_name = os.path.basename(os.path.splitext(main.__file__)[0])
     log = logging.getLogger(my_name)
     console = logging.StreamHandler(sys.stdout)
@@ -45,6 +46,7 @@ def setup_logging(args):
     log.addHandler(logfile)
     text = " Starting {} ".format(my_name)
     log.info(text.center(65, "="))
+    log.info("Version: {}".format(init.__version__))
     for arg, value in sorted(vars(args).items()):
-        log.info("Argument --%s: %r", arg, value)
+        log.info("Argument --{}: {}".format(arg, value))
     return log, my_name
