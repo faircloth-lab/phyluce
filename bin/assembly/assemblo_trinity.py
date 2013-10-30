@@ -21,15 +21,14 @@ or "targets".
 
 import os
 import re
-import sys
 import glob
 import shutil
-import logging
 import argparse
 import subprocess
 import ConfigParser
 from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.third_party import which
+from phyluce.log import setup_logging
 
 #import pdb
 
@@ -64,6 +63,13 @@ def get_args():
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
         help="""The logging level to use"""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
     )
     parser.add_argument(
         "--clean",
@@ -313,30 +319,11 @@ def generate_symlinks(contig_dir, sample, fastq, clean, log):
         log.warn("Unable to symlink {} to {}".format(trinity_fname, contig_lname))
 
 
-def setup_logging(level):
-    log = logging.getLogger("Assemblo")
-    console = logging.StreamHandler(sys.stdout)
-    if level == "INFO":
-        log.setLevel(logging.INFO)
-        console.setLevel(logging.INFO)
-    if level == "WARN":
-        log.setLevel(logging.WARN)
-        console.setLevel(logging.WARN)
-    if level == "CRITICAL":
-        log.setLevel(logging.CRITICAL)
-        console.setLevel(logging.CRITICAL)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    log.addHandler(console)
-    return log
-
-
 def main():
     # get args and options
     args = get_args()
-    # setup logger
-    log = setup_logging(args.verbosity)
-    log.info("=================== Starting ASSEMBLO-Trinity ===================")
+    # setup logging
+    log, my_name = setup_logging(args)
     # get the input data
     log.info("Getting input filenames and creating output directories")
     input = get_input_data(args.config, args.dir)
@@ -388,7 +375,8 @@ def main():
             run_trinity_se(trinity, fastq, args.cores, args.clean, log)
         # generate symlinks to assembled contigs
         generate_symlinks(contig_dir, sample, fastq, args.clean, log)
-
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
