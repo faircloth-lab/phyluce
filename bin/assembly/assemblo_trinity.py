@@ -221,7 +221,7 @@ def combine_read_data(fastq, log):
     fastq.set_read('singleton', None, None)
 
 
-def run_trinity_pe(trinity, fastq, cores, clean, log):
+def run_trinity_pe(trinity, fastq, cores, log):
     log.info("Running Trinity.pl for PE data")
     cmd = [
         trinity,
@@ -236,10 +236,8 @@ def run_trinity_pe(trinity, fastq, cores, clean, log):
         "--CPU",
         str(cores),
         "--output",
-        os.path.join(fastq.r1.dir)
+        fastq.r1.dir
     ]
-    if clean:
-        cmd.append("--full_cleanup")
     try:
         with open(os.path.join(fastq.r1.dir, 'trinity.log'), 'w') as outf:
             proc = subprocess.Popen(cmd, stdout=outf)
@@ -264,9 +262,10 @@ def run_trinity_pe(trinity, fastq, cores, clean, log):
                 os.remove(f)
     except:
         log.warn("Did not clean all fastq files from {}".format(fastq.r1.dir))
+    return fastq.r1.dir
 
 
-def run_trinity_se(trinity, fastq, cores, clean, log):
+def run_trinity_se(trinity, fastq, cores, log):
     log.info("Running Trinity.pl for SE data")
     cmd = [
         trinity,
@@ -279,10 +278,8 @@ def run_trinity_se(trinity, fastq, cores, clean, log):
         "--CPU",
         str(cores),
         "--output",
-        os.path.join(fastq.r1.dir)
+        fastq.r1.dir
     ]
-    if clean:
-        cmd.append("--full_cleanup")
     try:
         with open(os.path.join(fastq.r1.dir, 'trinity.log'), 'w') as outf:
             proc = subprocess.Popen(cmd, stdout=outf)
@@ -304,6 +301,7 @@ def run_trinity_se(trinity, fastq, cores, clean, log):
                 os.remove(f)
     except:
         log.warn("Did not clean all fastq files from {}".format(fastq.r1.dir))
+    return fastq.r1.dir
 
 
 def generate_symlinks(contig_dir, sample, fastq, clean, log):
@@ -317,6 +315,17 @@ def generate_symlinks(contig_dir, sample, fastq, clean, log):
             pass
     except:
         log.warn("Unable to symlink {} to {}".format(trinity_fname, contig_lname))
+
+
+def cleanup_trinity_assembly_folder(pth, log):
+    log.info("Removing extraneous Trinity files")
+    files = glob.glob(os.path.join(pth, '*'))
+    for file in files:
+        if not os.path.basename(file) in ("Trinity.fasta", "trinity.log"):
+            if os.path.isfile(file):
+                os.remove(file)
+            elif os.path.isdir(file):
+                shutil.rmtree(file)
 
 
 def main():
@@ -362,17 +371,23 @@ def main():
         if fastq.r1 and fastq.r2 and fastq.singleton:
             copy_read_data(fastq, sample_dir, log)
             combine_read_data(fastq, log)
-            run_trinity_pe(trinity, fastq, args.cores, args.clean, log)
+            output = run_trinity_pe(trinity, fastq, args.cores, log)
+            if args.clean:
+                cleanup_trinity_assembly_folder(output, log)
         # we don't need to combine singleton files here.  copy
         # the read data over and run the assembly for PE data
         elif fastq.r1 and fastq.r2:
             copy_read_data(fastq, sample_dir, log)
-            run_trinity_pe(trinity, fastq, args.cores, args.clean, log)
+            output = run_trinity_pe(trinity, fastq, args.cores, log)
+            if args.clean:
+                cleanup_trinity_assembly_folder(output, log)
         # here, we don't have PE data, so copy the file over
         # and run the assembly for SE data
         elif fastq.r1:
             copy_read_data(fastq, sample_dir, log)
-            run_trinity_se(trinity, fastq, args.cores, args.clean, log)
+            output = run_trinity_se(trinity, fastq, args.cores, args.clean, log)
+            if args.clean:
+                cleanup_trinity_assembly_folder(output, log)
         # generate symlinks to assembled contigs
         generate_symlinks(contig_dir, sample, fastq, args.clean, log)
     text = " Completed {} ".format(my_name)
