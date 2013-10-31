@@ -304,15 +304,12 @@ def run_trinity_se(trinity, fastq, cores, log):
     return fastq.r1.dir
 
 
-def generate_symlinks(contig_dir, sample, fastq, clean, log):
+def generate_symlinks(contig_dir, sample, fastq, log):
     log.info("Symlinking assembled contigs into {}".format(contig_dir))
     try:
-        if not clean:
-            trinity_fname = os.path.join(fastq.r1.dir, "Trinity.fasta")
-            contig_lname = os.path.join(contig_dir, sample)
-            os.symlink(trinity_fname, "{}.contigs.fasta".format(contig_lname))
-        else:
-            pass
+        trinity_fname = os.path.join(fastq.r1.dir, "Trinity.fasta")
+        contig_lname = os.path.join(contig_dir, sample)
+        os.symlink(trinity_fname, "{}.contigs.fasta".format(contig_lname))
     except:
         log.warn("Unable to symlink {} to {}".format(trinity_fname, contig_lname))
 
@@ -320,9 +317,16 @@ def generate_symlinks(contig_dir, sample, fastq, clean, log):
 def cleanup_trinity_assembly_folder(pth, log):
     log.info("Removing extraneous Trinity files")
     files = glob.glob(os.path.join(pth, '*'))
+    # check the names to make sure we're not deleting something improperly
+    names = [os.path.basename(f) for f in files]
+    try:
+        assert "Trinity.fasta" in names
+        assert "trinity.log" in names
+    except:
+        raise IOError("Neither Trinity.fasta nor trinity.log were found in output.")
     for file in files:
         if not os.path.basename(file) in ("Trinity.fasta", "trinity.log"):
-            if os.path.isfile(file):
+            if os.path.isfile(file) or os.path.islink(file):
                 os.remove(file)
             elif os.path.isdir(file):
                 shutil.rmtree(file)
@@ -389,7 +393,7 @@ def main():
             if args.clean:
                 cleanup_trinity_assembly_folder(output, log)
         # generate symlinks to assembled contigs
-        generate_symlinks(contig_dir, sample, fastq, args.clean, log)
+        generate_symlinks(contig_dir, sample, fastq, log)
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
