@@ -400,7 +400,11 @@ def gatk_coverage(log, sample, assembly_pth, assembly, cores, bam):
         "-I",
         bam,
         "-o",
-        "{}-coverage".format(sample)
+        "{}-coverage".format(sample),
+        "-nt",
+        str(cores),
+        "--omitIntervalStatistics",
+        "--omitLocusTable"
     ]
     gatk_coverage_fname = os.path.join(assembly_pth, '{}.GATK-coverage-out.log'.format(sample))
     with open(gatk_coverage_fname, 'w') as gatk_out:
