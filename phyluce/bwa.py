@@ -529,7 +529,10 @@ def remove_gatk_coverage_files(log, assembly_pth, coverage):
             with open(file, "rb") as unzip:
                 with gzip.open("{}.gz".format(file), "wb") as zip:
                     zip.writelines(unzip)
+            # remove the unzipped file
+            os.remove(file)
         else:
+            # remove all other files
             log.info("[Remove] {}".format(os.path.basename(file)))
             os.remove(file)
 

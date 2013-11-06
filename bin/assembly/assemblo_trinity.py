@@ -391,7 +391,7 @@ def main():
         # and run the assembly for SE data
         elif fastq.r1:
             copy_read_data(fastq, sample_dir, log)
-            output = run_trinity_se(trinity, fastq, args.cores, args.clean, log)
+            output = run_trinity_se(trinity, fastq, args.cores, log)
             if args.clean:
                 cleanup_trinity_assembly_folder(output, log)
         # generate symlinks to assembled contigs

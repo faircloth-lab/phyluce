@@ -134,18 +134,30 @@ def main():
             bam = bwa_pe_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1, fastq.r2)
             bam = picard_clean_up_bam(log, sample, assembly_pth, bam, "pe")
             bam = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam, "pe")
+        # get singleton reads for alignment
         if args.bwa_mem and fastq.singleton:
             bam_se = bwa_mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
+            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+        # if we only have se reads, those will be in fastq.r1 only
+        elif args.bwa_mem and not fastq.r2 and fastq.r1:
+            bam_se = bwa_mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
             bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
             bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         elif not args.bwa_mem and fastq.singleton:
             bam_se = bwa_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
             bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
             bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+        elif not args.bwa_mem and not fastq.r2 and fastq.r1:
+            bam_se = bwa_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
+            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         if bam and bam_se:
             bam = picard_merge_two_bams(log, sample, assembly_pth, bam, bam_se)
         elif bam_se and not bam:
             bam = bam_se
+        if not bam:
+            raise IOError("There is no BAM file.  Check bwa log files for problems.")
         samtools_index(log, sample, assembly_pth, bam)
         coverage = gatk_coverage(log, sample, assembly_pth, assembly, args.cores, bam)
         overall_contigs = get_coverage_from_gatk(log, sample, assembly_pth, coverage)
