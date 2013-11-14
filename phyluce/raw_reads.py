@@ -24,10 +24,10 @@ class Read():
         self.pth = os.path.join(dir, file)
 
     def __str__(self):
-        return "{} fastq read".format(self.read)
+        return "{} fastq read".format(self.file)
 
     def __repr__(self):
-        return "<{}.{} instance at {}>".format(self.read, self.__class__.__name__, hex(id(self)))
+        return "<{}.{} instance at {}>".format(self.file, self.__class__.__name__, hex(id(self)))
 
 
 class Fastqs():
