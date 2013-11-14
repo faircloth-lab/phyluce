@@ -308,7 +308,11 @@ def generate_symlinks(contig_dir, sample, fastq, log):
     log.info("Symlinking assembled contigs into {}".format(contig_dir))
     try:
         trinity_fname = os.path.join(fastq.r1.dir, "Trinity.fasta")
-        # get the relative path to the Trinity.fasta file
+        contig_lname = os.path.join(fastq.r1.dir, "contigs.fasta")
+        # create a link btw. contigs.fasta -> Trinity.fasta
+        relpth = os.path.relpath(trinity_fname, fastq.r1.dir)
+        os.symlink(relpth, contig_lname)
+        # create a link btw. ../contigs/genus-species.contigs.fasta -> Trinity.fasta
         relpth = os.path.relpath(trinity_fname, contig_dir)
         contig_lname = os.path.join(contig_dir, sample)
         os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
