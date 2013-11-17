@@ -448,9 +448,12 @@ def compute_gatk_coverage_metrics(contig_depth):
     return metadata
 
 
-def get_coverage_from_gatk(log, sample, assembly_pth, coverage):
+def get_coverage_from_gatk(log, sample, assembly_pth, coverage, velvet):
     log.info("Screening and filtering contigs for coverage (3x ends, 5x avg.)")
-    regex = re.compile("(comp\d+_c\d+_seq\d+).*:(\d+)")
+    if not velvet:
+        regex = re.compile("(comp\d+_c\d+_seq\d+).*:(\d+)")
+    else:
+        regex = re.compile("(NODE_\d+_length_\d+_cov_\d+.*):(\d+)")
     # setup starting values
     previous_match = None
     contig_depth = []
@@ -554,6 +557,7 @@ def filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, o
                     seq = seq[start:end]
                     seq.description = "len={}".format(len(seq))
                     outf.write(seq.format('fasta'))
+    return outf_name
 
 
 
