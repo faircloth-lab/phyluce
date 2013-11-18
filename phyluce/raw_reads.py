@@ -21,7 +21,10 @@ class Read():
     def __init__(self, dir, file):
         self.dir = dir
         self.file = file
-        self.pth = os.path.join(dir, file)
+        if dir is not None and file is not None:
+            self.pth = os.path.join(dir, file)
+        else:
+            self.pth = None
 
     def __str__(self):
         return "{} read".format(self.file)
