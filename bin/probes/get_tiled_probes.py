@@ -55,6 +55,20 @@ def get_args():
         help='The path to the output file'
     )
     parser.add_argument(
+        '--probe-prefix',
+        required=True,
+        type=str,
+        default=None,
+        help='The prefix (e.g. "uce-") to add to all probes designed'
+    )
+    parser.add_argument(
+        '--designer',
+        required=True,
+        type=str,
+        default=None,
+        help='Your last name (to indicate who designed the probes)'
+    )
+    parser.add_argument(
         '--probe-length',
         dest='length',
         type=int,
@@ -76,22 +90,16 @@ def get_args():
         help='The method of tiling'
     )
     parser.add_argument(
-        '--twobit',
-        type=str,
-        default=None,
-        help='The path to a twobit file containing the sequence'
-    )
-    parser.add_argument(
-        '--bed',
+        '--probe-bed',
         type=str,
         default=None,
         help='The path to an output file for outputting the probe coordinates in BED format'
     )
     parser.add_argument(
-        '--coords',
+        '--locus-bed',
         type=str,
         default=None,
-        help='Coordinates of the region, in UCSC (chrX:1-10) style.  Will be integrated to probe name'
+        help='The path to an output file for outputting the locus coordinates in BED format'
     )
     parser.add_argument(
         '--masking',
@@ -113,20 +121,6 @@ def get_args():
         action='store_true',
         default=False,
         help='Remove loci with GC content outside 30 <= GC <= 70'
-    )
-    parser.add_argument(
-        '--remove-dupes',
-        dest='dupes',
-        action='store_true',
-        default=False,
-        help='Remove duplicate probes from the set'
-    )
-    parser.add_argument(
-        '--range',
-        dest='range',
-        action='store_true',
-        default=False,
-        help='Search fasta header for range=chrX:1-10, and build bed file from that range'
     )
     return parser.parse_args()
 
@@ -236,6 +230,10 @@ def prune_probe_set(probe_set, dupes):
     return final
 
 
+def meta_to_dict(s):
+    return dict([i.split(':') for i in s.split(',')])
+
+
 def main():
     """
     main loop
@@ -243,38 +241,48 @@ def main():
     """
     args = get_args()
     probe_set = []
-    rng = re.compile('(chr.*:[0-9]+\-[0-9]+)')
-    if args.coords:
-        chromo, bp = args.coords.split(':')
-        start, end = [int(i.replace(',', '')) for i in bp.split('-')]
     print "Probes removed for masking (.) / low GC % (G) / ambiguous bases (N):"
-    for region in SeqIO.parse(open(args.input, 'rU'), 'fasta'):
+    for locus_count, locus in enumerate(SeqIO.parse(open(args.input, 'rU'), 'fasta')):
+        #pdb.set_trace()
+        global_coords = locus.description.split('|')[1]
+        global_chromo, global_chromo_positions = global_coords.split(':')
+        global_chromo_start, global_chromo_end = [int(i) for i in global_chromo_positions.split('-')]
         if args.overlap == 'middle':
-            coords = middle_overlapper(region, args)
+            coords = middle_overlapper(locus, args)
         elif args.overlap == 'flush-left':
-            coords = left_flush_overlapper(region, args)
+            coords = left_flush_overlapper(locus, args)
         coords.sort()
         probes = []
         for k, coord in enumerate(coords):
-            if not args.coords and not args.range:
-                probe_name = '{0}|probe_{1}|{2},{3}'.format(region.name, k, coord[0], coord[1])
-            elif args.coords:
-                probe_name = '{0}|probe_{1}|{4}:{2}-{3}'.format(region.name, k, coord[0] + start, coord[1] + start, chromo)
-            elif args.range:
-                try:
-                    temp_coords = rng.search(region.description).group()
-                except AttributeError:
-                    print "Sequence {0} is missing range information".format(region.name)
-                    sys.exit()
-                chromo, bp = temp_coords.split(':')
-                pstart, pend = [int(i.replace(',', '')) for i in bp.split('-')]
-                probe_name = '{0}|probe_{1}|{4}:{2}-{3}'.format(region.name, k, coord[0] + pstart, coord[1] + pstart, chromo)
-            probe = region[coord[0]:coord[1]]
-            probe.name, probe.id = probe_name, probe_name
-            probe.description = ''
-            masked = sum([1 for base in probe.seq if base.islower()])
-            gc = sum([1. for base in probe.seq if base.upper() == 'C' or base.upper() == 'G'])/len(probe.seq)
-            if args.mask and (float(masked) / args.length >= args.mask):
+            # need to get global starts and ends for probe
+            global_probe_start = global_chromo_start + coord[0]
+            global_probe_end = global_chromo_start + coord[1]
+            #
+            probe_id = '{0}{1}_p{2}'.format(
+                args.probe_prefix,
+                locus_count,
+                k + 1
+            )
+            probe_description = " |designer:{0},probes-locus:{1},probes-probe:{2},probes-global-chromo:{3},probes-global-start:{4},probes-global-end:{5},probes-local-start:{6},probes-local-end:{7}".format(
+                args.designer,
+                locus_count,
+                k + 1,
+                global_chromo,
+                global_probe_start,
+                global_probe_end,
+                coord[0],
+                coord[1]
+            )
+            # slice the sequence
+            probe = locus[coord[0]:coord[1]]
+            # set slice to uppercase
+            probe.seq = probe.seq.upper()
+            # set the id and description
+            probe.id, probe.name = probe_id, probe_id
+            probe.description = probe_description
+            masked = sum([1 for base in probe.seq if base.islower()]) / len(probe.seq)
+            gc = sum([1. for base in probe.seq if base.upper() == 'C' or base.upper() == 'G']) / len(probe.seq)
+            if args.mask and masked >= args.mask:
                 dots('M')
             elif args.amb and ('N' in probe.seq or 'n' in probe.seq):
                 dots('N')
@@ -292,26 +300,50 @@ def main():
     print '\n\n'
     print 'Conserved locus count = {0}'.format(cons_count)
     print 'Probe Count = {0}'.format(probe_count)
-    # check probes for newly created dupes:
-    if args.dupes:
-        dupes = check_for_dupes(probe_set)
-        probe_set = prune_probe_set(probe_set, dupes)
-        probe_count = sum([len(cons) for cons in probe_set])
-        print "Probe count (after dupe removal) = {0}".format(probe_count)
     outp = open(args.output, 'w')
-    if args.bed:
-        outb = open(args.bed, 'w')
-        outb.write('track name=py_tiler description="py_tiler designed probes" useScore=1 useScore=1 itemRgb="On"\n')
+    if args.probe_bed:
+        outpb = open(args.probe_bed, 'w')
+        outpb.write('track name=get_tiled_probes description="get_tiled_probes designed probes" useScore=1 useScore=1 itemRgb="On"\n')
+    if args.locus_bed:
+        outlb = open(args.locus_bed, 'w')
+        outlb.write('track name=get_tiled_probes_loci description="get_tiled_probes loci" useScore=1 useScore=1 itemRgb="On"\n')
     for ps in probe_set:
+        lb_coords = []
         for probe in ps:
-            outp.write(">{}\n{}\n".format(probe.id, str(probe.seq).upper()))
-            if args.bed:
-                name, pos = probe.id.split('|')[-2:]
-                chromo, bp = pos.split(':')
-                pstart, pend = bp.split('-')
-                outb.write("{}\t{}\t{}\t{}\t450\t+\t0\t0\t0,0,205\n".format(chromo, pstart, pend, name))
-    if args.bed:
-        outb.close()
+            meta_dict = meta_to_dict(probe.description)
+            lb_coords.extend([int(meta_dict['probes-global-start']), int(meta_dict['probes-global-end'])])
+            outp.write(">{0}{1}\n{2}\n".format(
+                probe.id,
+                probe.description,
+                probe.seq
+            ))
+            if args.probe_bed:
+                outpb.write("{}\t{}\t{}\t{}\t450\t+\t0\t0\t0,0,205\n".format(
+                    meta_dict['probes-global-chromo'],
+                    meta_dict['probes-global-start'],
+                    meta_dict['probes-global-end'],
+                    probe.id
+                ))
+        lb_coords.sort()
+        mn = min(lb_coords)
+        mx = max(lb_coords)
+        try:
+            assert int(mx) > int(mn)
+        except:
+            pdb.set_trace()
+        if args.locus_bed:
+            outlb.write("{0}\t{1}\t{2}\t{3}{4}\t450\t+\t0\t0\t0,0,205\n".format(
+                meta_dict['probes-global-chromo'],
+                mn,
+                mx,
+                args.probe_prefix,
+                meta_dict['probes-locus']
+            ))
+
+    if args.probe_bed:
+        outpb.close()
+    if args.locus_bed:
+        outlb.close()
     outp.close()
 
 if __name__ == '__main__':
