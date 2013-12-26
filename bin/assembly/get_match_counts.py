@@ -314,6 +314,7 @@ def main():
     log, my_name = setup_logging(args)
     # parse the config file - allowing no values (e.g. no ":" in config file)
     config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.optionxform = str
     config.read(args.taxon_list_config)
     # connect to the database
     conn = sqlite3.connect(args.locus_db)

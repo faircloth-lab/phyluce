@@ -217,7 +217,7 @@ def get_fasta_dict(log, args):
         else:
             if len(data) < args.taxa:
                 del loci[locus]
-                log.warn("DROPPED locus {0}. Alignment does not contain all {} taxa.".format(locus, args.taxa))
+                log.warn("DROPPED locus {0}. Alignment does not contain all {1} taxa.".format(locus, args.taxa))
     return loci
 
 

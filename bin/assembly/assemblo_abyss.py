@@ -1,0 +1,285 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: assemblo_abyss.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 07 November 2013 21:11 PST (-0800)
+Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
+
+Description: Assemble UCE cleaned read data using Abyss
+(http://www.bcgsc.ca/platform/bioinfo/software/abyss).
+
+ABySS is an assembly suite that uses a De Bruijn for _de novo_
+contig assembly not unlike velvet, at least somewhat in theory.
+
+"""
+
+
+import os
+import re
+import sys
+import glob
+import shutil
+import argparse
+import subprocess
+import ConfigParser
+from Bio import SeqIO
+from Bio.Seq import Seq
+from phyluce.log import setup_logging
+from phyluce.third_party import which
+from phyluce.raw_reads import get_input_data, get_input_files
+from phyluce.helpers import FullPaths, is_dir, is_file
+
+import pdb
+
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Assemble UCE raw read using Trinity"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=FullPaths,
+        default=None,
+        help="""The directory in which to store the assembly data"""
+    )
+    parser.add_argument(
+        "--kmer",
+        type=int,
+        default=31,
+        help="""The kmer value to use"""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""The number of compute cores/threads to run with Trinity"""
+    )
+    parser.add_argument(
+        "--subfolder",
+        type=str,
+        default='',
+        help="""A subdirectory, below the level of the group, containing the reads"""
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use"""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        default=False,
+        help="""Cleanup all intermediate Trinity files""",
+    )
+    # one of these is required.  The other will be set to None.
+    input = parser.add_mutually_exclusive_group(required=True)
+    input.add_argument(
+        "--config",
+        type=is_file,
+        action=FullPaths,
+        default=None,
+        help="""A configuration file containing reads to assemble"""
+    )
+    input.add_argument(
+        "--dir",
+        type=is_dir,
+        action=FullPaths,
+        default=None,
+        help="""A directory of reads to assemble""",
+    )
+    return parser.parse_args()
+
+
+def run_abyss_pe(abyss_pe, kmer, reads, cores, output, log):
+    log.info("Running abyss-pe against data")
+    # we're going to move into the working dir so getcwd
+    start_dir = os.getcwd()
+    # make and switch to the working dir
+    name = "out_k{}".format(kmer)
+    os.chdir(output)
+    cmd = [
+        abyss_pe,
+        'k={}'.format(kmer),
+        'j={}'.format(cores),
+        'name={}'.format(name),
+        'in={} {}'.format(
+            os.path.join(reads.r1.dir, reads.r1.file),
+            os.path.join(reads.r2.dir, reads.r2.file),
+        )
+    ]
+    if reads.singleton:
+        cmd.append('se={}'.format(
+            os.path.join(reads.singleton.dir, reads.singleton.file),
+        ))
+    try:
+        stdpth = 'abyss-k{}.out.log'.format(kmer)
+        errpth = 'abyss-k{}.err.log'.format(kmer)
+        with open(stdpth, 'w') as out:
+            with open(errpth, 'w') as err:
+                proc = subprocess.Popen(cmd, stdout=out, stderr=err)
+                proc.communicate()
+    except:
+        log.critical("Could not assemble {}".format(reads.r1.dir))
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
+    # move back to dir where we started
+    os.chdir(start_dir)
+    return output
+
+
+def cleanup_abyss_assembly_folder(output, log):
+    # we want to keep coverage hist
+    keep = ['coverage.hist']
+    files = glob.glob(os.path.join(output, '*'))
+    # we also want to keep out stats and log files
+    for f in files:
+        for end in ('.log', '-stats'):
+            name = os.path.basename(f)
+            if name.endswith(end):
+                keep.append(name)
+    # now, change the links to the actual files they represent
+    links = [f for f in files if os.path.islink(f)]
+    for link in links:
+        if os.path.splitext(link)[1] == '.fa':
+            real = os.path.realpath(link)
+            os.remove(link)
+            shutil.move(real, link)
+            keep.append(os.path.basename(link))
+    # remove the stuff we don't want to keep
+    for f in glob.glob(os.path.join(output, '*')):
+        if os.path.basename(f) not in keep:
+            os.remove(f)
+
+
+def get_contigs_file_from_output(output):
+    return glob.glob(os.path.join(output, "*-contigs.fa"))[0]
+
+
+def generate_within_dir_symlink(contigs_file):
+    outpth, name = os.path.split(contigs_file)
+    os.symlink(name, os.path.join(outpth, "contigs.fasta"))
+
+
+def convert_abyss_contigs_to_velvet(contigs_file):
+    iupac = set([
+        'B', 'D', 'H', 'K', 'M', 'S', 'R', 'W', 'V', 'Y', 'X',
+        'b', 'd', 'h', 'k', 'm', 's', 'r', 'w', 'v', 'y', 'x'
+        ])
+    outpth = os.path.dirname(contigs_file)
+    contig_file_name = os.path.splitext(os.path.basename(contigs_file))[0]
+    velvet_contig_file_name = "{}-velvet.fa".format(
+        contig_file_name
+    )
+    velvet_contig_pth = os.path.join(outpth, velvet_contig_file_name)
+    with open(velvet_contig_pth, 'w') as outfile:
+        with open(contigs_file, 'rU') as infile:
+            for seq in SeqIO.parse(infile, 'fasta'):
+                num, ln, cov = seq.description.split(' ')[:3]
+                seq.id = "NODE_{}_length_{}_cov_{}".format(num, ln, cov)
+                seq.name = ""
+                seq.description = ""
+                for degen in iupac:
+                    if degen in seq.seq:
+                        seqstring = seq.seq.tostring()
+                        seqstring = seqstring.replace(degen, "N")
+                        seq.seq = Seq(seqstring)
+                if len(seq) > 100:
+                    outfile.write(seq.format('fasta'))
+    return velvet_contig_pth
+
+
+def generate_symlinks(contig_dir, sample, contigs_file, log):
+    log.info("Symlinking assembled contigs into {}".format(contig_dir))
+    try:
+        # get the relative path to the Trinity.fasta file
+        relpth = os.path.relpath(contigs_file, contig_dir)
+        contig_lname = os.path.join(contig_dir, sample)
+        os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
+    except:
+        log.warn("Unable to symlink {} to {}".format(contigs_file, contig_lname))
+
+
+def main():
+    # get args and options
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    # get the input data
+    log.info("Getting input filenames and creating output directories")
+    input = get_input_data(args.config, args.dir)
+    # create the output directory if it does not exist
+    if not os.path.isdir(args.output):
+        os.makedirs(args.output)
+    else:
+        pass
+    # make the symlink directory within the output directory
+    contig_dir = os.path.join(args.output, 'contigs')
+    if not os.path.isdir(contig_dir):
+        os.makedirs(contig_dir)
+    else:
+        pass
+    try:
+        abyss_pe = which('abyss-pe')[0]
+        abyss_se = which('ABYSS')[0]
+    except:
+        raise EnvironmentError("Cannot find abyss-pe or ABYSS.  Ensure they "
+                               "are installed and in your $PATH")
+    # run abyss in (mostly) single-threaded mode for RAM and simplicity
+    # reasons.  abyss-map will run using as many cores as user specifies.
+    for group in input:
+        sample, dir = group
+        # pretty print taxon status
+        text = " Processing {} ".format(sample)
+        log.info(text.center(65, "-"))
+        # make a directory for sample-specific assemblies
+        sample_dir = os.path.join(args.output, sample)
+        os.makedirs(sample_dir)
+        # determine how many files we're dealing with
+        reads = get_input_files(dir, args.subfolder, log)
+        # copy the read data over, combine singletons with read 1
+        # and run the assembly for PE data.
+        if reads.r1 and reads.r2:
+            output = run_abyss_pe(abyss_pe, args.kmer, reads, args.cores,
+                                  sample_dir, log)
+        elif reads.r1 and not reads.r2:
+            pass
+        if args.clean:
+            cleanup_abyss_assembly_folder(output, log)
+        contigs_file = get_contigs_file_from_output(output)
+        # remove degenerate bases, contigs < 100 bp, and rename
+        # contigs to velvet-style naming
+        contigs_file = convert_abyss_contigs_to_velvet(contigs_file)
+        # create generic link in assembly folder for covg. computation
+        generate_within_dir_symlink(contigs_file)
+        # link to the standard (non-trimmed) assembly in ../contigs
+        generate_symlinks(contig_dir, sample, contigs_file, log)
+        '''
+        # here, we don't have PE data, so copy the file over
+        # and run the assembly for SE data
+        elif fastq.r1:
+            copy_read_data(fastq, sample_dir, log)
+            output = run_trinity_se(trinity, fastq, args.cores, log)
+            if args.clean:
+                cleanup_trinity_assembly_folder(output, log)
+        # generate symlinks to assembled contigs
+        generate_symlinks(contig_dir, sample, fastq, log)
+        '''
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+if __name__ == '__main__':
+    main()
