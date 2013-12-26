@@ -295,10 +295,10 @@ def picard_merge_two_bams(log, sample, sample_dir, bam, bam_se):
     return new_bam
 
 
-def picard_mark_and_remove_dupes(log, sample, sample_dir, bam):
+def picard_mark_and_remove_dupes(log, sample, sample_dir, bam, type):
     log.info("Removing read duplicates from BAM for {}".format(sample))
-    new_bam = new_bam_name(bam, "DD")
-    metricsfile = os.path.join(sample_dir, "{}.picard-metricsfile.txt".format(sample))
+    new_bam = new_bam_name(bam, "MD")
+    metricsfile = os.path.join(sample_dir, "{}.{}.picard-metricsfile.txt".format(sample, type))
     cmd = [
         JAVA,
         JAVA_PARAMS,
@@ -310,9 +310,9 @@ def picard_mark_and_remove_dupes(log, sample, sample_dir, bam):
         "MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=250",
         "ASSUME_SORTED=true",
         "VALIDATION_STRINGENCY=SILENT",
-        "REMOVE_DUPLICATES=true",
+        "REMOVE_DUPLICATES=false",
     ]
-    picard_dd_out_fname = os.path.join(sample_dir, '{}.picard-DD-out.log'.format(sample))
+    picard_dd_out_fname = os.path.join(sample_dir, '{}.{}.picard-MD-out.log'.format(sample, type))
     with open(picard_dd_out_fname, 'w') as picard_out:
         proc = subprocess.Popen(cmd, stdout=picard_out, stderr=subprocess.STDOUT)
         proc.communicate()
