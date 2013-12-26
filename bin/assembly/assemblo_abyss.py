@@ -175,7 +175,10 @@ def generate_within_dir_symlink(contigs_file):
 
 
 def convert_abyss_contigs_to_velvet(contigs_file):
-    iupac = set(['B', 'D', 'H', 'K', 'M', 'S', 'R', 'W', 'V', 'Y', 'X'])
+    iupac = set([
+        'B', 'D', 'H', 'K', 'M', 'S', 'R', 'W', 'V', 'Y', 'X',
+        'b', 'd', 'h', 'k', 'm', 's', 'r', 'w', 'v', 'y', 'x'
+        ])
     outpth = os.path.dirname(contigs_file)
     contig_file_name = os.path.splitext(os.path.basename(contigs_file))[0]
     velvet_contig_file_name = "{}-velvet.fa".format(
