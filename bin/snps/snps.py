@@ -18,9 +18,10 @@ import logging
 import argparse
 import subprocess
 import ConfigParser
+from phyluce.log import setup_logging
 from phyluce.third_party import which
 from phyluce.helpers import FullPaths, is_dir, is_file
-from phyluce.assembly import get_fastq_input_files
+from phyluce.raw_reads import get_fastq_input_files
 from phyluce.bwa import *
 
 import pdb
@@ -56,7 +57,7 @@ def get_args():
         "--cores",
         type=int,
         default=1,
-        help="""The number of compute cores/threads to run with Trinity"""
+        help="""The number of compute cores/threads to use"""
     )
     parser.add_argument(
         "--verbosity",
@@ -66,10 +67,11 @@ def get_args():
         help="""The logging level to use"""
     )
     parser.add_argument(
-        "--clean",
-        action="store_true",
-        default=False,
-        help="""Cleanup all intermediate Trinity files""",
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
     )
     parser.add_argument(
         "--no-remove-duplicates",
@@ -107,31 +109,13 @@ def get_input_data(log, conf, output):
     return reference, individuals
 
 
-def setup_logging(level):
-    log = logging.getLogger("Assemblo")
-    console = logging.StreamHandler(sys.stdout)
-    if level == "INFO":
-        log.setLevel(logging.INFO)
-        console.setLevel(logging.INFO)
-    if level == "WARN":
-        log.setLevel(logging.WARN)
-        console.setLevel(logging.WARN)
-    if level == "CRITICAL":
-        log.setLevel(logging.CRITICAL)
-        console.setLevel(logging.CRITICAL)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    log.addHandler(console)
-    return log
-
-
 def main():
     # get args and options
     args = get_args()
-    # setup logger
-    log = setup_logging(args.verbosity)
-    text = " Starting BWA alignment "
-    log.info(text.center(85, "-"))
+    # setup logging
+    log, my_name = setup_logging(args)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
     # get the config file data
     conf = ConfigParser.ConfigParser(allow_no_value=True)
     conf.optionxform = str
@@ -141,6 +125,7 @@ def main():
     reference, individuals = get_input_data(log, conf, args.output)
     flowcells = dict(conf.items("flowcell"))
     for indiv in individuals:
+        bam, bam_se = False, False
         sample, dir = indiv
         # pretty print taxon status
         text = " Processing {} ".format(sample)
@@ -154,17 +139,35 @@ def main():
             # bwa align r1 and r2
             bam = bwa_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
             # clean the bam up (MAPq 0 and trim overlapping reads)
-            bam = picard_clean_up_bam(log, sample, sample_dir, bam)
+            bam = picard_clean_up_bam(log, sample, sample_dir, bam, "pe")
             # get flowcell id
             fc = flowcells[sample]
-            bam = picard_add_rg_header_info(log, sample, sample_dir, fc, bam)
+            bam = picard_add_rg_header_info(log, sample, sample_dir, fc, bam, "pe")
             if not args.no_remove_duplicates:
-                bam = picard_mark_and_remove_dupes(log, sample, sample_dir, bam)
+                bam = picard_mark_and_remove_dupes(log, sample, sample_dir, bam, "pe")
             else:
                 log.info("You have selected to keep apparent duplicate reads")
-        #if fastq.singleton:
+        if fastq.singleton:
             # bwa align singleton reads
-        #    pass
+            bam_se = bwa_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+            # clean the bam up (MAPq 0 and trim overlapping reads)
+            bam_se = picard_clean_up_bam(log, sample, sample_dir, bam_se, "se")
+            # get flowcell id
+            fc = flowcells[sample]
+            bam_se = picard_add_rg_header_info(log, sample, sample_dir, fc, bam_se, "se")
+            if not args.no_remove_duplicates:
+                bam_se = picard_mark_and_remove_dupes(log, sample, sample_dir, bam_se, "se")
+            else:
+                log.info("You have selected to keep apparent duplicate reads")
+        if bam and bam_se:
+            bam = picard_merge_two_bams(log, sample, sample_dir, bam, bam_se)
+        elif bam_se and not bam:
+            bam = bam_se
+        if not bam:
+            raise IOError("There is no BAM file.  Check bwa log files for problems.")
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
