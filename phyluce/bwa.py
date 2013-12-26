@@ -295,10 +295,10 @@ def picard_merge_two_bams(log, sample, sample_dir, bam, bam_se):
     return new_bam
 
 
-def picard_mark_and_remove_dupes(log, sample, sample_dir, bam):
+def picard_mark_and_remove_dupes(log, sample, sample_dir, bam, type):
     log.info("Removing read duplicates from BAM for {}".format(sample))
-    new_bam = new_bam_name(bam, "DD")
-    metricsfile = os.path.join(sample_dir, "{}.picard-metricsfile.txt".format(sample))
+    new_bam = new_bam_name(bam, "MD")
+    metricsfile = os.path.join(sample_dir, "{}.{}.picard-metricsfile.txt".format(sample, type))
     cmd = [
         JAVA,
         JAVA_PARAMS,
@@ -310,9 +310,9 @@ def picard_mark_and_remove_dupes(log, sample, sample_dir, bam):
         "MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=250",
         "ASSUME_SORTED=true",
         "VALIDATION_STRINGENCY=SILENT",
-        "REMOVE_DUPLICATES=true",
+        "REMOVE_DUPLICATES=false",
     ]
-    picard_dd_out_fname = os.path.join(sample_dir, '{}.picard-DD-out.log'.format(sample))
+    picard_dd_out_fname = os.path.join(sample_dir, '{}.{}.picard-MD-out.log'.format(sample, type))
     with open(picard_dd_out_fname, 'w') as picard_out:
         proc = subprocess.Popen(cmd, stdout=picard_out, stderr=subprocess.STDOUT)
         proc.communicate()
@@ -400,7 +400,11 @@ def gatk_coverage(log, sample, assembly_pth, assembly, cores, bam):
         "-I",
         bam,
         "-o",
-        "{}-coverage".format(sample)
+        "{}-coverage".format(sample),
+        "-nt",
+        str(cores),
+        "--omitIntervalStatistics",
+        "--omitLocusTable"
     ]
     gatk_coverage_fname = os.path.join(assembly_pth, '{}.GATK-coverage-out.log'.format(sample))
     with open(gatk_coverage_fname, 'w') as gatk_out:
@@ -444,9 +448,12 @@ def compute_gatk_coverage_metrics(contig_depth):
     return metadata
 
 
-def get_coverage_from_gatk(log, sample, assembly_pth, coverage):
+def get_coverage_from_gatk(log, sample, assembly_pth, coverage, velvet):
     log.info("Screening and filtering contigs for coverage (3x ends, 5x avg.)")
-    regex = re.compile("(comp\d+_c\d+_seq\d+).*:(\d+)")
+    if not velvet:
+        regex = re.compile("(comp\d+_c\d+_seq\d+).*:(\d+)")
+    else:
+        regex = re.compile("(NODE_\d+_length_\d+_cov_\d+.*):(\d+)")
     # setup starting values
     previous_match = None
     contig_depth = []
@@ -525,7 +532,10 @@ def remove_gatk_coverage_files(log, assembly_pth, coverage):
             with open(file, "rb") as unzip:
                 with gzip.open("{}.gz".format(file), "wb") as zip:
                     zip.writelines(unzip)
+            # remove the unzipped file
+            os.remove(file)
         else:
+            # remove all other files
             log.info("[Remove] {}".format(os.path.basename(file)))
             os.remove(file)
 
@@ -547,6 +557,7 @@ def filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, o
                     seq = seq[start:end]
                     seq.description = "len={}".format(len(seq))
                     outf.write(seq.format('fasta'))
+    return outf_name
 
 
 

@@ -260,7 +260,7 @@ def main():
     else:
         dupefile = None
     log.info("{}".format("-" * 65))
-    for contig in fasta_files:
+    for contig in sorted(fasta_files):
         critter = os.path.basename(contig).split('.')[0].replace('-', "_")
         output = os.path.join(
             args.output,

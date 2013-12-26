@@ -109,7 +109,7 @@ def get_sqlite_loci_for_taxon(log, db, cur, organism, loci):
 
 def create_per_locus_coverage_file(log, output, assembly, organism, locus_map, locus_map_names):
     log.info("Generating per-contig coverage file and interval list for UCE loci.")
-    sq_header_pth = os.path.join(assembly, "Trinity.dict")
+    sq_header_pth = os.path.join(assembly, "contigs.dict")
     interval_list_pth = os.path.join(output, "{}-UCE-matches-interval.list".format(organism))
     coverage_untrimmed = []
     coverage_trimmed = []
@@ -196,7 +196,7 @@ def main():
         if args.resume and os.path.exists(os.path.join(args.output, "{}.reads-on-target.txt".format(organism))):
             log.warn("Skipping previously processed {} data (--resume)".format(organism))
         else:
-            reference = os.path.join(assembly, "Trinity.fasta")
+            reference = os.path.join(assembly, "contigs.fasta")
             bams = glob.glob(os.path.join(assembly, "*.bam"))
             try:
                 assert len(bams) == 1

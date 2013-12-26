@@ -80,6 +80,12 @@ def get_args():
         default=False,
         help="""Use bwa-mem instead of standard bwa""",
     )
+    parser.add_argument(
+        "--velvet",
+        action="store_true",
+        default=False,
+        help="""Compute coverage across velvet/abYss contigs instead of Trinity contigs""",
+    )
     return parser.parse_args()
 
 
@@ -92,6 +98,17 @@ def cleanup_trinity_assembly_folder(log, pth):
                 os.remove(file)
             elif os.path.isdir(file):
                 shutil.rmtree(file)
+
+
+def symlink_trimmed_contigs(log, sample, contig_dir, trimmed_fasta_path):
+    log.info("Symlinking trimmed contigs into contigs-trimmed")
+    try:
+        linkpth = os.path.join(contig_dir, "{}.contigs.fasta".format(sample))
+        relpth = os.path.relpath(trimmed_fasta_path, linkpth)
+        os.symlink(relpth, linkpth)
+    except:
+        log.warn("Unable to symlink {} to {}".format(sample, linkpth))
+
 
 def main():
     # get args and options
@@ -106,6 +123,12 @@ def main():
         bwa = which('bwa')[0]
     except:
         raise EnvironmentError("Cannot find bwa.  Ensure it is installed and in your $PATH")
+    # make the symlink directory within the output directory
+    contig_dir = os.path.join(args.assemblies, 'contigs-trimmed')
+    if not os.path.isdir(contig_dir):
+        os.makedirs(contig_dir)
+    else:
+        pass
     for group in input:
         sample, reads = group
         # pretty print taxon status
@@ -113,7 +136,7 @@ def main():
         log.info(text.center(65, "-"))
         # ensure that assembly exists
         assembly_pth = os.path.join(args.assemblies, sample)
-        assembly = os.path.join(assembly_pth, "Trinity.fasta")
+        assembly = os.path.join(assembly_pth, "contigs.fasta")
         if not os.path.exists(assembly):
             raise IOError("Assembly for {} does not appear to exist.".format(sample))
         if args.clean:
@@ -134,23 +157,36 @@ def main():
             bam = bwa_pe_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1, fastq.r2)
             bam = picard_clean_up_bam(log, sample, assembly_pth, bam, "pe")
             bam = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam, "pe")
+        # get singleton reads for alignment
         if args.bwa_mem and fastq.singleton:
             bam_se = bwa_mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
+            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+        # if we only have se reads, those will be in fastq.r1 only
+        elif args.bwa_mem and not fastq.r2 and fastq.r1:
+            bam_se = bwa_mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
             bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
             bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         elif not args.bwa_mem and fastq.singleton:
             bam_se = bwa_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
             bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
             bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+        elif not args.bwa_mem and not fastq.r2 and fastq.r1:
+            bam_se = bwa_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
+            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         if bam and bam_se:
             bam = picard_merge_two_bams(log, sample, assembly_pth, bam, bam_se)
         elif bam_se and not bam:
             bam = bam_se
+        if not bam:
+            raise IOError("There is no BAM file.  Check bwa log files for problems.")
         samtools_index(log, sample, assembly_pth, bam)
         coverage = gatk_coverage(log, sample, assembly_pth, assembly, args.cores, bam)
-        overall_contigs = get_coverage_from_gatk(log, sample, assembly_pth, coverage)
+        overall_contigs = get_coverage_from_gatk(log, sample, assembly_pth, coverage, args.velvet)
         remove_gatk_coverage_files(log, assembly_pth, coverage)
-        filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, overall_contigs)
+        trimmed_fasta_path = filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, overall_contigs)
+        symlink_trimmed_contigs(log, sample, contig_dir, trimmed_fasta_path)
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
