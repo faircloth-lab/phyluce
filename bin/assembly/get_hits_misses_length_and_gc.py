@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 File: get_hits_misses_length_and_gc.py
 Author: Brant Faircloth

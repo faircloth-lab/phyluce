@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 File: get_AMOS_coverage_for_contigs.py
 Author: Brant Faircloth

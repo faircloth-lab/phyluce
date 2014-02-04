@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 File: assemblo.py
 Author: Brant Faircloth

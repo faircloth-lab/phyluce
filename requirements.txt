@@ -1,0 +1,3 @@
+biopython
+bx-python
+numpy
