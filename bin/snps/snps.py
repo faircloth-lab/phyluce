@@ -21,7 +21,7 @@ import ConfigParser
 from phyluce.log import setup_logging
 from phyluce.third_party import which
 from phyluce.helpers import FullPaths, is_dir, is_file
-from phyluce.raw_reads import get_fastq_input_files
+from phyluce.raw_reads import get_input_files
 from phyluce.bwa import *
 
 import pdb
@@ -134,7 +134,7 @@ def main():
         sample_dir = os.path.join(args.output, sample)
         os.makedirs(sample_dir)
         # determine how many files we're dealing with
-        fastq = get_fastq_input_files(dir, args.subfolder, log)
+        fastq = get_input_files(dir, args.subfolder, log)
         if fastq.r1 and fastq.r2:
             # bwa align r1 and r2
             bam = bwa_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
