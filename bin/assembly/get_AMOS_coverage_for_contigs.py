@@ -52,6 +52,7 @@ import shutil
 import sqlite3
 import argparse
 import subprocess
+from phyluce.third_party import which
 
 import pdb
 
@@ -79,18 +80,18 @@ def get_args():
     return parser.parse_args()
 
 
-def create_bnk(amos, infile, bank):
+def create_bnk(infile, bank):
     print "\tCreating AMOS bnk file..."
-    cmd = [os.path.join(amos, 'Bank/bank-transact'), '-m', infile, '-b', bank, '-c']
+    cmd = [which('bank-transact')[0], '-m', infile, '-b', bank, '-c']
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
     output = process.communicate()
     return output
 
 
-def get_overall_cvg(amos, infile, bank, outfile):
+def get_overall_cvg(infile, bank, outfile):
     print "\tGetting read depth..."
-    cmd = [os.path.join(amos, 'Validation/analyze-read-depth'), bank, '-d']
+    cmd = [which('analyze-read-depth')[0], bank, '-d']
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
@@ -98,9 +99,9 @@ def get_overall_cvg(amos, infile, bank, outfile):
     outfile.write("{},{},{},{},".format(infile, results[1], results[2], results[3]))
 
 
-def get_cvg_stat(amos, infile, bank):
+def get_cvg_stat(infile, bank):
     print "\tGetting all loci cvgStat..."
-    cmd = [os.path.join(amos, 'Utils/cvgStat'), '-b', bank]
+    cmd = [which('cvgStat')[0], '-b', bank]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
@@ -152,9 +153,9 @@ def get_loci_list(db, fullpath):
     return nodenames
 
 
-def get_uce_cvg(amos, infile, bank, iid, outfile):
+def get_uce_cvg(infile, bank, iid, outfile):
     print "\tGetting UCE cvgStat..."
-    cmd = [os.path.join(amos, 'Validation/analyze-read-depth'), bank, '-d', '-I', iid]
+    cmd = [which('analyze-read-depth')[0], bank, '-d', '-I', iid]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
@@ -165,7 +166,14 @@ def get_uce_cvg(amos, infile, bank, iid, outfile):
 
 def main():
     args = get_args()
-    amos = "/Users/bcf/Source/amos-3.0.0/src/"
+    try:
+        which('analyze-read-depth')
+        which('bank-transact')
+        which('cvgStat')
+    except EnvironmentError as e:
+        print "Missing AMOS install: {}".format(e)
+        sys.exit(1)
+
     args.outfile.write("filename,contigs,bp-in-contigs,contig-coverage,uce-contigs,bp-in-uce-contigs,uce-coverage\n")
     for root, dirs, infiles in os.walk(args.contigs):
         for infile in infiles:
@@ -182,22 +190,22 @@ def main():
                     answer = raw_input("\tBNK file exists, overwrite [Y/n]? ")
                     if answer == "Y":
                         shutil.rmtree(bank)
-                        create_bnk(amos, fullpath, bank)
+                        create_bnk(fullpath, bank)
                     else:
                         answer = raw_input("\tWould you like to proceed" \
                             + " with the existing BNK file [Y/n]? ")
                         if answer != "Y":
                             sys.exit()
                 else:
-                    create_bnk(amos, fullpath, bank)
+                    create_bnk(fullpath, bank)
                 # get the coverage
-                get_overall_cvg(amos, fullpath, bank, args.outfile)
+                get_overall_cvg(fullpath, bank, args.outfile)
                 # for UCE loci, get the coverage of those loci, only:
                 if args.db:
-                    cvg = get_cvg_stat(amos, fullpath, bank)
+                    cvg = get_cvg_stat(fullpath, bank)
                     nodenames = get_loci_list(args.db, fullpath)
                     iid = get_iids_from_cvg_stat(cvg, nodenames, fullpath)
-                    uce_cvg = get_uce_cvg(amos, infile, bank, iid, args.outfile)                  
+                    uce_cvg = get_uce_cvg(infile, bank, iid, args.outfile)
                 else:
                     pass
     args.outfile.close()
