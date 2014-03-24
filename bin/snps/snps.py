@@ -79,6 +79,12 @@ def get_args():
         default=False,
         help="""Do not remove duplicate reads.""",
     )
+    parser.add_argument(
+        "--mem",
+        action="store_true",
+        default=False,
+        help="""Use bwa mem.""",
+    )
     return parser.parse_args()
 
 
@@ -124,6 +130,8 @@ def main():
     log.info("Getting input filenames and creating output directories")
     reference, individuals = get_input_data(log, conf, args.output)
     flowcells = dict(conf.items("flowcell"))
+    if args.mem:
+        log.info("You are running BWA-MEM")
     for indiv in individuals:
         bam, bam_se = False, False
         sample, dir = indiv
@@ -137,7 +145,10 @@ def main():
         fastq = get_input_files(dir, args.subfolder, log)
         if fastq.r1 and fastq.r2:
             # bwa align r1 and r2
-            bam = bwa_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+            if args.mem:
+                bam = bwa_mem_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+            else:
+                bam = bwa_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
             # clean the bam up (MAPq 0 and trim overlapping reads)
             bam = picard_clean_up_bam(log, sample, sample_dir, bam, "pe")
             # get flowcell id
@@ -149,7 +160,10 @@ def main():
                 log.info("You have selected to keep apparent duplicate reads")
         if fastq.singleton:
             # bwa align singleton reads
-            bam_se = bwa_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+            if args.mem:
+                bam_se = bwa_mem_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+            else:
+                bam_se = bwa_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
             # clean the bam up (MAPq 0 and trim overlapping reads)
             bam_se = picard_clean_up_bam(log, sample, sample_dir, bam_se, "se")
             # get flowcell id

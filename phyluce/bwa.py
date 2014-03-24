@@ -296,7 +296,7 @@ def picard_merge_two_bams(log, sample, sample_dir, bam, bam_se):
 
 
 def picard_mark_and_remove_dupes(log, sample, sample_dir, bam, type):
-    log.info("Removing read duplicates from BAM for {}".format(sample))
+    log.info("Marking read duplicates from BAM for {}".format(sample))
     new_bam = new_bam_name(bam, "MD")
     metricsfile = os.path.join(sample_dir, "{}.{}.picard-metricsfile.txt".format(sample, type))
     cmd = [
