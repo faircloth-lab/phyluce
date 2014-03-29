@@ -21,7 +21,7 @@ import ConfigParser
 from phyluce.log import setup_logging
 from phyluce.third_party import which
 from phyluce.helpers import FullPaths, is_dir, is_file
-from phyluce.raw_reads import get_fastq_input_files
+from phyluce.raw_reads import get_input_files
 from phyluce.bwa import *
 
 import pdb
@@ -79,6 +79,12 @@ def get_args():
         default=False,
         help="""Do not remove duplicate reads.""",
     )
+    parser.add_argument(
+        "--mem",
+        action="store_true",
+        default=False,
+        help="""Use bwa mem.""",
+    )
     return parser.parse_args()
 
 
@@ -124,6 +130,8 @@ def main():
     log.info("Getting input filenames and creating output directories")
     reference, individuals = get_input_data(log, conf, args.output)
     flowcells = dict(conf.items("flowcell"))
+    if args.mem:
+        log.info("You are running BWA-MEM")
     for indiv in individuals:
         bam, bam_se = False, False
         sample, dir = indiv
@@ -134,10 +142,13 @@ def main():
         sample_dir = os.path.join(args.output, sample)
         os.makedirs(sample_dir)
         # determine how many files we're dealing with
-        fastq = get_fastq_input_files(dir, args.subfolder, log)
+        fastq = get_input_files(dir, args.subfolder, log)
         if fastq.r1 and fastq.r2:
             # bwa align r1 and r2
-            bam = bwa_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+            if args.mem:
+                bam = bwa_mem_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+            else:
+                bam = bwa_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
             # clean the bam up (MAPq 0 and trim overlapping reads)
             bam = picard_clean_up_bam(log, sample, sample_dir, bam, "pe")
             # get flowcell id
@@ -149,7 +160,10 @@ def main():
                 log.info("You have selected to keep apparent duplicate reads")
         if fastq.singleton:
             # bwa align singleton reads
-            bam_se = bwa_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+            if args.mem:
+                bam_se = bwa_mem_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+            else:
+                bam_se = bwa_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
             # clean the bam up (MAPq 0 and trim overlapping reads)
             bam_se = picard_clean_up_bam(log, sample, sample_dir, bam_se, "se")
             # get flowcell id

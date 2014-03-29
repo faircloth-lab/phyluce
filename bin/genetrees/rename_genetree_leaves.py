@@ -45,6 +45,7 @@ def get_args():
     parser.add_argument(
             "order",
             type=str,
+            default="short:long",
             choices = ["short:long", "long:short"],
             help="""The order of names in the config file to use"""
         )
@@ -77,9 +78,10 @@ def main():
     conf.read(args.config)
     names = conf.items(args.section)
     if args.order == "short:long":
-        names = dict([(name[0].upper(), name[1]) for name in names])
+        names = dict([(name[0].replace("-","_").upper(), name[1]) for name in names])
     elif args.order == "long:short":
-        names = dict([(name[1].upper(), name[0]) for name in names])
+        names = dict([(name[1].replace("-","_").upper(), name[0]) for name in names])
+    #pdb.set_trace()
     trees = dendropy.TreeList(stream=open(args.input), schema=args.input_format)
     new_labels = []
     for tree in trees:

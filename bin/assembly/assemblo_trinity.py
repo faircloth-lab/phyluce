@@ -75,6 +75,12 @@ def get_args():
         default=False,
         help="""Cleanup all intermediate Trinity files""",
     )
+    parser.add_argument(
+        "--min-kmer-coverage",
+        type=int,
+        default=2,
+        help="""The min_kmer_coverage for trinity""",
+    )
     # one of these is required.  The other will be set to None.
     input = parser.add_mutually_exclusive_group(required=True)
     input.add_argument(
@@ -124,7 +130,7 @@ def combine_read_data(reads, log):
     reads.set_read('singleton', None, None)
 
 
-def run_trinity_pe(trinity, reads, cores, log):
+def run_trinity_pe(trinity, reads, cores, min_kmer, log):
     log.info("Running Trinity.pl for PE data")
     cmd = [
         trinity,
@@ -133,7 +139,7 @@ def run_trinity_pe(trinity, reads, cores, log):
         "--JM",
         "10G",
         "--min_kmer_cov",
-        "2",
+        str(min_kmer),
         "--left",
         os.path.join(reads.r1.dir, reads.r1.file),
         "--right",
@@ -170,7 +176,7 @@ def run_trinity_pe(trinity, reads, cores, log):
     return reads.r1.dir
 
 
-def run_trinity_se(trinity, reads, cores, log):
+def run_trinity_se(trinity, reads, cores, min_kmer, log):
     log.info("Running Trinity.pl for SE data")
     cmd = [
         trinity,
@@ -179,7 +185,7 @@ def run_trinity_se(trinity, reads, cores, log):
         "--JM",
         "10G",
         "--min_kmer_cov",
-        "2",
+        str(min_kmer),
         "--single",
         os.path.join(reads.r1.dir, reads.r1.file),
         "--CPU",
@@ -288,21 +294,21 @@ def main():
         if reads.r1 and reads.r2 and reads.singleton:
             copy_read_data(reads, sample_dir, log)
             combine_read_data(reads, log)
-            output = run_trinity_pe(trinity, reads, args.cores, log)
+            output = run_trinity_pe(trinity, reads, args.cores, args.min_kmer_coverage, log)
             if args.clean:
                 cleanup_trinity_assembly_folder(output, log)
         # we don't need to combine singleton files here.  copy
         # the read data over and run the assembly for PE data
         elif reads.r1 and reads.r2:
             copy_read_data(reads, sample_dir, log)
-            output = run_trinity_pe(trinity, reads, args.cores, log)
+            output = run_trinity_pe(trinity, reads, args.cores, args.min_kmer_coverage, log)
             if args.clean:
                 cleanup_trinity_assembly_folder(output, log)
         # here, we don't have PE data, so copy the file over
         # and run the assembly for SE data
         elif reads.r1:
             copy_read_data(reads, sample_dir, log)
-            output = run_trinity_se(trinity, reads, args.cores, log)
+            output = run_trinity_se(trinity, reads, args.cores, args.min_kmer_coverage, log)
             if args.clean:
                 cleanup_trinity_assembly_folder(output, log)
         # generate symlinks to assembled contigs

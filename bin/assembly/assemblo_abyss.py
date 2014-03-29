@@ -140,8 +140,38 @@ def run_abyss_pe(abyss_pe, kmer, reads, cores, output, log):
     os.chdir(start_dir)
     return output
 
+def run_abyss_se(abyss_se, kmer, reads, output, log):
+    log.info("Running abyss-se against data")
+    # we're going to move into the working dir so getcwd
+    start_dir = os.getcwd()
+    # make and switch to the working dir
+    name = "out_k{}".format(kmer)
+    os.chdir(output)
+    cmd = [
+        abyss_se,
+        '-k',
+        str(kmer),
+        '-o',
+        "out_k{}-contigs.fa".format(kmer, name),
+        os.path.join(reads.r1.dir, reads.r1.file)
+    ]
+    try:
+        stdpth = 'abyss-k{}.out.log'.format(kmer)
+        errpth = 'abyss-k{}.err.log'.format(kmer)
+        with open(stdpth, 'w') as out:
+            with open(errpth, 'w') as err:
+                proc = subprocess.Popen(cmd, stdout=out, stderr=err)
+                proc.communicate()
+    except:
+        log.critical("Could not assemble {}".format(reads.r1.dir))
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
+    # move back to dir where we started
+    os.chdir(start_dir)
+    return output
 
-def cleanup_abyss_assembly_folder(output, log):
+
+def cleanup_abyss_assembly_folder(output, log, single_end=False):
     # we want to keep coverage hist
     keep = ['coverage.hist']
     files = glob.glob(os.path.join(output, '*'))
@@ -159,6 +189,12 @@ def cleanup_abyss_assembly_folder(output, log):
             os.remove(link)
             shutil.move(real, link)
             keep.append(os.path.basename(link))
+    # add any remaining fasta files
+    # to keep
+    if single_end:
+        for file in files:
+            if os.path.splitext(file)[1] == '.fa':
+                keep.append(os.path.basename(file))
     # remove the stuff we don't want to keep
     for f in glob.glob(os.path.join(output, '*')):
         if os.path.basename(f) not in keep:
@@ -255,10 +291,13 @@ def main():
         if reads.r1 and reads.r2:
             output = run_abyss_pe(abyss_pe, args.kmer, reads, args.cores,
                                   sample_dir, log)
+            if args.clean:
+                cleanup_abyss_assembly_folder(output, log)
         elif reads.r1 and not reads.r2:
-            pass
-        if args.clean:
-            cleanup_abyss_assembly_folder(output, log)
+            output = run_abyss_se(abyss_se, args.kmer, reads,
+                                  sample_dir, log)
+            if args.clean:
+                cleanup_abyss_assembly_folder(output, log, single_end=True)
         contigs_file = get_contigs_file_from_output(output)
         # remove degenerate bases, contigs < 100 bp, and rename
         # contigs to velvet-style naming
@@ -267,17 +306,6 @@ def main():
         generate_within_dir_symlink(contigs_file)
         # link to the standard (non-trimmed) assembly in ../contigs
         generate_symlinks(contig_dir, sample, contigs_file, log)
-        '''
-        # here, we don't have PE data, so copy the file over
-        # and run the assembly for SE data
-        elif fastq.r1:
-            copy_read_data(fastq, sample_dir, log)
-            output = run_trinity_se(trinity, fastq, args.cores, log)
-            if args.clean:
-                cleanup_trinity_assembly_folder(output, log)
-        # generate symlinks to assembled contigs
-        generate_symlinks(contig_dir, sample, fastq, log)
-        '''
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
