@@ -24,7 +24,7 @@ from Bio.Align import MultipleSeqAlignment
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file, get_alignment_files
 from phyluce.log import setup_logging
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -182,10 +182,12 @@ def main():
     log, my_name = setup_logging(args)
     # read config file output by match_count_config.py
     config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.optionxform = str
     config.read(args.match_count_output)
     # read the incomplete matrix file that contains loci that are incomplete
     if args.incomplete_matrix:
         incomplete = ConfigParser.RawConfigParser(allow_no_value=True)
+        incomplete.optionxform = str
         incomplete.read(args.incomplete_matrix)
         missing = get_missing_loci_from_conf_file(incomplete)
     else:
