@@ -59,7 +59,7 @@ def main():
                 link_name = "{}.contigs.fasta".format(taxon[0])
                 link_path = os.path.join(args.symlinks, link_name)
                 if os.path.islink(link_path):
-                    link = os.readlink(link_path)
+                    link = os.path.realpath(link_path)
                     dst = os.path.join(args.output, link_name)
                     links += ((link, dst),)
                 else:
