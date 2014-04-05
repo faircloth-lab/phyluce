@@ -69,6 +69,12 @@ def get_args():
             help="""Insert results to an existing database""",
         )
     parser.add_argument(
+            "--no-dir",
+            action="store_true",
+            default=True,
+            help="""If genome sequences are not in their own abbr. directory""",
+        )
+    parser.add_argument(
             "--cores",
             type=int,
             default=1,
@@ -231,7 +237,10 @@ def main():
     # connect to the db
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
-    path = os.path.join("{0}".format(args.base_path), "{0}/{0}.2bit")
+    if not args.no_dir:
+        path = os.path.join("{0}".format(args.base_path), "{0}/{0}.2bit")
+    else:
+        path = os.path.join("{0}".format(args.base_path), "{0}.2bit")
     check_for_all_genome_sequences(args.chromolist, args.scaffoldlist, path)
     # create a species table if not exists
     create_species_table(conn, cur, args.append)
