@@ -148,7 +148,6 @@ def middle_overlapper(region, args):
     tile_overlap = args.length - (args.length/args.density)
     tile_non_overlap = args.length - tile_overlap
     coords = []
-    #pdb.set_trace()
     middle = seq_len/2
     halfsies = tile_overlap/2
     r_prb_strt = middle - halfsies - extra
