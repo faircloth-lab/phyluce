@@ -74,7 +74,8 @@ def get_dupes(lastz_file, format):
         # if the probe doesn't match itself, we have
         # problems
         if len(v) == 1:
-            assert pos == v[0], "no match"
+            if not pos == v[0]:
+                dupes.add(name)
         elif v > 1:
             dupes.add(name)
     # make sure all names are lowercase
