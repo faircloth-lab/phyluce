@@ -27,123 +27,84 @@ Future directions:
 """
 
 import os
-import re
 import sys
 import gzip
-import glob
 import argparse
 import dendropy
-import textwrap
-from operator import itemgetter
 import rpy2.robjects as robjects
 from multiprocessing import Pool
 
+from phyluce.helpers import FullPaths, is_file
+
 import pdb
 
-def interface():
-    """ create commandline interface for script"""
 
-    description="""
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Phybase.py calculates species trees from gene trees."""
+    )
+    parser.add_argument(
+        "--input",
+        required=True,
+        action=FullPaths,
+        type=is_file,
+        help="""The path to the input genetrees or bootreps.  Must be parsed""" +
+        """ using reformat_raxml_output.py."""
+    )
+    parser.add_argument(
+        "--outgroup",
+        type=str,
+        default=None,
+        help="""The name of the outgroup on which the trees are rooted.""" +
+        """Not needed for NJst"""
+    )
+    parser.add_argument(
+        "--method",
+        choices=["star", "njst"],
+        default="njst",
+        help="""The method to use."""
+    )
+    parser.add_argument(
+        '--cores',
+        type = int,
+        default = 1,
+        help='The number of compute cores to use'
+    )
+    t = parser.add_mutually_exclusive_group(required=True)
+    t.add_argument(
+        '--genetrees',
+        action='store_true',
+        help='Choose this if you want to generate the species tree from gene trees.'
+    )
+    t.add_argument(
+        '--bootreps',
+        action='store_true',
+        help="""Choose this if you want to generate support values for bootrepped""" +
+        """ gene trees"""
+    )
 
-Phybase.py calculates species trees from gene trees.
-Phybase.py is actually a wrapper script that runs an R package
-of the same name (Liu & Yu 2010).
+    args = parser.parse_args()
 
-Dependancies:
--------------
-
-Phybase R package: basic functions for phylogenetic analysis
-    Installation:
-        At the R prompt type 'install.packages("Phybase")'
-    Website: http://cran.r-project.org/web/packages/phybase/index.html
-
-DendroPy: phylogenetic computing library:
-    Installation: sudo easy_install -U dendropy
-    Website: http://packages.python.org/DendroPy/
-
-Rpy2: simple and efficient access to R from Python
-    Installation: sudo easy_install -U rpy2
-    Website: http://rpy.sourceforge.net/rpy2.html
-
-Argparse: present in python 2.7 and later (I think)
-
-References:
------------
-Liu, L., & Yu, L. (2010). Phybase: an R package for species tree
-analysis. Bioinformatics (Oxford, England).
-doi:10.1093/bioinformatics/btq062
-"""
-
-    p = argparse.ArgumentParser(description,)
-
-    p.add_argument('--input-file','-i',
-        help='Path to input file.')
-    p.add_argument('--outgroup','-o',
-        help='Name of outgroup.')
-    p.add_argument('--method','-m',
-        choices=['star', 'njst'],
-        default='star',
-        help='Phybase method to use.')
-    p.add_argument('--genetrees','-g', action='store_true',
-        help='Set this flag if the input is genetrees and you want the species tree.')
-    p.add_argument('--bootstraps','-b', action='store_true',
-        help='Set this flag if the input is bootstraps and you want multiple species trees.')
-    p.add_argument('--print-taxa','-p', action='store_true',
-        help='Print all the taxon names in the first tree.')
-    p.add_argument('--sorted','-s', action='store_true',
-        help='Set this flag if your bootstraps are sorted by key.')
-    p.add_argument('--cores','-c', type = int, default = 1,
-        help='The number of compute cores to use')
-
-    args = p.parse_args()
-
-    # check options for errors, etc.
-    if args.input_file == None:
-        print "Input directory required."
-        print "Type 'python phybase.py -h' for details"
+    if args.method == 'star' and args.outgroup == None:
+        raise ValueError("'star' method requires you to specify an outgroup")
         sys.exit()
-
-    if args.genetrees == True and args.bootstraps == True:
-        print "You must pick either genetrees or bootstraps,"
-        print "but not both."
-        print "Type 'python phybase.py -h' for details"
-        sys.exit()
-
-    if args.genetrees == False and args.bootstraps == False and args.sorted == False and args.print_taxa == False:
-        print "You must select either --genetrees, --bootstraps, --sorted, or --print-taxa"
-        print "Type 'python phybase.py -h' for details"
-        sys.exit()
-
-    if args.print_taxa != True and args.method == 'star' and args.outgroup == None:
-        print 'You much define an outgroup'
-        print "Type 'python phybase.py -h' for details"
-        sys.exit()
-
-    if args.outgroup:
-        args.outgroup = args.outgroup.upper()
 
     return args
 
 
-def cleanPhybaseTree(tree):
-    tree.strip("\"")
-    tree = tree.split("\"")
-    return tree[1]
-
-
-def remove_branch_lengths(str_newick_tree):
+def remove_support_values(str_newick_tree):
     tree = dendropy.Tree()
     tree.read_from_string(str_newick_tree, 'newick')
     for nd in tree:
         nd.label = None
-    tree = tree.as_newick_string()
     return tree
 
 
 def branch_lengths_2_decimals(str_newick_tree):
     """replaces branch lengths in scientific notation with decimals"""
     colon_s = 0
-    comma_back_paren_s = 0
+    #comma_back_paren_s = 0
     num = ''
     new_tree = ''
     for count, char in enumerate(str_newick_tree):
@@ -151,7 +112,7 @@ def branch_lengths_2_decimals(str_newick_tree):
             colon_s = count
             continue
         if char in (')', ','):
-            comma_back_paren_s = 1
+            #comma_back_paren_s = 1
             num = '%f' % float(num)
             new_tree += ":" + num
             colon_s = 0
@@ -164,19 +125,16 @@ def branch_lengths_2_decimals(str_newick_tree):
     return new_tree
 
 
-def cleanPhyMLTree(tree, upper=True):
+def clean_phyml_tree(tree, upper=False):
     tree = tree.strip()
-    tree = remove_branch_lengths(tree)
-    # removes support values (=total hack)
-    tree = dendropy.Tree.get_from_string(tree, 'newick')
+    tree = remove_support_values(tree)
     if upper:
         for leaf in tree.leaf_nodes():
             leaf.taxon.label = leaf.taxon.label.upper()
-    # lowercase names
     tree = tree.as_newick_string()
     # converts numbers in sci. notation
     # to decimals (e.g., 1e-22 = 0.000000)
-    tree = branch_lengths_2_decimals(tree)
+    #tree = branch_lengths_2_decimals(tree)
     return tree
 
 
@@ -267,7 +225,7 @@ class Phybase:
         }
         ''')
 
-    def cleanPhybaseTree(self, tree):
+    def clean_phybase_tree(self, tree):
         tree.strip("\"")
         tree = tree.split("\"")
         return tree[1]
@@ -284,8 +242,8 @@ class Phybase:
                                                 species_structure, outgroup, 'nj')
         steac_sptree = self.obj.r['steac.sptree'](trees, species_spname, species_taxaname,\
                                                 species_structure, outgroup, 'nj')
-        star_sptree = self.cleanPhybaseTree(str(star_sptree))
-        steac_sptree = self.cleanPhybaseTree(str(steac_sptree))
+        star_sptree = self.clean_phybase_tree(str(star_sptree))
+        steac_sptree = self.clean_phybase_tree(str(steac_sptree))
         return (star_sptree, steac_sptree)
 
     def njst(self, trees, all_taxa):
@@ -299,22 +257,9 @@ class Phybase:
         species_structure = self.obj.r['diag'](1, matrix_size, matrix_size)
         # run NJst
         njst_sptree = self.obj.r['NJst'](trees, species_spname, species_taxaname, species_structure)
-        njst_sptree = self.cleanPhybaseTree(str(njst_sptree))
+        njst_sptree = self.clean_phybase_tree(str(njst_sptree))
         return (njst_sptree)
 
-'''
-def phyMLTrees(directory):
-    """ get and format for phybase() PhyML 3.0 trees in a directory."""
-    # this 'taxa_labels portion' corrects a bug where some trees are
-    # missing expected taxa. This should be fixed such that it simply
-    # checks for an expected number of taxa and no duplicates
-    tree_list = []
-    for tree_file in glob.glob(os.path.join(directory, '*tree.txt')):
-        for tree in open(tree_file,'r'):
-            tree = cleanTree(tree)
-            tree_list.append(tree)
-    return tree_list
-'''
 
 def consensus(tree_list, min_freq=0.5):
     trees = dendropy.TreeList()
@@ -326,7 +271,7 @@ def consensus(tree_list, min_freq=0.5):
     return con_tree.as_string('newick')
 
 
-def getTaxa(trees):
+def get_taxa(trees):
     # need to iterate over all trees to ensure we have full list of taxon names
     taxa = set()
     for tree in trees:
@@ -338,70 +283,23 @@ def getTaxa(trees):
     return list(taxa)
 
 
-def parseBootreps(args):
-    bootreps = {}
-    fin = open(args.input_file, 'rU')
-    taxa = []
-    for count, line in enumerate(fin):
-        key, tree = line.split("\t")
-        tree = cleanPhyMLTree(tree)
-        if count == 0:
-            taxa = getTaxa(tree)
-        if bootreps.has_key(key) != True:
-            bootreps[key] = [tree]
-        else:
-            bootreps[key].append(tree)
-    star_fout = open(os.path.splitext(args.input_file)[0] + '.star.trees', 'w')
-    steac_fout = open(os.path.splitext(args.input_file)[0] + '.steac.trees', 'w')
-    steac_trees = []
-    star_trees = []
-    print 'starting bootreps'
-    for count, key in enumerate(bootreps.keys()):
-        trees = bootreps[key]
-        star_tree, steac_tree = phybase(trees, args.outgroup, taxa)
-        steac_trees.append(steac_tree)
-        star_trees.append(star_tree)
-        star_fout.write(star_tree)
-        steac_fout.write(steac_tree)
-        print 'processed', count
-    steac_consensus = consensus(steac_trees)
-    star_consensus = consensus(star_trees)
-    template = """#NEXUS\n
-                    begin trees;\n
-                    tree 'STARConsensus' = %s\n
-                    tree 'STEACConsensus' = %s\n
-                    end;\n""" % (star_consensus, steac_consensus)
-    template = textwrap.dedent(template)
-    steac_star_cons_out = os.path.splitext(args.input_file)[0]
-    steac_star_cons_out = os.path.join(steac_star_cons_out, 'steac_star.consensus.trees')
-    steac_star_cons_out.write(template)
-
-
 def get_file_chunks(args):
     # LOOP THROUGH SORTED FILE
-    if os.path.splitext(args.input_file)[-1] == '.gz':
-        f = gzip.open(args.input_file)
+    if os.path.splitext(args.input)[-1] == '.gz':
+        f = gzip.open(args.input)
     else:
-        f = open(args.input_file)
-    # if gzip, skip a line
-    if os.path.splitext(args.input_file)[-1] == '.gz':
-        f.readline()
-    #taxa = None
+        f = open(args.input)
     while 1:
         start = f.tell()
         line = f.readline()
         if not line:
             break
         bootrep, tree = line.split("\t")
-        #if not taxa:
-        #    tree = cleanPhyMLTree(tree)
-        #    taxa = getTaxa((tree,))
         while line.split("\t")[0] == bootrep:
             line = f.readline()
         else:
-            #pdb.set_trace()
             f.seek(-len(line), 1)
-            yield start, f.tell() - start, args.input_file, args.outgroup, args.method
+            yield start, f.tell() - start, args.input, args.outgroup, args.method
     f.close()
 
 
@@ -422,21 +320,21 @@ def worker(work):
     data = get_chunk_data(start, stop, input)
     # instantiate Phybase
     phybase = Phybase()
-    iden = data[0].split("\t")[0]
-    trees = [cleanPhyMLTree(d.split("\t")[1]) for d in data]
-    taxa = getTaxa(trees)
+    trees = [clean_phyml_tree(d.split("\t")[1]) for d in data]
+    taxa = get_taxa(trees)
     if method == 'star':
         results = phybase.run(trees, outgroup, taxa)
     elif method == 'njst':
         results = phybase.njst(trees, taxa)
-    print 'processed', len(trees), \
-        'trees of bootstrap replicate', iden
+    sys.stdout.write(".")
+    sys.stdout.flush()
     return results
 
 
-def parseSortedBootreps(args):
-    """docstring for parseBootreps"""
+def parse_bootreps(args):
+    """docstring for parse_bootreps"""
     chunks = get_file_chunks(args)
+    print "Running"
     if args.cores > 1:
         p = Pool(args.cores)
         results = p.map(worker, chunks)
@@ -445,10 +343,10 @@ def parseSortedBootreps(args):
         results = map(worker, chunks)
     if args.method == 'star':
         # SETUP OUTPUT FILES
-        star_file = os.path.splitext(args.input_file)[0]
+        star_file = os.path.splitext(args.input)[0]
         star_file += '.star.bootrep.trees'
         star_fout = open(star_file, 'w')
-        steac_file = os.path.splitext(args.input_file)[0]
+        steac_file = os.path.splitext(args.input)[0]
         steac_file += '.steac.bootrep.trees'
         steac_fout = open(steac_file, 'w')
         all_star = []
@@ -463,14 +361,14 @@ def parseSortedBootreps(args):
         steac_fout.close()
         for tree in [(all_star, ".star.bootrep.consensus.tre"), (all_steac, ".steac.bootrep.consensus.tre")]:
             template = "{0}".format(consensus(tree[0]))
-            steac_star_cons_out = os.path.splitext(args.input_file)[0]
+            steac_star_cons_out = os.path.splitext(args.input)[0]
             steac_star_cons_out += tree[1]
             steac_star_cons_out = open(steac_star_cons_out, 'w')
             steac_star_cons_out.write(template)
             steac_star_cons_out.close()
     elif args.method == 'njst':
         # SETUP OUTPUT FILES
-        njst_file = os.path.splitext(args.input_file)[0]
+        njst_file = os.path.splitext(args.input)[0]
         njst_file += '.njst.bootrep.trees'
         njst_fout = open(njst_file, 'w')
         all_njst = []
@@ -480,34 +378,35 @@ def parseSortedBootreps(args):
         # Clean up files
         njst_fout.close()
         template = "{0}".format(consensus(all_njst))
-        njst_cons_out = os.path.splitext(args.input_file)[0]
+        njst_cons_out = os.path.splitext(args.input)[0]
         njst_cons_out += '.njst.bootrep.consensus.trees'
         njst_cons_out = open(njst_cons_out, 'w')
         njst_cons_out.write(template)
         njst_cons_out.close()
 
+
 def get_genetree_chunks(args, is_nexus):
     """return generator from genetree input file where elements are trees"""
-    if os.path.splitext(args.input_file)[-1] == '.gz':
-        f = gzip.open(args.input_file)
+    if os.path.splitext(args.input)[-1] == '.gz':
+        f = gzip.open(args.input)
     else:
-        f = open(args.input_file)
+        f = open(args.input)
     while 1:
         start = f.tell()
         line = f.readline()
         if not line:
             break
-        yield start, f.tell() - start, args.input_file, is_nexus
+        yield start, f.tell() - start, args.input, is_nexus
     f.close()
 
 
 def clean_genetree_worker(tree_offsets):
     """clean input genetree and return cleaned tree"""
+    start, stop, input, is_nexus = tree_offsets
     sys.stdout.write('.')
     sys.stdout.flush()
-    line = get_chunk_data(tree_offsets)[0]
-    is_nexus = tree_offsets[3]
-    if is_nexus == True:
+    line = get_chunk_data(start, stop, input)[0]
+    if is_nexus:
         if len(line.strip().split("=")) == 2:
             tree = line.strip().split("=")[-1]
             tree = tree.strip()
@@ -516,14 +415,14 @@ def clean_genetree_worker(tree_offsets):
         if "=" in tree:
             tree = tree.split('=')[-1].strip()
     tree = tree.strip(";")
-    tree = cleanPhyMLTree(tree)
+    tree = clean_phyml_tree(tree)
     return tree
 
 
 def parse_genetrees(args):
     """parse a set of genetrees in serial or parallel fashion and run through PHYBASE"""
     is_nexus = False
-    if args.input_file.endswith('.nex') or args.input_file.endswith('.nexus'):
+    if args.input.endswith('.nex') or args.input.endswith('.nexus'):
         is_nexus = True
     chunks = get_genetree_chunks(args, is_nexus)
     print "Cleaning genetrees"
@@ -533,8 +432,10 @@ def parse_genetrees(args):
 	p.close()
     else:
         trees = map(clean_genetree_worker, chunks)
+    # flush after sys.stdout
+    print ""
     # get taxa from first tree
-    taxa = getTaxa(trees)
+    taxa = get_taxa(trees)
     # instantiate Phybase instance and analyse trees
     phybase = Phybase()
     if args.method == 'star':
@@ -545,7 +446,7 @@ def parse_genetrees(args):
                 print "STAR = ", template
             else:
                 print "STEAC = ", template
-            star_steac_out = os.path.splitext(args.input_file)[0]
+            star_steac_out = os.path.splitext(args.input)[0]
             star_steac_out += tree[1]
             star_steac_out = open(star_steac_out, 'w')
             star_steac_out.write(template)
@@ -555,42 +456,19 @@ def parse_genetrees(args):
         # just output newick
         template = "{0}".format(njst_tree)
         print "NJst = ", template
-        njst_out = os.path.splitext(args.input_file)[0]
+        njst_out = os.path.splitext(args.input)[0]
         njst_out += '.njst.species.tre'
         njst_out = open(njst_out, 'w')
         njst_out.write(template)
         njst_out.close()
 
-def print_taxa(args):
-    if os.path.splitext(args.input_file)[-1] == '.gz':
-        fin = gzip.open(args.input_file, 'r')
-    else:
-        fin = open(args.input_file, 'rU')
-    line = fin.readline()
-    for count, line in enumerate(fin):
-        if count == 1:
-            tree = line.split('\t')[-1]
-            taxa = getTaxa(tree)
-            taxa.sort()
-            # remove
-            taxa.pop(0)
-            for taxon_count, taxon in enumerate(taxa, 1):
-                print taxon
-            print "---------\n", taxon_count, 'total taxa.'
-            break
-
 
 def main():
-    args = interface()
-    if args.print_taxa == True:
-        print_taxa(args)
-        sys.exit()
-    if args.bootstraps and not args.sorted:
-        parseBootreps(args)
-    elif args.genetrees:
+    args = get_args()
+    if args.genetrees:
         parse_genetrees(args)
-    elif args.bootstraps and args.sorted:
-        parseSortedBootreps(args)
+    elif args.bootreps:
+        parse_bootreps(args)
 
 if __name__ == '__main__':
     main()
