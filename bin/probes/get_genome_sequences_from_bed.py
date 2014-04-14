@@ -94,7 +94,7 @@ def main():
                 kept += 1
             else:
                 filtered += 1
-    print "Screened {} sequences.  Filtered {} with > {}% masked bases or > {} masked bases. Kept {}.".format(
+    print "Screened {} sequences.  Filtered {} with > {}% masked bases or > {} N-bases. Kept {}.".format(
         cnt + 1,
         filtered,
         args.mask * 100,
