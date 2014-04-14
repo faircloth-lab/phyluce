@@ -13,17 +13,17 @@ to parse NJ trees from Paup and ML trees from PhyMl as the tree formats are slig
 Dependencies:
 
    dendropy - http://packages.python.org/DendroPy/tutorial/index.html
-   rpy2 - http://rpy.sourceforge.net/rpy2.html 
+   rpy2 - http://rpy.sourceforge.net/rpy2.html
    phybase - http://cars.desu.edu/faculty/lliu/research/phybase.html
 
 Future directions:
 
    - add commandline (optparse)
    - add NJtrees fuction
-   - Parsing of trees from Garli 
+   - Parsing of trees from Garli
    - Bootstrapping with Phybase
-   - Nexus output of Steac and Star trees 
-      - also png/svg output? 
+   - Nexus output of Steac and Star trees
+      - also png/svg output?
 """
 
 import os
@@ -42,9 +42,9 @@ import pdb
 
 def interface():
     """ create commandline interface for script"""
-    
+
     description="""
-    
+
 Phybase.py calculates species trees from gene trees.
 Phybase.py is actually a wrapper script that runs an R package
 of the same name (Liu & Yu 2010).
@@ -53,7 +53,7 @@ Dependancies:
 -------------
 
 Phybase R package: basic functions for phylogenetic analysis
-    Installation: 
+    Installation:
         At the R prompt type 'install.packages("Phybase")'
     Website: http://cran.r-project.org/web/packages/phybase/index.html
 
@@ -64,18 +64,18 @@ DendroPy: phylogenetic computing library:
 Rpy2: simple and efficient access to R from Python
     Installation: sudo easy_install -U rpy2
     Website: http://rpy.sourceforge.net/rpy2.html
-    
+
 Argparse: present in python 2.7 and later (I think)
 
 References:
 -----------
-Liu, L., & Yu, L. (2010). Phybase: an R package for species tree 
-analysis. Bioinformatics (Oxford, England). 
-doi:10.1093/bioinformatics/btq062 
+Liu, L., & Yu, L. (2010). Phybase: an R package for species tree
+analysis. Bioinformatics (Oxford, England).
+doi:10.1093/bioinformatics/btq062
 """
-     
+
     p = argparse.ArgumentParser(description,)
-    
+
     p.add_argument('--input-file','-i',
         help='Path to input file.')
     p.add_argument('--outgroup','-o',
@@ -96,29 +96,29 @@ doi:10.1093/bioinformatics/btq062
         help='The number of compute cores to use')
 
     args = p.parse_args()
-    
+
     # check options for errors, etc.
     if args.input_file == None:
         print "Input directory required."
-        print "Type 'python phybase.py -h' for details" 
+        print "Type 'python phybase.py -h' for details"
         sys.exit()
-    
+
     if args.genetrees == True and args.bootstraps == True:
         print "You must pick either genetrees or bootstraps,"
         print "but not both."
-        print "Type 'python phybase.py -h' for details" 
+        print "Type 'python phybase.py -h' for details"
         sys.exit()
 
     if args.genetrees == False and args.bootstraps == False and args.sorted == False and args.print_taxa == False:
         print "You must select either --genetrees, --bootstraps, --sorted, or --print-taxa"
-        print "Type 'python phybase.py -h' for details" 
+        print "Type 'python phybase.py -h' for details"
         sys.exit()
-    
+
     if args.print_taxa != True and args.method == 'star' and args.outgroup == None:
         print 'You much define an outgroup'
-        print "Type 'python phybase.py -h' for details" 
+        print "Type 'python phybase.py -h' for details"
         sys.exit()
-    
+
     if args.outgroup:
         args.outgroup = args.outgroup.upper()
 
@@ -201,7 +201,7 @@ class Phybase:
         sys.stdout = stdout
         self._create_nancdist()
         self._create_njst()
-    
+
     def _create_nancdist(self):
         self.obj.r('''
             nancdist<-function(tree, taxaname)
@@ -226,7 +226,7 @@ class Phybase:
                 z
             }
         ''')
-    
+
     def _create_njst(self):
         self.obj.r('''
         NJst<-function(genetrees, spname, taxaname, species.structure)
@@ -241,7 +241,7 @@ class Phybase:
                 ntaxaofthistree <- length(thistreetaxa)
                 thistreenode <- rep(-1, ntaxaofthistree)
                 dist1<-matrix(0,ntaxa,ntaxa)
-                for (j in 1:ntaxaofthistree) 
+                for (j in 1:ntaxaofthistree)
                 {
                     thistreenode[j] <- which(taxaname == thistreetaxa[j])
                     if (length(thistreenode[j]) == 0)
@@ -256,7 +256,7 @@ class Phybase:
             dist[dist == 0] <- NA
             dist2 <- matrix(apply(dist, 2, mean, na.rm = TRUE), ntaxa, ntaxa)
             diag(dist2) <- 0
-            if (sum(is.nan(dist2)) > 0) 
+            if (sum(is.nan(dist2)) > 0)
             {
                 print("missing species!")
                 dist2[is.nan(dist2)] <- 10000
@@ -287,41 +287,22 @@ class Phybase:
         star_sptree = self.cleanPhybaseTree(str(star_sptree))
         steac_sptree = self.cleanPhybaseTree(str(steac_sptree))
         return (star_sptree, steac_sptree)
-    
+
     def njst(self, trees, all_taxa):
         """ generate NJst trees from a list of trees. Requires Phybase and rpy2."""
         # get trees
         trees = self.obj.StrVector(trees)
-        # get order of taxa based on last 2 chars of name
-        ordered = sorted([[i, j[-2:]] for i, j in enumerate(all_taxa)], key=itemgetter(1))
-        # re-order all_taxa
-        reordered_all_taxa = [all_taxa[i[0]] for i in ordered]
-        # conver to vector
-        species_taxaname = self.obj.StrVector(reordered_all_taxa)
-        # get species names based on taxon names
-        spname = []
-        for i in ordered:
-            if i[1] not in spname:
-                spname.append(i[1])
-            else:
-                pass
-        # convert to string vector
-        species_spname = self.obj.StrVector(spname)
-        # get count of taxa associated with each species
-        cnt = [0] * len(spname)
-        for i in ordered:
-            idx = spname.index(i[1])
-            cnt[idx] += 1
-        # get sequence representing count
-        ss = self.obj.FloatVector(cnt)
-        pdb.set_trace()
-        species_structure = self.obj.r['spstructure'](ss)
+        species_taxaname = self.obj.StrVector(all_taxa)
+        # list of species in current tree
+        species_spname = species_taxaname
+        matrix_size = len(species_taxaname)
+        species_structure = self.obj.r['diag'](1, matrix_size, matrix_size)
         # run NJst
         njst_sptree = self.obj.r['NJst'](trees, species_spname, species_taxaname, species_structure)
         njst_sptree = self.cleanPhybaseTree(str(njst_sptree))
         return (njst_sptree)
 
-
+'''
 def phyMLTrees(directory):
     """ get and format for phybase() PhyML 3.0 trees in a directory."""
     # this 'taxa_labels portion' corrects a bug where some trees are
@@ -333,7 +314,7 @@ def phyMLTrees(directory):
             tree = cleanTree(tree)
             tree_list.append(tree)
     return tree_list
-
+'''
 
 def consensus(tree_list, min_freq=0.5):
     trees = dendropy.TreeList()
@@ -345,16 +326,19 @@ def consensus(tree_list, min_freq=0.5):
     return con_tree.as_string('newick')
 
 
-def getTaxa(tree):
-    t = dendropy.Tree()
-    if "=" in tree:
-        tree = tree.split('=')[-1].strip()
-    t.read_from_string(tree, 'newick', preserve_underscores=True)
-    taxa = t.taxon_set.labels()
-    return taxa
+def getTaxa(trees):
+    # need to iterate over all trees to ensure we have full list of taxon names
+    taxa = set()
+    for tree in trees:
+        t = dendropy.Tree()
+        if "=" in tree:
+            tree = tree.split('=')[-1].strip()
+        t.read_from_string(tree, 'newick', preserve_underscores=True)
+        taxa.update(t.taxon_set.labels())
+    return list(taxa)
 
 
-def parseBootreps(args):  
+def parseBootreps(args):
     bootreps = {}
     fin = open(args.input_file, 'rU')
     taxa = []
@@ -366,7 +350,7 @@ def parseBootreps(args):
         if bootreps.has_key(key) != True:
             bootreps[key] = [tree]
         else:
-            bootreps[key].append(tree)  
+            bootreps[key].append(tree)
     star_fout = open(os.path.splitext(args.input_file)[0] + '.star.trees', 'w')
     steac_fout = open(os.path.splitext(args.input_file)[0] + '.steac.trees', 'w')
     steac_trees = []
@@ -402,30 +386,30 @@ def get_file_chunks(args):
     # if gzip, skip a line
     if os.path.splitext(args.input_file)[-1] == '.gz':
         f.readline()
-    taxa = None
+    #taxa = None
     while 1:
         start = f.tell()
         line = f.readline()
         if not line:
             break
         bootrep, tree = line.split("\t")
-        if not taxa:
-            tree = cleanPhyMLTree(tree)
-            taxa = getTaxa(tree)
+        #if not taxa:
+        #    tree = cleanPhyMLTree(tree)
+        #    taxa = getTaxa((tree,))
         while line.split("\t")[0] == bootrep:
             line = f.readline()
         else:
             #pdb.set_trace()
             f.seek(-len(line), 1)
-            yield start, f.tell() - start, args.input_file, args.outgroup, taxa, args.method
+            yield start, f.tell() - start, args.input_file, args.outgroup, args.method
     f.close()
 
 
-def get_chunk_data(chunk):
-    f = open(chunk[2])
-    f.seek(chunk[0])
-    if chunk[1]:
-        data = f.read(chunk[1])
+def get_chunk_data(start, stop, input):
+    f = open(input)
+    f.seek(start)
+    if stop:
+        data = f.read(stop)
     else:
         data = f.read()
     data = data.strip().split("\n")
@@ -433,16 +417,18 @@ def get_chunk_data(chunk):
         return data
 
 
-def worker(x):
+def worker(work):
+    start, stop, input, outgroup, method = work
+    data = get_chunk_data(start, stop, input)
     # instantiate Phybase
     phybase = Phybase()
-    data = get_chunk_data(x)
     iden = data[0].split("\t")[0]
     trees = [cleanPhyMLTree(d.split("\t")[1]) for d in data]
-    if x[5] == 'star':
-        results = phybase.run(trees, x[3], x[4])
-    elif x[5] == 'njst':
-        results = phybase.njst(trees, x[4])
+    taxa = getTaxa(trees)
+    if method == 'star':
+        results = phybase.run(trees, outgroup, taxa)
+    elif method == 'njst':
+        results = phybase.njst(trees, taxa)
     print 'processed', len(trees), \
         'trees of bootstrap replicate', iden
     return results
@@ -460,10 +446,10 @@ def parseSortedBootreps(args):
     if args.method == 'star':
         # SETUP OUTPUT FILES
         star_file = os.path.splitext(args.input_file)[0]
-        star_file += '.star.trees'
+        star_file += '.star.bootrep.trees'
         star_fout = open(star_file, 'w')
         steac_file = os.path.splitext(args.input_file)[0]
-        steac_file += '.steac.trees'
+        steac_file += '.steac.bootrep.trees'
         steac_fout = open(steac_file, 'w')
         all_star = []
         all_steac = []
@@ -475,27 +461,27 @@ def parseSortedBootreps(args):
         # Clean up files
         star_fout.close()
         steac_fout.close()
-        template = """#NEXUS\nbegin trees;\ntree 'STARConsensus' = {0}\ntree 'STEACConsensus' = {1}\nend;""".format(consensus(all_star), consensus(all_steac))
-        steac_star_cons_out = os.path.splitext(args.input_file)[0]
-        steac_star_cons_out += '.steac_star.consensus.trees'
-        steac_star_cons_out = open(steac_star_cons_out, 'w')
-        steac_star_cons_out.write(template)
-        steac_star_cons_out.close()
+        for tree in [(all_star, ".star.bootrep.consensus.tre"), (all_steac, ".steac.bootrep.consensus.tre")]:
+            template = "{0}".format(consensus(tree[0]))
+            steac_star_cons_out = os.path.splitext(args.input_file)[0]
+            steac_star_cons_out += tree[1]
+            steac_star_cons_out = open(steac_star_cons_out, 'w')
+            steac_star_cons_out.write(template)
+            steac_star_cons_out.close()
     elif args.method == 'njst':
         # SETUP OUTPUT FILES
         njst_file = os.path.splitext(args.input_file)[0]
-        njst_file += '.njst.trees'
+        njst_file += '.njst.bootrep.trees'
         njst_fout = open(njst_file, 'w')
         all_njst = []
-        pdb.set_trace()
         for tree in results:
             all_njst.append(tree)
-            njst_fout.write("{}\n".format(tree))
+            njst_fout.write("{0}\n".format(tree))
         # Clean up files
         njst_fout.close()
-        template = """#NEXUS\nbegin trees;\ntree 'NJstConsensus' = {0}\nend;""".format(consensus(all_njst))
+        template = "{0}".format(consensus(all_njst))
         njst_cons_out = os.path.splitext(args.input_file)[0]
-        njst_cons_out += '.njst.consensus.trees'
+        njst_cons_out += '.njst.bootrep.consensus.trees'
         njst_cons_out = open(njst_cons_out, 'w')
         njst_cons_out.write(template)
         njst_cons_out.close()
@@ -548,24 +534,29 @@ def parse_genetrees(args):
     else:
         trees = map(clean_genetree_worker, chunks)
     # get taxa from first tree
-    taxa = getTaxa(trees[0])
+    taxa = getTaxa(trees)
     # instantiate Phybase instance and analyse trees
     phybase = Phybase()
     if args.method == 'star':
         star_tree, steac_tree = phybase.run(trees, args.outgroup, taxa)
-        template = """\n#NEXUS\nbegin trees;\ntree 'STAR' = %s\ntree 'STEAC' = %s\nend;""" % (star_tree, steac_tree)
-        print template
-        star_steac_out = os.path.splitext(args.input_file)[0]
-        star_steac_out += '.star_steac.trees'
-        star_steac_out = open(star_steac_out, 'w')
-        star_steac_out.write(template)
-        star_steac_out.close()
+        for cnt, tree in enumerate([(star_tree, ".star.species.tre"), (steac_tree, ".steac.species.tre")]):
+            template = "{0}".format(tree[0])
+            if cnt == 0:
+                print "STAR = ", template
+            else:
+                print "STEAC = ", template
+            star_steac_out = os.path.splitext(args.input_file)[0]
+            star_steac_out += tree[1]
+            star_steac_out = open(star_steac_out, 'w')
+            star_steac_out.write(template)
+            star_steac_out.close()
     elif args.method == 'njst':
         njst_tree = phybase.njst(trees, taxa)
-        template = """\n#NEXUS\nbegin trees;\ntree 'Njst' = %s\nend;""" % (njst_tree)
-        print template
+        # just output newick
+        template = "{0}".format(njst_tree)
+        print "NJst = ", template
         njst_out = os.path.splitext(args.input_file)[0]
-        njst_out += '.njst.trees'
+        njst_out += '.njst.species.tre'
         njst_out = open(njst_out, 'w')
         njst_out.write(template)
         njst_out.close()
