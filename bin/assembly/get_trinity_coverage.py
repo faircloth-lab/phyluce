@@ -17,7 +17,7 @@ import shutil
 import argparse
 from phyluce.helpers import FullPaths, is_file, is_dir
 from phyluce.third_party import which
-from phyluce.raw_reads import get_input_data, get_fastq_input_files
+from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.bwa import *
 from phyluce.log import setup_logging
 
@@ -142,7 +142,7 @@ def main():
         if args.clean:
             cleanup_trinity_assembly_folder(log, assembly_pth)
         # determine the types of raw read data that we have
-        fastq = get_fastq_input_files(reads, args.subfolder, log)
+        fastq = get_input_files(reads, args.subfolder, log)
         # create the bwa index
         bwa_create_index_files(log, assembly)
         samtools_create_faidx(log, sample, assembly_pth, assembly)

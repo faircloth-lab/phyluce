@@ -87,14 +87,14 @@ def main():
         for cnt, line in enumerate(open(args.bed, 'rU')):
             ls = [int(i) if i.isdigit() else i for i in line.strip().split('\t')]
             chromo, start, end = ls
-            sequence = tb[chromo][start:end]
+            sequence = tb[str(chromo)][start:end]
             if n_count(sequence) <= args.max_n and not sequence_is_masked(args.mask, sequence, cnt):
                 seq = create_sequence_object(cnt, sequence, chromo, start, end)
                 outf.write(seq.format('fasta'))
                 kept += 1
             else:
                 filtered += 1
-    print "Screened {} sequences.  Filtered {} with > {}% masked bases or > {} masked bases. Kept {}.".format(
+    print "Screened {} sequences.  Filtered {} with > {}% masked bases or > {} N-bases. Kept {}.".format(
         cnt + 1,
         filtered,
         args.mask * 100,
