@@ -107,11 +107,13 @@ one you choose is up to you, your needs, how much disk space you have, and if
 you are on a fast/slow connection.
 
 .. tip:: Do I want anaconda_ or miniconda_?
-   The major difference between the two python distributions is that anaconda_
-   comes with many, many packages pre-installed, while miniconda_ comes with
-   almost zero packages pre-installed.  As such, the beginning anaconda_
-   distribution is roughly 200-500 MB in size while the beginning miniconda_
-   distribution is 15-30 MB in size.
+  :class: admonition tip
+
+  The major difference between the two python distributions is that anaconda_
+  comes with many, many packages pre-installed, while miniconda_ comes with
+  almost zero packages pre-installed.  As such, the beginning anaconda_
+  distribution is roughly 200-500 MB in size while the beginning miniconda_
+  distribution is 15-30 MB in size.
 
 anaconda
 ^^^^^^^^
@@ -306,8 +308,6 @@ The structure of the conda repository that we use looks like the following::
             Additional support files
         test/
             Test data required by some programs.
-
-.. _Text Editor:
 
 Other useful tools
 ==================
