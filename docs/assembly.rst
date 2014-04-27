@@ -58,10 +58,11 @@ directory containing read data in a format similar to that described above.
 
 .. attention:: Assembly names **MUST** be unique.
 
-.. tip:: How do I name my samples/assemblies?
+.. admonition:: Question: How do I name my samples/assemblies?
+
     Naming samples is a contentious issue and is also a hard thing to deal with
     using computer code.  You should **never** have a problem if you name your
-    samples as following, where the genus and specific epithet are separated by
+    samples as follows, where the genus and specific epithet are separated by
     an underscore, and multiple individuals of a given species are indicated
     using a trailing integer value::
 
@@ -70,7 +71,7 @@ directory containing read data in a format similar to that described above.
         dendrocygna_bicolor1
 
     We are working to ensure that you will also not have problems if you use a
-    naming scheme that suffixes the species binomials with an accession number
+    naming scheme that suffixes the species binomial(s) with an accession number
     that is **simply** formatted (e.g. no slashes, dashes, etc.)::
 
         anas_platyrhynchos_KGH2267
@@ -82,11 +83,11 @@ directory containing read data in a format similar to that described above.
 Running the assembly
 ====================
 
-Once your configuration file is created (best to use a decent :ref:`Text
-Editor`) that will not cause you grief, you are ready to start assembling your
-read data into contigs that we will search for UCEs.  The code to do this for
-the three helper scripts is below (remember, we are using `$HOME/anaconda/bin`
-generically to refer to your anaconda_ or miniconda_ install).
+Once your configuration file is created (best to use a decent text editor) that
+will not cause you grief, you are ready to start assembling your read data into
+contigs that we will search for UCEs.  The code to do this for the three helper
+scripts is below (remember, we are using `$HOME/anaconda/bin` generically to
+refer to your anaconda_ or miniconda_ install).
 
 velvet
 ------
@@ -137,7 +138,8 @@ Trinity
             --cores 12 \
             --log-path log
 
-.. tip:: Why do I not use a `--kmer` value assembly_trinity.py?
+.. admonition:: Question: Why do I not use a `--kmer` value assembly_trinity.py?
+
     Trinity assembles using a program-defined kmer value of 35.
 
 Finding a reasonable kmer range
