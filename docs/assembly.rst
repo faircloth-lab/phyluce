@@ -59,6 +59,7 @@ directory containing read data in a format similar to that described above.
 .. attention:: Assembly names **MUST** be unique.
 
 .. admonition:: Question: How do I name my samples/assemblies?
+    :class: admonition tip
 
     Naming samples is a contentious issue and is also a hard thing to deal with
     using computer code.  You should **never** have a problem if you name your
@@ -139,7 +140,7 @@ Trinity
             --log-path log
 
 .. admonition:: Question: Why do I not use a `--kmer` value assembly_trinity.py?
-
+    :class: admonition tip
     Trinity assembles using a program-defined kmer value of 35.
 
 Finding a reasonable kmer range
