@@ -36,5 +36,5 @@
 .. _MiSeq: http://www.illumina.com/systems/miseq.ilmn
 .. _HiSeq: http://www.illumina.com/systems/hiseq_2500_1500.ilmn
 .. _Illumina: http://www.illumina.com/
-
+.. _lastz: http://www.bx.psu.edu/~rsharris/lastz/
 

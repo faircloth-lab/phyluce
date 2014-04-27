@@ -160,7 +160,7 @@ ABySS
 .. attention:: Following assembly, `assemblo_abyss.py` modifies the assemblies
     by replacing degenerate base codes with standard nucleotide encodings.  We
     do this because lastz_, which we use to match contigs to targeted UCE loci,
-    is not compatible with degenrate IUPAC codes.
+    is not compatible with degenerate IUPAC codes.
 
     The assemblo_abyss.py code makes these substitutions for every site having a
     degenerate code by selecting the appropriate nucleotide encoding randomly.
@@ -209,7 +209,7 @@ Trinity
     :class: admonition tip
 
     Trinity assembles using a "static" or "program-defined" (i.e., not user-
-    defined) kmer value of 35.
+    defined) kmer value of 25.
 
 
 Results
