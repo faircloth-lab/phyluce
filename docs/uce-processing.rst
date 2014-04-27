@@ -566,7 +566,7 @@ current data set with all of these other data.
 
 .. _extracting-fasta:
 
-Extraction FASTA data using the data matrix configuration file
+Extracting FASTA data using the data matrix configuration file
 --------------------------------------------------------------
 
 Once we have created the data matrix configuration file containing data for our
@@ -676,8 +676,8 @@ To align the loci, by taxon, in the FASTA file you just created, run:
 .. attention:: If you pass more ``--cores`` than your machine has, you will
     receive an error.
 
-.. note:: Here, we are accepting the default output alignemnt format ("nexus").
-    To change that format to something else, pass the --output-format option
+.. note:: Here, we are accepting the default, output alignment format ("nexus").
+    To change that format to something else, pass the ``--output-format`` option
     with a choice of {fasta,nexus,phylip,clustal,emboss,stockholm}.
 
 Alignment stats
