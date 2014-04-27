@@ -1,27 +1,142 @@
 .. include:: global.rst
 
-#####################
-Read Assembly
-#####################
+*********
+Assembly
+*********
 
-Once your reads are clean, you're ready to assemble. At the moment, we use
-velvet_ and VelvetOptimiser for assembly, although I'm considering adding
-similar routines for ABySS_.
+Setup
+=====
 
-Most of this process is automated using code within phyluce_. But, before you
-runt the automated routines, you need to get a good idea of the kmer ranges
-within which you will assembling, prior to starting the assembly process with
-the automated code.
+Once your reads are clean, you're ready to assemble. At the moment, you can use
+velvet_ and ABySS_ for assembly, and there are support scripts for assembling
+the data using Trinity_, although there is not yet a conda_ install package for
+Trinity_ due to some difficulties in how that package is structured.  If you
+want to use Trinity_ for assembly, it is currently best to install that package
+outside of conda_/phyluce_.
 
-In the following, I assume your directory structure looks like this (which
-results from `illumiprocessor`_)::
+Most of the assembly process is automated using code within phyluce_,
+specifically the following 3 scripts:
+
+- assemblo_abyss.py
+- assemblo_trinity.py
+- assemblo_velvet.py
+
+And, the code always expects your input directories to have the following
+structure (from the :ref:`Quality Control` section)::
 
     uce-clean/
         genus_species1/
-            interleaved-adapter-quality-trimmed/
-                genus_species-READ1and2-interleaved.fastq.gz
-                genus_species-READ-singleton.fastq.gz
-                
+            adapters.fasta
+            raw-reads/
+                genus_species1-READ1.fastq.gz (symlink)
+                genus_species1-READ2.fastq.gz (symlink)
+            split-adapter-quality-trimmed/
+                genus_species1-READ1.fastq.gz
+                genus_species1-READ2.fastq.gz
+                genus_species1-READ-singleton.fastq.gz
+            stats/
+                genus_species1-adapter-contam.txt
+
+And each of these assembly helper programs take the same configuration files as
+input.  You should format the configuration file for input according to the
+following scheme::
+
+    [samples]
+    name_you_want_assembly_to_have:/path/to/uce-clean/genus_species1
+
+In practice, this means you need to create a configuration file that looks
+like:
+
+    [samples]
+    anas_platyrhynchos1:/path/to/uce-clean/anas_platyrhynchos1
+    anas_carolinensis1:/path/to/uce-clean/anas_carolinensis1
+    dendrocygna_bicolor1:/path/to/uce-clean/dendrocygna_bicolor1
+
+The `assembly name` on the left side of the colon can be whatever you want.
+The `path name` on the right hand side of the colon must be a valid path to a
+directory containing read data in a format similar to that described above.
+
+.. tip:: How do I name my samples/assemblies?
+    Naming samples is a contentious issue and is also a hard thing to deal with
+    using computer code.  You should **never** have a problem if you name your
+    samples as following, where the genus and specific epithet are separated by
+    an underscore, and multiple individuals of a given species are indicated
+    using a trailing integer value:
+
+        anas_platyrhynchos1
+        anas_carolinensis1
+        dendrocygna_bicolor1
+
+    We are working to ensure that you will also not have problems if you use a
+    naming scheme like:
+
+        anas_platyrhynchos1_KGH2267
+        anas_carolinensis1_KGH2269
+        dendrocygna_bicolor1_DWF4597
+
+    **However**, you may occasionally have problems with such a naming scheme.
+
+Running the assembly
+====================
+
+Once your configuration file is created (best to use a decent :ref:`Text
+Editor`) that will not cause you grief, you are ready to start assembling your
+read data into contigs that we will search for UCEs.  The code to do this for
+the three helper scripts is below (remember, we are using `$HOME/anaconda/bin`
+generically to refer to your anaconda_ or miniconda_ install).
+
+velvet
+------
+
+.. code-block:: bash
+
+    # make a directory for log files
+    mkdir log
+    # run the assembly
+    python $HOME/anaconda/bin/assemblo_velvet.py \
+        --config config_file_you_created.conf \
+        --output /path/where/you/want/assemblies \
+        --kmer 35 \
+        --subfolder split-adapter-quality-trimmed \
+        --cores 12 \
+        --clean \
+        --log-path log
+
+ABySS
+-----
+
+.. code-block:: bash
+
+    # make a directory for log files
+    mkdir log
+    # run the assembly
+    python $HOME/anaconda/bin/assemblo_abyss.py \
+        --config config_file_you_created.conf \
+        --output /path/where/you/want/assemblies \
+        --kmer 35 \
+        --subfolder split-adapter-quality-trimmed \
+        --cores 12 \
+        --clean \
+        --log-path log
+
+Trinity
+-------
+
+.. code-block:: bash
+
+    # make a directory for log files
+        mkdir log
+        # run the assembly
+        python $HOME/anaconda/bin/assemblo_trinity.py \
+            --config config_file_you_created.conf \
+            --output /path/where/you/want/assemblies \
+            --subfolder split-adapter-quality-trimmed \
+            --cores 12 \
+            --log-path log
+
+.. tip:: Why do I not use a `--kmer` value assembly_trinity.py?
+    Trinity assembles using a program-defined kmer value of 35.
+
 Finding a reasonable kmer range
 *******************************
 
@@ -30,7 +145,7 @@ range that we want to plug into the automated process. After several rounds of
 this process, you generally get a good idea of what works. However, I still
 empirically check this range against a couple of test assemblies before running
 many assemblies with the automation code.
-                
+
 To determine this range, you want to assemble a test batch of reads using a
 range of kmer values. I usually do this for 4-5 taxa in the data set I just
 cleaned using kmer values in the range of 63-75. Depending on the so-called
@@ -55,7 +170,7 @@ create an `assembly` directory to hold the assembly results:
     cd uce-clean/genus_species1/
     mkdir assembly
     cd assembly
-    
+
 Now that you're in the directory, you want to run VelvetOptimiser against the
 interleaved read data that are one directory up:
 
@@ -92,7 +207,7 @@ you can run the automated script to assemble your data:
 .. code-block:: bash
 
     python ~/git/phyluce/bin/assembly/assemblo.py uce-clean 63 75 7
-    
+
 This will run VelvetOptimiser across your data in the `uce-clean` directory,
 using a range of kmer values from 63-75 and 7 compute cores. As before, you may
 need to adjust the number of compute cores for your system and/or amount of RAM.
@@ -112,7 +227,7 @@ instance, you can run:
 
     python ~/git/phyluce/bin/assembly/assemblo.py uce-clean 63 75 7 \
     --exclude genus_species1 genus_species2
-    
+
 Within the `uce-clean` directory, `assemblo.py` will create a directory named
 `contigs` that contain symlinks to the resulting assembly data for each taxon.
 
@@ -126,21 +241,21 @@ Linking contig assemblies into the `contigs` directory
 directory.  These symlinks allow you to reasonably keep track of which assembly
 is linked to a particular taxon, maintaining continuity in your data.
 
-If you have manually assembled any contigs outside of assembly, you will also 
+If you have manually assembled any contigs outside of assembly, you will also
 need to manually link those into the contigs folder with something like:
 
 .. code-block:: bash
 
     ln -s uce-clean/genus_species1/genus_species1/assembly/auto_data_75/contigs.fa \
     contigs/genus_species1.contigs.fasta
-    
+
 The other downside of symlinks is that they tend not to "travel" very well.
 Meaning, if you want to move the contigs folder somewhere else, this will often
 break the symlinks created by `assemblo.py`.  This is often painful to fix by hand,
 so there's a bit of code in `phyluce_` to help you do that.  If you have reads in::
 
     /path/to/my/uce-clean/contigs
-    
+
 and you want to create a new `contigs` folder elsewhere, you want to replace the path
 in the original symlink with the path in the new symlink.  So, you can run::
 
@@ -170,6 +285,3 @@ Again, these results depend on a variety of factors including starting DNA
 quality, library size, the efficiency of the enrichment, the number of
 post-enrichment PCR cycles you used, the amount of sequence data collected for
 a given library, etc., etc., etc.
-
-.. _velvet: http://www.ebi.ac.uk/~zerbino/velvet/
-.. _ABySS: http://www.bcgsc.ca/platform/bioinfo/software/abyss

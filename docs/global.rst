@@ -4,9 +4,12 @@
 .. _tmux: http://tmux.sourceforge.net/
 .. _gzip: http://www.gzip.org/
 .. _Casava: http://support.illumina.com/sequencing/sequencing_software/casava.ilmn
+.. _bcl2fastq: https://support.illumina.com/downloads/bcl2fastq_conversion_software_184.ilmn
 .. _fastx-toolkit: http://hannonlab.cshl.edu/fastx_toolkit/
 .. _bartab: http://www.phyloware.com/Phyloware/XSTK.html
 .. _velvet: http://www.ebi.ac.uk/~zerbino/velvet/
+.. _ABySS: http://www.bcgsc.ca/platform/bioinfo/software/abyss
+.. _Trinity: http://trinityrnaseq.sourceforge.net/
 .. _homebrew: http://mxcl.github.com/homebrew/
 .. _Amazon Web Services: http://aws.amazon.com/
 .. _IDTDNA: http://www.idtdna.com/site
@@ -30,3 +33,8 @@
 .. _miniconda: http://repo.continuum.io/miniconda/
 .. _CC-BY: http://creativecommons.org/licenses/by/4.0/
 .. _virtualenv: http://www.virtualenv.org/
+.. _MiSeq: http://www.illumina.com/systems/miseq.ilmn
+.. _HiSeq: http://www.illumina.com/systems/hiseq_2500_1500.ilmn
+.. _Illumina: http://www.illumina.com/
+
+

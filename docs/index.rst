@@ -46,12 +46,9 @@ Guide
 
    purpose
    installation
-   organization
    quality-control
    assembly
    uce-processing
-   configuration
-   subcommands
 
 Project info
 ============

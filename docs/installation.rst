@@ -1,5 +1,7 @@
 .. include:: global.rst
 
+.. _Installation:
+
 ************
 Installation
 ************
@@ -21,18 +23,18 @@ In the current versions (> 1.4.x), we have removed a number of dependencies,
 **and we very strongly suggest** that users install phyluce_ using either the
 anaconda_ or miniconda_ Python distributions.
 
-.. note:: We do not support installing phyluce through means other than the
-   conda_ installer.  This means that we do not test phyluce_ against any
-   binaries, other than those we build and distribute through conda_.
-   You will eventually be able to configure phyluce_ to use binaries
-   of different provenance using options in the :ref:`Configuration` section.
+.. attention:: We do not support installing phyluce through means other than the
+  conda_ installer.  This means that we do not test phyluce_ against any
+  binaries, other than those we build and distribute through conda_.
+  You will eventually be able to configure phyluce_ to use binaries
+  of different provenance using options in the :ref:`Configuration` section.
 
-.. attention:: We build and test the binaries available through conda_ using
-   64-bit operating systems that include:
+.. note:: We build and test the binaries available through conda_ using
+  64-bit operating systems that include:
 
-   - Apple OSX 10.9.x
-   - CentOS 6.x
-   - Ubuntu 14.04 LTS
+  - Apple OSX 10.9.x
+  - CentOS 6.x
+  - Ubuntu 14.04 LTS
 
 Why conda?
 ==========
@@ -51,7 +53,7 @@ Install Process
 
 .. attention:: We do not support phyluce_ on Windows.
 
-.. attention:: We build and test the binaries available through conda_ using
+.. note:: We build and test the binaries available through conda_ using
    64-bit operating systems that include:
 
    - Apple OSX 10.9.x
@@ -305,9 +307,14 @@ The structure of the conda repository that we use looks like the following::
         test/
             Test data required by some programs.
 
+.. _Text Editor:
+
 Other useful tools
 ==================
 
 You will need to be familiar with the command-line/terminal, and it helps to
-have a decent text editor for your platform (gedit [linux], Sublime Text
-[linux, osx], TextMate [osx]).
+have a decent text editor for your platform:
+
+- gedit [linux]
+- Sublime Text [linux, osx]
+- TextMate [osx]

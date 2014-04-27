@@ -1,5 +1,6 @@
 .. include:: global.rst
 
+.. _Attributions:
 
 ************
 Attributions
