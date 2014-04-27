@@ -15,8 +15,8 @@ data data using Trinity_, although there is not yet a conda_ install package for
 Trinity_ due to some difficulties in how that package is structured.
 
 .. attention:: If you want to use Trinity_ for assembly, it is currently best to
-install that package outside of conda_/phyluce_ following the instructions on
-the Trinity_ site.
+    install that package outside of conda_/phyluce_ following the instructions
+    on the Trinity_ site.
 
 Most of the assembly process is automated using code within phyluce_,
 specifically the following 3 scripts:

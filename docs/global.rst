@@ -37,4 +37,4 @@
 .. _HiSeq: http://www.illumina.com/systems/hiseq_2500_1500.ilmn
 .. _Illumina: http://www.illumina.com/
 .. _lastz: http://www.bx.psu.edu/~rsharris/lastz/
-
+.. _relational database: http://en.wikipedia.org/wiki/Relational_database
