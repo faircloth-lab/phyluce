@@ -24,29 +24,31 @@ In the current versions (> 1.4.x), we have removed a number of dependencies,
 anaconda_ or miniconda_ Python distributions.
 
 .. attention:: We do not support installing phyluce through means other than the
-  conda_ installer.  This means that we do not test phyluce_ against any
-  binaries, other than those we build and distribute through conda_.
-  You will eventually be able to configure phyluce_ to use binaries
-  of different provenance using options in the :ref:`Configuration` section.
+    conda_ installer.  This means that we do not test phyluce_ against any
+    binaries, other than those we build and distribute through conda_.
+    You will eventually be able to configure phyluce_ to use binaries
+    of different provenance, although this will not be officically supported,
+    other than providing a mechanism to do so.
 
 .. note:: We build and test the binaries available through conda_ using
-  64-bit operating systems that include:
+    64-bit operating systems that include:
 
-  - Apple OSX 10.9.x
-  - CentOS 6.x
-  - Ubuntu 14.04 LTS
+    - Apple OSX 10.9.x
+    - CentOS 6.x
+    - Ubuntu 14.04 LTS
 
 Why conda?
 ==========
 
 It may seem odd to impose a particular disitribution on users, and we largely
 agree.  However, conda_ makes it very easy for us to distribute both Python_ and
-non-Python packages (e.g. velvet, abYss, etc.), setup identical environments
-across very heterogenous platforms (unices, osx, etc.), make sure all the
-`$PATHs` are correct, and have things run largely as expected. Using conda_ has
-several other benefits, including environment separation similar to virtualenv_.
-In short, using conda_ gets us as close to a "one-click" install that we will
-probably ever get.
+non-Python packages (e.g. velvet, ABySS, etc.), setup identical environments
+across very heterogenous platforms (linux, osx), make sure all the `$PATHs` are
+correct, and have things run largely as expected. Using conda_ has several other
+benefits, including environment separation similar to virtualenv_. In short,
+using conda_ gets us as close to a "one-click" install that we will probably
+ever get.
+
 
 Install Process
 ===============
@@ -106,14 +108,19 @@ After you installed `JAVA`, you need to install anaconda_ or miniconda_.  Which
 one you choose is up to you, your needs, how much disk space you have, and if
 you are on a fast/slow connection.
 
-.. tip:: Do I want anaconda_ or miniconda_?
-  :class: admonition tip
+.. attention:: You can easily install anaconda_ or miniconda_ in your $HOME,
+    although you should be aware that this setup can cause problems in some
+    cluster-computing situations.
 
-  The major difference between the two python distributions is that anaconda_
-  comes with many, many packages pre-installed, while miniconda_ comes with
-  almost zero packages pre-installed.  As such, the beginning anaconda_
-  distribution is roughly 200-500 MB in size while the beginning miniconda_
-  distribution is 15-30 MB in size.
+.. tip:: Do I want anaconda_ or miniconda_?
+    :class: admonition tip
+
+    The major difference between the two python distributions is that anaconda_
+    comes with many, many packages pre-installed, while miniconda_ comes with
+    almost zero packages pre-installed.  As such, the beginning anaconda_
+    distribution is roughly 200-500 MB in size while the beginning miniconda_
+    distribution is 15-30 MB in size.
+
 
 anaconda
 ^^^^^^^^
@@ -131,13 +138,6 @@ completed, run::
     bash Miniconda-3.4.2-Linux-x86_64.sh  [linux]
     bash Miniconda-3.4.2-MacOSX-x86_64.sh [osx]
 
-Now, you need to edit your `$PATH` to add the Miniconda distribution.  You can
-do that manually using a text editor (the best way), or you can quickly quickly
-run::
-
-    echo "export PATH=$HOME/miniconda/bin:\${PATH}" >> ~/.bashrc [if you use BASH]
-    echo "export PATH=$HOME/miniconda/bin:\${PATH}" >> ~/.zshrc [if you use ZSH]
-
 .. note:: Once you have installed Miniconda, we will refer to it as **anaconda**
    throughout the remainder of this documentation.
 
@@ -145,28 +145,26 @@ run::
 Checking your `$PATH`
 ^^^^^^^^^^^^^^^^^^^^^
 
-Regardless of how you install anaconda_, you need to check that you've installed
-the package correctly.  To ensure that the correct location for conda_ or
-miniconda_ are added to your $PATH (this occurs automatically on the $BASH
-shell), try the following to check that you have installed anaconda
-correctly::
+Regardless of whether you install anaconda_ or miniconda_, you need to check
+that you've installed the package correctly.  To ensure that the correct
+location for anaconda_ or miniconda_ are added to your $PATH (this occurs
+automatically on the $BASH shell), run the following::
 
     $ python -V
     Python 2.7.6 :: Anaconda 1.8.0 (x86_64)
 
 Notice that the output shows we're using the "Anaconda 1.8.0" version of
 Python_. If you do not see the expected output (or something similar), then you
-likely need to edit your $PATH variable to add anaconda_ or miniconda_ as the
-first entry.
+likely need to edit your $PATH variable to add anaconda_ or miniconda_.
 
-Should you need to edit your path, the easiest way to do that is to open
-``~/.bashrc`` with a text editor (if you are using ZSH, this will be
-``~/.zshrc``) and add, as the last line::
+The easiest way to edit your path, if needed is to open ``~/.bashrc`` with a
+text editor (if you are using ZSH, this will be ``~/.zshrc``) and add, as the
+last line::
 
     export PATH=$HOME/path/to/conda/bin:$PATH
 
-where ``$HOME/path/to/conda/bin`` is the location of anaconda/miniconda in your
-home directory (usually ``$HOME/anaconda/bin`` or ``$HOME/miniconda/bin``).
+where ``$HOME/path/to/conda/bin`` is the location of anaconda/miniconda on your
+system (usually ``$HOME/anaconda/bin`` or ``$HOME/miniconda/bin``).
 
 
 Add the faircloth-lab repository to conda
@@ -280,11 +278,11 @@ MUSCLE, we can also just run MUSCLE on the command-line, with::
 
 This is true for other binaries you install from our repository (e.g. velveth,
 velvetg, abyss-pe, mafft) or any other conda_ repository - those binaries are
-all stored in `$CONDA/bin`.
+all stored in ``$CONDA/bin``.
 
 We have setup conda to install other files in a standard location as well.  So
-JAR files are stored in `$CONDA/jar`; libraries that you install from our repo
-are stored in `$CONDA/lib`, etc. The locations and versions are standardized
+JAR files are stored in ``$CONDA/jar``; libraries that you install from our repo
+are stored in ``$CONDA/lib``, etc. The locations and versions are standardized
 within our conda_ distribution so that we always know where things are
 installed, hopefully avoiding lots of the problems with `dependency hell
 <http://en.wikipedia.org/wiki/Dependency_hell>`_ and making our lives easier.

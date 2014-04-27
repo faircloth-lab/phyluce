@@ -10,7 +10,7 @@ phyluce:  software for UCE (and general) phylogenomics
 
 Release v\ |version|. (:ref:`Changelog`)
 
-:Author: Brant Faircloth
+:Author: Brant C. Faircloth
 :Date: |date|
 :Copyright: This documentation is available under a Creative Commons (`CC-BY`_) license.
 
@@ -31,12 +31,22 @@ As it stands, the phyluce_ package is useful for analyzing both data collected
 from UCE loci and also data collection from other types of loci for phylogenomic
 studies at the species, population, and individual levels.
 
-phyluce_ is open-source (see :ref:`License`) and we welcome contributions
-from anyone who is interested.  Please make a pull request on github_.  The
-issue tracker for phyluce_ is also `available on github
-<https://github.com/faircloth- lab/phyluce/issues>`_.  If you have an issue,
-please do all that you can to provide sufficient data **and** a test case
-demonstrating the issue.
+Countributions
+--------------
+
+phyluce_ is open-source (see :ref:`License`) and we welcome contributions from
+anyone who is interested.  Please make a pull request on github_.  The issue
+tracker for phyluce_ is also `available on github <https://github.com/faircloth-
+lab/phyluce/issues>`_.
+
+Issues
+------
+
+If you have an issue, please ensure that you are experiencing this issue on a
+supported OS (see :ref:`Installation`) using the conda_ installation of
+phyluce_.  If possible, please submit a test case demonstrating the issue and
+indicate which platform, git checkout, and phyluce version you are using.
+
 
 Guide
 =====
@@ -61,4 +71,3 @@ Project info
    attributions
    funding
    ack
-

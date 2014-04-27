@@ -1,190 +1,221 @@
 .. include:: global.rst
 
+********************************
 UCE Processing for Phylogenomics
-================================
+********************************
 
-The workflow described below is meant to outline the process needed for
-analyzing UCE in phylogenetic contexts - meaning that you are interested in
-addressing questions at the species level or deeper.
+The workflow described below is meant for users who are  analyzing UCE in
+phylogenetic contexts - meaning that you are interested in addressing questions
+at or deeper than the species-level.
 
-Probe sets
-**********
 
-Depending on the taxa you are targeting and the probe set that you are using,
-you will need to adjust the probe set name to reference the fasta file of those
-probes you used. Below, I have used the `uce-5k-probes.fasta` probe set.
-However, the probe set that use could be one of:
+Identifying UCE loci
+====================
 
-#. uce-2k-probes.fasta (tetrapods/birds/mammals)
-#. uce-5k-probes.fasta (tetrapods/birds/mammals)
+Once we have assembled our fastq data (see :ref:`Assembly`), we need to process
+those contigs to (a) determine which represent enrichend UCE loci and (b)
+remove any potential paralogs from the data set.  Before we can do that, we
+need to to a little preparatory work by downloading a FASTA file representing
+the probe set that we used.
 
-.. _outgroup-data:
+Get the probe set FASTA
+-----------------------
 
-Outgroup data and probe set downloads
-*************************************
+To identify which of the contigs we've assembled are UCE loci (and which UCE
+loci they might be), we are going to match our assembled contigs to the probes
+we used to enrich UCE loci.  Before we do that, however, we need to download
+a copy of probe set we used for matching purposes.
 
-We have started to standardize and provide prepared sets of UCE probes and
-outgroup data. The outgroup data are sliced from available genome sequences,
-and the probe sets and outgroup data are version controlled for a particular
-set of taxa (e.g., tetrapods, fish). If you would like to use these in your own
-analyses, to extend your current data set or to provide an outgroup, you can
-download them from uce-probe-sets_
+.. attention:: We archive official probe sets at
+    https://github.com/faircloth-lab/uce-probe-sets., but you need to be
+    careful about which one you grab - probe sets can be of different sizes
+    (e.g. 2,500 or 5,500 loci) and for different groups of taxa (e.g., amniotes,
+    fish)
+
+To download a given probe set for phyluce_, you need to figure out which probe
+set you need.  Then, you can use a command like ``wget`` on the command-line (or
+navigate with your browser to the URL and save the file):
+
+Amniote 2.5k
+^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/master/uce-2.5k-probe-set/uce-2.5k-probes.fasta
+
+Amniote 5k
+^^^^^^^^^^
+
+    wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/master/uce-5k-probe-set/uce-5k-probes.fasta
+
 
 .. _contigs-matching:
 
-Indentifying contigs matching UCE loci
-**************************************
 
-After assembly, we have generated contigs from raw reads.  These contigs reside
-in the `contigs` resulting from assembly.  During the next part of the process,
-we need to determine which of the assembled contigs match UCE loci and which do
-not.  We also need to remove any contigs that appear to be duplicates as a
-result of assembly/other problems **or** a duplication event(s).
+Match contigs to probes
+-----------------------
 
-The first thing to do is to make sure that our probe set does not contain any
-duplicates.  So, you probably want to align the file of probe sequences to
-itself (if you're using a probe-set from github, the this file should be
-included):
+Once we've downloaded the probe set we used to enrich UCE loci, we need to find
+which of our assembled contigs are the UCE loci that we enriched.  During this
+process, the code will also remove any contigs that appear to be duplicates as a
+result of assembly/other problems **or** a biological event(s).
 
-.. code-block:: bash
+The way that this process works is that phyluce_ aligns (using lastz_) the
+contigs you assembled to the probes you input on a taxon-by-taxon (or otu-by-
+otu) basis.  Then, the code parses the alignment file to determine which contigs
+matched which probes, whether any probes from a single locus matched multiple
+contigs or whether a single contig matched probes designed from muliple UCE
+loci.  Either of these latter two events suggests that the locus in question is
+problematic.
 
-    python phyluce/bin/share/easy_lastz.py \
-        --target uce-5k-probes.fasta \
-        --query uce-5k-probes.fasta \
-        --identity 85 \
-        --output uce-5k-probes.fasta.toself.lastz
-        
-Now, what we need to do is to align our probes to our contigs.  First, you want
-to make a directory to hold our output:
-        
-.. code-block:: bash
+.. hint:: **ADVANCED**: The default regular expression assumes probes in your
+    file are named according to ``uce-NNN_pN``, where ``uce-`` is just a text
+    string, ``NNN`` is an integer value denoting each unique locus, ``_p`` is a
+    text string denoting a "probe" targeting locus ``NNN``, and the trailing
+    ``N`` is an integer value denoting each unique probe targeting the same
+    locus.
 
-    mkdir /path/to/output/lastz
-    
-Now, we want to find which probes match which UCE loci.  To do this, the code
-will also strip the probe numbers off of particular loci in the
-`uce-5k-probes.fasta` file (stripping off the probe numbers allows us to
-merge all probes down to a single locus).  The default regular expression assumes
-your probes are named similarly to `uce-NNN_pN`.  If that is not the case, you will
-need to input a different regular expression to convert the probe names to locus names.
+    If you are using a custom probe file, then you will either need to ensure
+    that your naming scheem conforms to this approach **OR** you will need to
+    input a different regular expression to convert the probe names to locus
+    names using the ``--regex`` flag.
 
-
-Note, too, that we're passing the `uce-5k-probes.fasta.toself.lastz` to the code
-so that we can also exclude any UCE loci whose probes happen to overlap themselves:
+To identify UCE contigs from your assembled contigs, run:
 
 .. code-block:: bash
 
-    python phyluce/bin/assembly/match_contigs_to_probes.py \
-        /path/to/velvet/assembly/contigs/ \
-        /path/to/uce-5k-probes.fasta \
-        /path/to/output/lastz \
-        --dupefile uce-5k-probes.fasta.toself.lastz
-        
-When you run this code, you will see output similar to::
+    # make a directory for log files
+    mkdir log
+    # match contigs to probes
+    match_contigs_to_probes.py \
+        --contigs /path/to/assembly/contigs/ \
+        --probes uce-5k-probes.fasta \
+        --output /path/to/some/directory \
+        --log-file log
 
-    genus_species1: 1031 (70.14%) uniques of 1470 contigs, 0 dupe probe matches, 48 UCE probes matching multiple contigs, 117 contigs matching multiple UCE probes
-    genus_species2: 420 (68.52%) uniques of 613 contigs, 0 dupe probe matches, 30 UCE probes matching multiple contigs, 19 contigs matching multiple UCE probes
-    genus_species3: 1071 (63.15%) uniques of 1696 contigs, 0 dupe probe matches, 69 UCE probes matching multiple contigs, 101 contigs matching multiple UCE probes
+When you run this code, you should see output similar to::
 
-Now, what this program does is to use `lastz_` to align all probes to the
-contigs. It basically ignores those contigs that don't match probes (no
-matches) and screens the results to ensure that, of the matches, only one
-contig matches probes from one UCE locus and that only probes from one UCE
-locus match one contig. **Everything outside of these parameters is dropped**.
+    2014-04-24 14:38:15,979 - match_contigs_to_probes - INFO - ================ Starting match_contigs_to_probes ===============
+    2014-04-24 14:38:15,979 - match_contigs_to_probes - INFO - Version: git 7aec8f1
+    2014-04-24 14:38:15,979 - match_contigs_to_probes - INFO - Argument --contigs: /path/to/assembly/contigs/
+    2014-04-24 14:38:15,980 - match_contigs_to_probes - INFO - Argument --keep_duplicates: None
+    2014-04-24 14:38:15,980 - match_contigs_to_probes - INFO - Argument --log_path: None
+    2014-04-24 14:38:15,980 - match_contigs_to_probes - INFO - Argument --min_coverage: 80
+    2014-04-24 14:38:15,980 - match_contigs_to_probes - INFO - Argument --min_identity: 80
+    2014-04-24 14:38:15,980 - match_contigs_to_probes - INFO - Argument --output: /path/to/some/directory
+    2014-04-24 14:38:15,980 - match_contigs_to_probes - INFO - Argument --probes: uce-5k-probes.fasta
+    2014-04-24 14:38:15,981 - match_contigs_to_probes - INFO - Argument --regex: ^(uce-\d+)(?:_p\d+.*)
+    2014-04-24 14:38:15,981 - match_contigs_to_probes - INFO - Argument --verbosity: INFO
+    2014-04-24 14:38:16,138 - match_contigs_to_probes - INFO - Checking probe/bait sequences for duplicates
+    2014-04-24 14:38:19,022 - match_contigs_to_probes - INFO - Creating the UCE-match database
+    2014-04-24 14:38:19,134 - match_contigs_to_probes - INFO - Processing contig data
+    2014-04-24 14:38:19,134 - match_contigs_to_probes - INFO - -----------------------------------------------------------------
+    2014-04-24 14:38:25,713 - match_contigs_to_probes - INFO - genus_species1: 1031 (70.14%) uniques of 1470 contigs, 0 dupe probe matches, 48 UCE probes matching multiple contigs, 117 contigs matching multiple UCE probes
+    2014-04-24 14:38:32,846 - match_contigs_to_probes - INFO - genus_species2: 420 (68.52%) uniques of 613 contigs, 0 dupe probe matches, 30 UCE probes matching multiple contigs, 19 contigs matching multiple UCE probes
+    2014-04-24 14:38:39,184 - match_contigs_to_probes - INFO -genus_species3: 1071 (63.15%) uniques of 1696 contigs, 0 dupe probe matches, 69 UCE probes matching multiple contigs, 101 contigs matching multiple UCE probes
+    2014-04-24 14:49:59,654 - match_contigs_to_probes - INFO - -----------------------------------------------------------------
+    2014-04-24 14:49:59,654 - match_contigs_to_probes - INFO - The LASTZ alignments are in /path/to/some/directory/
+    2014-04-24 14:49:59,654 - match_contigs_to_probes - INFO - The UCE match database is in /path/to/some/directory/probes.matches.sqlite
+    2014-04-24 14:49:59,655 - match_contigs_to_probes - INFO - =============== Completed match_contigs_to_probes ===============
+
+Results
+^^^^^^^
 
 The resulting files will be in the::
 
-    /path/to/output/lastz
-    
-directory. You'll see that this directory contains species-specific `lastz_`
-files as well as an sqlite database::
+    /path/to/output
 
-    /path/to/output/lastz
+directory. You'll see that this directory contains species-specific `lastz_`
+files as well as an sqlite_ database::
+
+    /path/to/output
         genus_species1.contigs.lastz
         genus_species2.contigs.lastz
         genus_species3.contigs.lastz
         probe.matches.sqlite
-        
-The `*.lastz` files are basically for reference and individual review.  The
-really important data are actually summarized in the::
+
+The `*.lastz` files are basically for reference and individual review.  They are
+text files that you can open using a text editor to look at.  The really
+important data from the lastz_ files are summarized in the::
 
     probe.matches.sqlite
-    
+
 database.  It's probably a good idea to have some knowledge of how this database
-is structured, since it's basically what makes the next few steps work.  So, I'll
-spend some time describing the structure and contents.
+is structured, since it's basically what makes the next few steps work.  So,
+let's go over the structure and contents of this database.
 
 The probe.matches.sqlite database
-*********************************
+.................................
 
-`probe.matches.sqlite` is a relational database that summarizes all **valid**
+``probe.matches.sqlite`` is a relational database that summarizes all **valid**
 matches of contigs to UCE loci across the set of taxa that you fed it. The
 database is created by and for sqlite_, which is a very handy, portable SQL
-database. For more info on SQL and SQLITE, see this `sqlite-tutorial`_. I'll briefly cover the
-database contents and use below.
+database. For more info on SQL and SQLITE, see this `sqlite-tutorial`_. I'll
+briefly cover the database contents and use below.
 
-First, to take a look at the contents of the database run:
+First, to take a look at the contents of the database by running:
 
 .. code-block:: bash
 
     sqlite3 probe.matches.sqlite
-    
+
 You'll now see something like::
 
     SQLite version 3.7.3
     Enter ".help" for instructions
     Enter SQL statements terminated with a ";"
     sqlite>
-    
-It's often easier to change some defaults for better viewing, so at the prompt, 
-past in the following (for more info on sqlite_ "dot" commands, you can type
-`.help`)::
+
+It's often easier to change some defaults for better viewing, so at the prompt,
+paste in the following (for more info on sqlite_ "dot" commands, you can type
+``.help``)::
 
     sqlite> .mode columns
     sqlite> .headers on
     sqlite> .nullvalue .
-    
+
 Now that that's done, let's see what tables the database contains::
 
     sqlite> .tables
     match_map  matches
-    
-This tells us there's two tables in the database, named `match_map` and
-`matches`.  We'll look at `matches`, first.  To get some data out of `matches`,
-run (the use of uppercase is convention for SQL, but not required):
 
-The `matches` table
--------------------
+This tells us there's two tables in the database, named ``match_map`` and
+``matches``.  We'll look at ``matches``, first.  To get some data out of
+``matches``, run (the use of uppercase is convention for SQL, but not required):
 
-Let's take a look at the contents of the `matches` table.  Once you've started
+
+The ``matches`` table
+.....................
+
+Let's take a look at the contents of the ``matches`` table.  Once you've started
 the sqlite interface, run:
 
 .. code-block:: sql
 
     sqlite> SELECT * FROM matches LIMIT 10;
-    
-This query select all rows (`SELECT *`) from the `matches` table (`FROM
-matches`) and limits the number of returned rows to 10 (`LIMIT 10`). This will
-output data that look something like::
+
+This query select all rows (``SELECT *``) from the ``matches`` table (``FROM
+matches``) and limits the number of returned rows to 10 (``LIMIT 10``). This
+will output data that look something like::
 
     uce         genus_species1  genus_species2  genus_species3
     ----------  --------------  --------------  --------------
-    uce-500     1               .               .             
-    uce-501     1               .               .             
-    uce-502     1               .               .             
-    uce-503     1               1               1             
-    uce-504     1               .               .             
-    uce-505     1               .               .             
-    uce-506     .               .               .             
-    uce-507     1               .               .             
-    uce-508     1               1               .             
+    uce-500     1               .               .
+    uce-501     1               .               .
+    uce-502     1               .               .
+    uce-503     1               1               1
+    uce-504     1               .               .
+    uce-505     1               .               .
+    uce-506     .               .               .
+    uce-507     1               .               .
+    uce-508     1               1               .
     uce-509     1               1               1
-    
+
 Basically, what this indicates is that you enriched 9 of 10 targeted UCE loci
-from `genus_species1`, 3 of 10 UCE loci in the list from `genus_species2`, and
-2 of 10 UCE loci from `genus_species3`. The locus name is given in the `uce
-column`.  Remember that we've limited the results to 10 rows for the sake of
-making the results easy to view.
+from ``genus_species1``, 3 of 10 UCE loci in the list from ``genus_species2``,
+and 2 of 10 UCE loci from ``genus_species3``. The locus name is given in the
+``uce column``.  Remember that we've limited the results to 10 rows for the sake
+of making the results easy to view.
 
 If we wanted to see only those loci that enriched in all species, we could run:
 
@@ -198,22 +229,22 @@ this query, we would see something like::
 
     uce         genus_species1  genus_species2  genus_species3
     ----------  --------------  --------------  --------------
-    uce-503     1               1               1             
+    uce-503     1               1               1
     uce-509     1               1               1
 
-Basically, the `matches` table and this query are what we run to generate
+Basically, the ``matches`` table and this query are what we run to generate
 **complete** (only loci enriched in all taxa) and **incomplete** (all loci
 enriched from all taxa) datasets (see :ref:`locus-counts`).
 
-The `match_map` table
----------------------
+The ``match_map`` table
+.......................
 
-The `match_map` table shows us which species-specific, velvet-assembled contigs
-match which UCE loci. Because velvet assigns an arbitrary designator to each
-assembled contig, we need to map these arbitrary designators (which differ for
-each taxon) to the UCE locus to which it corresponds. Because velvet contigs
-are not in any particular orientation (i.e., they may be 5' - 3' or 3' - 5'),
-we also need to determine the orientation of all contigs relative to the source
+The ``match_map`` table shows us which species-specific, velvet-assembled
+contigs match which UCE loci. Because velvet assigns an arbitrary designator to
+each assembled contig, we need to map these arbitrary designators (which differ
+for each taxon) to the UCE locus to which it corresponds. Because velvet contigs
+are not in any particular orientation (i.e., they may be 5' - 3' or 3' - 5'), we
+also need to determine the orientation of all contigs relative to the source
 probe file.
 
 Let's take a quick look:
@@ -222,29 +253,29 @@ Let's take a quick look:
 
     SELECT * FROM match_map LIMIT 10;
 
-This query is similar to the one that we ran against `matches` and returns the
-first 10 rows of the `match_map` table::
+This query is similar to the one that we ran against ``matches`` and returns the
+first 10 rows of the ``match_map`` table::
 
     uce         genus_species1  genus_species2  genus_species3
     ----------  --------------  --------------  --------------
-    uce-500     node_233(+)     .               .             
-    uce-501     node_830(+)     .               .             
-    uce-502     node_144(-)     .               .             
-    uce-503     node_1676(+)    node_243(+)     node_322(+)   
-    uce-504     node_83(+)      .               .             
-    uce-505     node_1165(-)    .               .             
-    uce-506     .               .               .             
-    uce-507     node_967(+)     .               .             
-    uce-508     node_671(+)     node_211(-)     .             
+    uce-500     node_233(+)     .               .
+    uce-501     node_830(+)     .               .
+    uce-502     node_144(-)     .               .
+    uce-503     node_1676(+)    node_243(+)     node_322(+)
+    uce-504     node_83(+)      .               .
+    uce-505     node_1165(-)    .               .
+    uce-506     .               .               .
+    uce-507     node_967(+)     .               .
+    uce-508     node_671(+)     node_211(-)     .
     uce-509     node_544(-)     node_297(+)     node_37(+)
-    
+
 As stated above, these results show the "hits" of velvet-assembled contigs to
-particular UCE loci. So, if we were to open the `genus_species1.contigs.fasta`
-symlink (which connects to the assembly) in the `contigs` folder, the contig
-named `node_233` corresponds to UCE locus `uce-500`.
+particular UCE loci. So, if we were to open the ``genus_species1.contigs.fasta``
+symlink (which connects to the assembly) in the ``contigs`` folder, the contig
+named ``node_233`` corresponds to UCE locus ``uce-500``.
 
 Additionally, each entry in the rows also provides the orientation for
-particular contigs `(-)` or `(+)`. This orientation is relative to the
+particular contigs ``(-)`` or ``(+)``. This orientation is relative to the
 orientation of the UCE probes/locus in the source genome (e.g., chicken for
 tetrapod probes).
 
@@ -261,7 +292,7 @@ of the two).
 Determining locus counts and generating a taxon-set
 ***************************************************
 
-Now that we know the taxa for which we've enriched UCE loci and which 
+Now that we know the taxa for which we've enriched UCE loci and which
 contigs we've assembled match which UCE loci, we're ready to generate some data
 sets.  The data set generation process is pretty flexible - you can select which
 taxa you would like to group together for an analysis, you can generate complete
@@ -285,7 +316,7 @@ file denoting the taxa we want in the data set.  It should look like this::
     genus_species1
     genus_species2
     genus_species3
-    
+
 Let's assume you name this file `datasets.conf`.  Now, you want to run the
 following against this file, along with several other files we've created
 previously::
@@ -295,7 +326,7 @@ previously::
         /path/to/your/datasets.conf \
         'dataset1' \
         --output /path/to/some/output-file/dataset1.conf
-        
+
 This will basically run a query against the database, and pull out those loci
 for those taxa in the `datasets.conf` file having UCE contigs.  The output will
 look something like::
@@ -305,7 +336,7 @@ look something like::
     genus_species1:108
     genus_species2:93
     genus_species3:71
-    
+
 This means that 500 loci are shared amongst the 3 taxa in `datasets.conf`.  We
 might have had more, but `genus_species1` caused us to drop 108 loci,
 `genus_species2` caused us to drop 93 loci, and `genus_species3` caused us to
@@ -325,7 +356,7 @@ can simply append that list to the `datasets.conf` file like so::
     genus_species1
     genus_species2
     genus_species3
-    
+
     [dataset2]
     genus_species2
     genus_species3
@@ -380,7 +411,7 @@ differently - by indicating these external data with asterisks::
     genus_species3
     genus_species4*
     genus_species5*
-    
+
 Then, you need to pass `get_match_counts.py` the location of the
 `probe.matches.sqlite` database previously generated as described in
 :ref:`contigs-matching` or downloaded as part of :ref:`outgroup-data`::
@@ -391,7 +422,7 @@ Then, you need to pass `get_match_counts.py` the location of the
         'dataset3' \
         --extend /path/to/some/other/probe.matches.sqlite \
         --output /path/to/some/output-file/dataset3-with-external.conf
-        
+
 To keep all this extension from getting too terribly crazy, I've limited the
 ability to include external data to essentially a single set.  If you have lots
 of data from many different enrichments, you'll need to generate a `contigs`
@@ -402,7 +433,7 @@ you can extend your current data set with all of these other data.
 .. _extracting-fasta:
 
 Extracting relevant FASTA data
-******************************
+==============================
 
 After selecting the set of loci in which you're interested, you need to
 generate a FASTA file containing the reads from each species-specific contig
@@ -411,7 +442,7 @@ that corresponds to a locus in the set.  This is reasonable easy.
 Complete data matrix
 --------------------
 
-To generate a FASTA file, we're passing several previously used paths and 
+To generate a FASTA file, we're passing several previously used paths and
 the name of the output file from `get_match_counts.py` on the third line below
 (`/path/to/some/output-file/dataset1.conf`)::
 
@@ -450,8 +481,9 @@ directory::
         --extend-dir /path/to/some/other/contigs/ \
         --output /path/to/some/output.fasta
 
+
 Aligning and trimming FASTA data
-********************************
+================================
 
 With all of that out of the way, things get much easier to deal with.  We
 basically need to align our data across loci, and we're largely ready to go.
@@ -466,7 +498,7 @@ MAFFT.
 First, make a folder for the alignment output::
 
     mkdir /path/to/alignment/output
-    
+
 Complete data matrix
 --------------------
 
@@ -484,7 +516,7 @@ in the alignment, `--aligner mafft` determines the alignment program, and
 
 Incomplete data matrix
 ----------------------
- 
+
 The only difference for an alignment of incomplete data is that we also pass
 the `--notstrict` flag, which tells the code to expect that some loci will not
 have data for all taxa::
@@ -496,7 +528,7 @@ have data for all taxa::
         --aligner mafft \
         --incomplete-matrix \
         --cores 8
-        
+
 After checking the resulting alignment QC (see :ref:`alignment-QC`), you will
 generally need to add in missing data designators for taxa missing from the
 alignment of a given locus. This will basically allow you to generate
@@ -508,7 +540,7 @@ about files having unequal numbers of taxa. To do this, you need to run::
         /path/to/alignment/output-with-missing-data/ \
         /path/to/some/output-file/dataset3-with-external.conf \
         /path/to/some/output-file/dataset3-with-external.notstrict
-        
+
 Alignment trimming
 ------------------
 
@@ -525,7 +557,7 @@ you add the `--notrim` option::
         --aligner mafft \
         --cores 8 \
         --notrim
-        
+
 Saté alignment
 --------------
 
@@ -541,8 +573,8 @@ something like::
         /path/to/sate.cfg \
         --parallelism multiprocessing \
         --cores 8
-        
-This code will also run on MPI enabled machines, but that is generally 
+
+This code will also run on MPI enabled machines, but that is generally
 beyond the scope of this HOWTO.
 
 Alignment trimming only
@@ -561,7 +593,7 @@ phyluce_ trimming procedures, you can also run that::
 .. _alignment-qc:
 
 Alignment quality control
-*************************
+=========================
 
 There are many ways to QC alignments.  The best way is to do it visually, but
 that gets somewhat hard when you have thousands of loci.  There are several
@@ -571,7 +603,7 @@ always want to run::
     python ~/git/phyluce/bin/align/get_align_summary_data.py \
         /path/to/alignment/output-renamed \
         --input-format nexus
-        
+
 This will output a number of stats that look somewhat like (these examle data
 are from an incomplete matrix)::
 
@@ -580,27 +612,27 @@ are from an incomplete matrix)::
 
     Lengths
     -----
-    Total length(aln)        256066              
-    Average length(aln)      318.490049751       
-    95 CI length(aln)        10.6004273805       
-    Minimum length(aln)      64                  
-    Maximum length(aln)      933                 
+    Total length(aln)        256066
+    Average length(aln)      318.490049751
+    95 CI length(aln)        10.6004273805
+    Minimum length(aln)      64
+    Maximum length(aln)      933
 
     Taxa
     -----
-    Average(taxa)            11.526119403        
-    95 CI(taxa)              0.37345195065       
-    min(taxa)                3                   
-    max(taxa)                21                  
+    Average(taxa)            11.526119403
+    95 CI(taxa)              0.37345195065
+    min(taxa)                3
+    max(taxa)                21
     Count(taxa:# alns)       {3: 77, 4: 44, 5: 38, 6: 35, 7: 36, 8: 33, 9: 47, 10: 35, 11: 31, 12: 34, 13: 50, 14: 62, 15: 54, 16: 58, 17: 38, 18: 45, 19: 41, 20: 35, 21: 11}
 
     Base composition
     -----
     Bases                    {'A': 657715, 'C': 533302, '-': 380870, 'T': 667908, 'G': 523342}
-    Sum(all)                 2763137             
-    Sum(nucleotide only)     2382267             
+    Sum(all)                 2763137
+    Sum(nucleotide only)     2382267
     Missing data from trim (%)5.41
-    
+
 Sometimes, loci will contain bases that are not in the standard set of IUPAC
 base code (e.g. "X" or "N").  To identify these loci, you can run::
 
@@ -608,8 +640,9 @@ base code (e.g. "X" or "N").  To identify these loci, you can run::
         /path/to/alignment/output-renamed \
         --input-format nexus
 
+
 Alignment name cleaning
-***********************
+=======================
 
 So that you can visually check the resulting alignments to make sure the correct
 reads for each taxon are included in a given alignment, the `seqcap_align_2.py`
@@ -629,8 +662,9 @@ The second line gives the path to the output created during alignment, the third
 line gives the path to store the cleaned alignments, and the third line gives
 the number of taxa in each alignment.
 
+
 Alignment manipulation
-**********************
+======================
 
 Many workflows for phylogenetics simply involve converting one alignment format
 to another or changing something about the contents of a given alignment. We
@@ -650,7 +684,7 @@ processing step on a multicore machine with the `--cores` option::
         --input-format nexus \
         --output-format fasta \
         --cores 8
-        
+
 You can convert from/to:
 
 #. fasta
@@ -659,6 +693,7 @@ You can convert from/to:
 #. clustal
 #. emboss
 #. stockholm
+
 
 Shortening taxon names
 ----------------------
@@ -674,6 +709,7 @@ above command slightly to add `--shorten-names`::
         --cores 8 \
         --shorten-names
 
+
 Excluding loci or taxa
 ----------------------
 
@@ -688,10 +724,11 @@ accomplish that using::
         --min-length 100 \
         --min-taxa 5 \
         --output /path/to/a/new/directory
-        
+
 This will filter alignments that do not contain the taxa requested, those
 alignments shorter than 100 bp, and those alignments having fewer than 5 taxa
 (taxa with only missing data are not counted).
+
 
 Extracting taxon data from alignments
 -------------------------------------
@@ -705,11 +742,11 @@ fasta results::
         genus_species1 \
         /path/to/output/file.fasta \
         --input-format nexus
-        
+
 .. _data-analysis:
 
 Preparing alignment data for analysis
-*************************************
+=====================================
 
 Formatting data for analysis generally involves slight differences from the
 steps described above.  There are several application-specific programs in
@@ -723,7 +760,7 @@ if you have an input directory of nexus alignments.  First, make an output
 directory::
 
     mkdir raxml
-    
+
 Then run::
 
     python phyluce/bin/align/format_nexus_files_for_raxml.py \
@@ -737,7 +774,7 @@ PHYLIP/CloudForest
 
 PHYLIP, PhyML, and other programs like CloudForest_ require input files to be in
 strict phylip format for analysis.  Converting alignment files to this format
-was discussed above, and is simple a matter of (use `--cores` if you have 
+was discussed above, and is simple a matter of (use `--cores` if you have
 a multicore machine as that will greatly speed processing)::
 
     python phyluce/bin/align/convert_one_align_to_another.py \
@@ -761,7 +798,7 @@ best-fitting substitution model from the CloudForest_ output, and input that
 file to the program that creates a nexus file for MrBayes.
 
 First, estimate the substitution models using cloudforest (this will also give
-you genetrees for all loci, as a bonus).  You will need your alignments in 
+you genetrees for all loci, as a bonus).  You will need your alignments in
 strict phylip format::
 
     python cloudforest/cloudforest_mpi.py \
@@ -771,7 +808,7 @@ strict phylip format::
         $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64 \
         --parallelism multiprocessing \
         --cores 8
-        
+
 In the above, `genetrees` is a keyword that tells CloudForest_ that you mean to
 estimate genetrees (instead of bootstraps).  Depending on the size of your
 dataset (and computer), this may take some time.  Once this is done::
@@ -779,7 +816,7 @@ dataset (and computer), this may take some time.  Once this is done::
     python phyluce/bin/genetrees/split_models_from_genetrees.py \
         /path/to/cloudforest/output/genetrees.tre \
         /path/to/output_models.txt
-        
+
 Now, you're ready to go with formatting for MrBayes - note that we're inputting
 the path of the models file created above (output_models.txt) on line 3::
 
@@ -820,7 +857,7 @@ substitution model)::
         $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64 \
         --parallelism multiprocessing \
         --cores 8
-        
+
 The, to generate bootstrap replicates, you can run::
 
     python cloudforest/cloudforest_mpi.py \
@@ -835,9 +872,9 @@ The, to generate bootstrap replicates, you can run::
 
 **NOTE** that depending on your system, you may need to choose another value
 for the path to PhyML::
-    
+
     $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64
-    
+
 RaXML (genetree/species tree)
 -----------------------------
 

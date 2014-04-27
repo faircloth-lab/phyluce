@@ -8,7 +8,7 @@ Citing
 
 You can cite the `phyluce`_ repository using:
 
-.. [BCF2014] Faircloth BC. 2014. phyluce: phylogenetics inference from
+.. [BCF2014] Faircloth BC. 2014. phyluce: phylogenetic estimation from
    ultraconserved elements.
    doi:`10.6079/J9PHYL <http://doi.org/10.6079/J9PHYL>`_.
 

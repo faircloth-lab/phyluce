@@ -1,5 +1,7 @@
 .. include:: global.rst
 
+.. _Assembly:
+
 *********
 Assembly
 *********
@@ -8,11 +10,13 @@ Setup
 =====
 
 Once your reads are clean, you're ready to assemble. At the moment, you can use
-velvet_ and ABySS_ for assembly, and there are support scripts for assembling
-the data using Trinity_, although there is not yet a conda_ install package for
-Trinity_ due to some difficulties in how that package is structured.  If you
-want to use Trinity_ for assembly, it is currently best to install that package
-outside of conda_/phyluce_.
+velvet_ and ABySS_ for assembly, and there is also a script for assembling your
+data data using Trinity_, although there is not yet a conda_ install package for
+Trinity_ due to some difficulties in how that package is structured.
+
+.. attention:: If you want to use Trinity_ for assembly, it is currently best to
+install that package outside of conda_/phyluce_ following the instructions on
+the Trinity_ site.
 
 Most of the assembly process is automated using code within phyluce_,
 specifically the following 3 scripts:
@@ -96,12 +100,12 @@ General process
 The general process that the helper scripts use is:
 
 #. Create the output directory (AKA $ASSEMBLY, below)
-#. Create a `contigs` folder within the output directory
-#. For each taxon create $ASSEMBLY/genus-species directory, based on config
-   file enrtries
+#. Create a ``contigs`` folder within the output directory
+#. For each taxon create ``$ASSEMBLY/genus-species`` directory, based on config
+   file entries
 #. Find the correct fastq files for a given sample
 #. Input those fastq files to whichever assembly program
-#. Assemble reads using user-defined/static `--kmer` value
+#. Assemble reads using user-defined/static ``--kmer`` value
 #. Strip contigs of potentially problematic bases (ABySS-only)
 #. Normalize contig names
 #. Link assembly file with normalized names in $ASSEMBLY/genus-species/ into

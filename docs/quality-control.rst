@@ -137,7 +137,7 @@ downstream.
 .. attention:: Prior to running illumiprocessor_, if you used Casava, it will
     be easiest to place all of the demuliplexed reads into a single directory.
 
-You need to generate a configuration file `your-illumiprocessor.conf`, that
+You need to generate a configuration file ``your-illumiprocessor.conf``, that
 gives details of your reads, how you want them processed, and what renaming
 options to use. There are **several** variations in formatting required
 depending on the library preparation method that you used.
@@ -147,7 +147,7 @@ depending on the library preparation method that you used.
 
 You can run illumiprocessor against your data (in `demultiplexed`) with the
 following.  If you do not have a multicore machine, you may with to run with
-`--cores=1`.  Additionally, multicore operations require a fair amount of RAM,
+``--cores=1``.  Additionally, multicore operations require a fair amount of RAM,
 so if you're low on RAM, run with fewer cores:
 
 .. code-block:: bash
@@ -158,7 +158,7 @@ so if you're low on RAM, run with fewer cores:
         --config your-illumiprocesser.conf \
         --cores 12
 
-The clean data will appear in `uce-clean` with the following structure::
+The clean data will appear in ``uce-clean`` with the following structure::
 
     uce-clean/
         genus_species1/
