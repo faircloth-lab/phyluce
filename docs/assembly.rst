@@ -17,12 +17,12 @@ outside of conda_/phyluce_.
 Most of the assembly process is automated using code within phyluce_,
 specifically the following 3 scripts:
 
-- assemblo_abyss.py
-- assemblo_trinity.py
-- assemblo_velvet.py
+- `assemblo_abyss.py`
+- `assemblo_trinity.py`
+- `assemblo_velvet.py`
 
-And, the code always expects your input directories to have the following
-structure (from the :ref:`Quality Control` section)::
+The code of each of the above programs **always** expects your input directories
+to have the following structure (from the :ref:`Quality Control` section)::
 
     uce-clean/
         genus_species1/
@@ -37,7 +37,7 @@ structure (from the :ref:`Quality Control` section)::
             stats/
                 genus_species1-adapter-contam.txt
 
-And each of these assembly helper programs take the same configuration files as
+And, each of these assembly helper programs take the same configuration files as
 input.  You should format the configuration file for input according to the
 following scheme::
 
@@ -45,7 +45,7 @@ following scheme::
     name_you_want_assembly_to_have:/path/to/uce-clean/genus_species1
 
 In practice, this means you need to create a configuration file that looks
-like:
+like::
 
     [samples]
     anas_platyrhynchos1:/path/to/uce-clean/anas_platyrhynchos1
@@ -56,23 +56,26 @@ The `assembly name` on the left side of the colon can be whatever you want.
 The `path name` on the right hand side of the colon must be a valid path to a
 directory containing read data in a format similar to that described above.
 
+.. attention:: Assembly names **MUST** be unique.
+
 .. tip:: How do I name my samples/assemblies?
     Naming samples is a contentious issue and is also a hard thing to deal with
     using computer code.  You should **never** have a problem if you name your
     samples as following, where the genus and specific epithet are separated by
     an underscore, and multiple individuals of a given species are indicated
-    using a trailing integer value:
+    using a trailing integer value::
 
         anas_platyrhynchos1
         anas_carolinensis1
         dendrocygna_bicolor1
 
     We are working to ensure that you will also not have problems if you use a
-    naming scheme like:
+    naming scheme that suffixes the species binomials with an accession number
+    that is **simply** formatted (e.g. no slashes, dashes, etc.)::
 
-        anas_platyrhynchos1_KGH2267
-        anas_carolinensis1_KGH2269
-        dendrocygna_bicolor1_DWF4597
+        anas_platyrhynchos_KGH2267
+        anas_carolinensis_KGH2269
+        dendrocygna_bicolor_DWF4597
 
     **However**, you may occasionally have problems with such a naming scheme.
 

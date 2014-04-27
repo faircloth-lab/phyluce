@@ -11,11 +11,11 @@ demultiplexed (split by sequence tags) for you. If your data are from the
 MiSeq_, they may also have been trimmed of adapter contamination.
 
 .. note:: If your data are not demultiplexed, they can come in a vast array
-   of different types, although the common type is as so-called *BCL* files.
+   of different types, although one common type are so-called BCL-files.
    Regardless, if your data are not demultiplexed fastq files, you will need to
    talk to your sequencing provider about how to accomplish demultiplexing.  I
    provide an **unsupported** guide to demultiplexing *BCL* files using Casava_
-   here: https://gist.github.com/brantfaircloth/3125885.
+   or bcl2fastq here: https://gist.github.com/brantfaircloth/3125885.
 
 Regardless, you need to do a fair bit of quality control on your read data.
 **At a minimum**, this includes:
@@ -87,9 +87,9 @@ be equal.
 Adapter- and quality-trimming
 ==============================
 
-Generally speaking, Casava_ and bcl2fastq_, the two programs used to
-demultiplex sequence data from Illumina_ platforms are output in a format like
-the following::
+Generally speaking, Casava_ and bcl2fastq_, the two programs used to demultiplex
+sequence data from Illumina_ platforms, output fastq files in a format similar
+to the following::
 
     Project_name/
         Sample_BFIDT-000
@@ -122,9 +122,9 @@ with your taxon names)::
 
 .. note:: We not longer create `interleaved` fastq files because most programs
     assume that PE (paired-end) reads are maintained as read pairs.  Rather than
-    maintian an interleaved set of data and a non-interleaved set of data, we
+    create an interleaved set of data and a non-interleaved set of data, we
     have decided to keep files for each of R1, R2, and singleton reads (those
-    that have lost their mates).
+    that have lost their mates) and never produce an interleaved file.
 
 Trimming with illumiprocessor
 -----------------------------
@@ -142,7 +142,7 @@ gives details of your reads, how you want them processed, and what renaming
 options to use. There are **several** variations in formatting required
 depending on the library preparation method that you used.
 
-.. attention:: See the docuementation for illumiprocessor_ for configutation
+.. attention:: See the docuementation for illumiprocessor_ for configuration
     information.
 
 You can run illumiprocessor against your data (in `demultiplexed`) with the
@@ -152,15 +152,11 @@ so if you're low on RAM, run with fewer cores:
 
 .. code-block:: bash
 
-    mkdir uce-clean
-    python ~/git/illumiprocessor/illumiprocessor.py \
-        demultiplexed \
-        uce-clean \
-        your-illumiprocesser.conf \
-        --remap \
-        --clean \
-        --cores 12 \
-        --complex
+    illumiprocessor \
+        --input demultiplexed \
+        --output uce-clean \
+        --config your-illumiprocesser.conf \
+        --cores 12
 
 The clean data will appear in `uce-clean` with the following structure::
 
