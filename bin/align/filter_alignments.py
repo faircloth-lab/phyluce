@@ -7,16 +7,6 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 08 August 2012 19:08 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: Given a folder of alignments, output the name and length.
-Filter on presence of data for a taxon with --containing-data-for and/or
-length with --min-length.  If --output, copy resulting files into a new
-directory.
-
-Usage: python filter_alignments phylip-with-gaps \
-    --input-format phylip \
-    --containing-data-for pol_sen \
-    --output phylip-with-gaps-polypterus \
-    --min-length 50
 """
 
 import os
@@ -24,20 +14,27 @@ import glob
 import shutil
 import argparse
 from Bio import AlignIO
-from phyluce.helpers import is_dir, FullPaths, get_file_extensions
+from phyluce.helpers import is_dir, FullPaths, CreateDirs, get_file_extensions
+from phyluce.log import setup_logging
 
-import pdb
+#import pdb
 
 
 def get_args():
     parser = argparse.ArgumentParser(
-            description="""Output the lengths of alignments"""
+            description="""Filter alignments containing certain taxa or having certain lengths"""
         )
     parser.add_argument(
-            'input',
+            '--alignments',
             type=is_dir,
             action=FullPaths,
             help='The directory containing the alignment files'
+        )
+    parser.add_argument(
+            "--output",
+            type=is_dir,
+            action=CreateDirs,
+            help="""The directory to write alignments meeting criteria."""
         )
     parser.add_argument(
             "--input-format",
@@ -66,12 +63,6 @@ def get_args():
             type=int,
             default=0,
             help="""Filter out alignments with fewer than --min-taxa"""
-        )
-    parser.add_argument(
-            "--output",
-            type=is_dir,
-            action=FullPaths,
-            help="""Place alignments meeting criteria in an output folder"""
         )
     return parser.parse_args()
 
@@ -124,8 +115,9 @@ def align_min_taxa(args, aln):
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
     files = get_files(args.input, args.input_format)
-    print "Good Alignments\n"
     for f in files:
         try:
             aln = AlignIO.read(f, args.input_format)
@@ -142,7 +134,7 @@ def main():
             else:
                 taxa = True
             if containing and taxa and length:
-                print "{0}".format(os.path.basename(f))
+                log.info("Good alignment: {0}".format(os.path.basename(f)))
             if containing and taxa and length and args.output:
                 name = os.path.basename(f)
                 shutil.copy(f, os.path.join(args.output, name))
@@ -151,6 +143,9 @@ def main():
                 print 'No records found in {0}'.format(os.path.basename(f))
             else:
                 raise ValueError('Something is wrong with alignment {0}'.format(os.path.basename(f)))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
