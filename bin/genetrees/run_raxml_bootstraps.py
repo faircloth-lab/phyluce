@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 13 September 2012 18:09 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -21,7 +21,7 @@ import subprocess
 import multiprocessing
 from phyluce.helpers import is_dir, FullPaths
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -29,13 +29,15 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Program description""")
     parser.add_argument(
-            "input",
+            "--input",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The input directory containing alignments in phylip format"""
         )
     parser.add_argument(
-            "output",
+            "--output",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The output directory to hold alignments"""
@@ -130,7 +132,7 @@ def run_raxml(work):
     # run raxml saving the output to a directory in args.output named
     # after the alignment:
     #
-    # 
+    #
     b_rand = str(random.randint(0, 1000000))
     p_rand = str(random.randint(0, 1000000))
     if threads == 1:
