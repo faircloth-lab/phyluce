@@ -940,7 +940,8 @@ processing step up on a multicore machine with the ``--cores`` option:
         --output /path/to/uce/taxon-set1/mafft-fasta \
         --input-format nexus \
         --output-format fasta \
-        --cores 8
+        --cores 8 \
+        --log-path log
 
 You can convert from/to:
 
@@ -966,7 +967,8 @@ above command slightly to add ``--shorten-names``:
         --input-format nexus \
         --output-format fasta \
         --cores 8 \
-        --shorten-names
+        --shorten-names \
+        --log-path log
 
 
 Excluding loci or taxa
@@ -979,12 +981,13 @@ accomplish that using:
 .. code-block:: bash
 
     filter_alignments.py \
-        /path/to/uce/taxon-set1/mafft-nexus \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus \
+        --output /path/to/a/new/directory \
         --input-format nexus \
         --containing-data-for genus_species1 genus_species2 \
         --min-length 100 \
         --min-taxa 5 \
-        --output /path/to/a/new/directory
+        --log-path log
 
 This will filter alignments that do not contain the taxa requested, those
 alignments shorter than 100 bp, and those alignments having fewer than 5 taxa
@@ -1000,10 +1003,9 @@ fasta results:
 .. code-block:: bash
 
     extract_taxon_data_from_alignments.py \
-        /path/to/alignment/ \
-        genus_species1 \
-        /path/to/output/file.fasta \
-        --input-format nexus
+        --alignments /path/to/uce/taxon-set1/mafft-nexus \
+        --taxon genus_species1 \
+        --output /path/to/output/file.fasta
 
 
 Preparing alignment data for analysis
@@ -1042,12 +1044,14 @@ was discussed above, and is simple a matter of:
 
 .. code-block:: bash
 
-    python phyluce/bin/align/convert_one_align_to_another.py \
-        /path/to/input/alignments \
-        /path/to/output/alignments \
+    convert_one_align_to_another.py \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus \
+        --output /path/to/uce/taxon-set1/mafft-phylip-shortnames \
         --input-format nexus \
         --output-format phylip \
-        --shorten-names
+        --cores 8 \
+        --shorten-names \
+        --log-path log
 
 MrBayes
 --------
@@ -1082,19 +1086,19 @@ dataset (and computer), this may take some time.  Once this is done:
 
 .. code-block:: bash
 
-    python phyluce/bin/genetrees/split_models_from_genetrees.py \
-        /path/to/cloudforest/output/genetrees.tre \
-        /path/to/output_models.txt
+    split_models_from_genetrees.py \
+        --genetrees /path/to/cloudforest/output/genetrees.tre \
+        --output /path/to/output_models.txt
 
 Now, you're ready to go with formatting for MrBayes - note that we're inputting
 the path of the models file created above (output_models.txt) on line 3:
 
 .. code-block:: bash
 
-    python phyluce/bin/align/format_nexus_files_for_mrbayes.py \
-        /path/to/input/nexus/ \
-        /path/to/output_models.txt \
-        /path/to/output/mrbayes.nexus \
+    format_nexus_files_for_mrbayes.py \
+        --alignments /path/to/input/nexus/ \
+        --models /path/to/output_models.txt \
+        --output /path/to/output/mrbayes.nexus \
         --interleave \
         --unlink
 
