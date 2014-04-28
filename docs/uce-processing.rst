@@ -470,7 +470,7 @@ in the `datasets.conf` file.
 .. note:: You do not determine the "completeness" of the finaly data matrix
     that you want to create during this stage - that happens later, after
     alignment (see :ref:`finalize-matrix`).  As a result, we are alinging data
-    from any and all UCE loci having ≥ 3 taxa, which allows us to flexibly
+    from any and all UCE loci having >= 3 taxa, which allows us to flexibly
     select the level of incompleteness later, without having to re-run our
     alignments.
 
