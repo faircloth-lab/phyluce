@@ -309,9 +309,8 @@ The data matrix generation process consists of two distinct parts:
 
 .. _locus-counts:
 
-
 Creating a data matrix configuration file
-*****************************************
+==========================================
 
 Before we extract fasta data from our ``$ASSEMBLY/contigs``, we need to create a
 data matrix configuration file that denotes (1) which taxa we want to include
@@ -567,7 +566,7 @@ current data set with all of these other data.
 .. _extracting-fasta:
 
 Extracting FASTA data using the data matrix configuration file
---------------------------------------------------------------
+==============================================================
 
 Once we have created the data matrix configuration file containing data for our
 taxa of interest and those loci of interest, we need to extract the appropriate
@@ -894,6 +893,7 @@ This will produce output that looks similar to::
     2014-04-24 20:12:35,293 - get_only_loci_with_min_taxa - INFO - Copied 1010 alignments of 1104 total containing ≥ 0.75 proportion of taxa (n = 20)
     2014-04-24 20:12:35,294 - get_only_loci_with_min_taxa - INFO - ============= Completed get_only_loci_with_min_taxa =============
 
+.. _missing data:
 
 Add missing data designators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -901,7 +901,9 @@ Add missing data designators
 Finally, you will need to add missing data designators for taxa missing from
 each alignment of a given locus. This will basically allow you to generate
 concatenated data sets and it may reduce error messages from other programs
-about files having unequal numbers of taxa. To do this, run::
+about files having unequal numbers of taxa. To do this, run:
+
+.. code-block:: bash
 
     add_missing_data_designators.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus-min-25-taxa \
@@ -916,116 +918,8 @@ about files having unequal numbers of taxa. To do this, run::
     :ref:`extracting-fasta` sections.
 
 
-Other alignment options
------------------------
-
-Saté alignment
-^^^^^^^^^^^^^^
-
-There is also an option to run Saté alignments instead of the default code.  For
-the moment, this code lives in `mpi_sate.py` and you can run it locally with
-something like::
-
-    python phyluce/bin/align/mpi_sate.py \
-        /path/to/some/output.fasta \
-        /path/to/alignment/output \
-        3 \
-        /path/to/sate \
-        /path/to/sate.cfg \
-        --parallelism multiprocessing \
-        --cores 8
-
-This code will also run on MPI enabled machines, but that is generally
-beyond the scope of this HOWTO.
-
-Alignment trimming only
-^^^^^^^^^^^^^^^^^^^^^^^
-
-If you have untrimmed (ragged) alignments that you would like to trim with the
-phyluce_ trimming procedures, you can also run that::
-
-    python phyluce/bin/align/get_trimmed_alignments_from_untrimmed.py \
-        /path/to/alignment/input \
-        /path/to/output/for/trimmed/data/ \
-        --input-format nexus
-        --output-format nexus \
-        --multiprocessing
-
-.. _alignment-qc:
-
-Alignment quality control
-=========================
-
-There are many ways to QC alignments.  The best way is to do it visually, but
-that gets somewhat hard when you have thousands of loci.  There are several
-programs in the `phyluce`_ package that help you QC alignments.  You probably
-always want to run::
-
-    python ~/git/phyluce/bin/align/get_align_summary_data.py \
-        /path/to/alignment/output-renamed \
-        --input-format nexus
-
-This will output a number of stats that look somewhat like (these examle data
-are from an incomplete matrix)::
-
-    uce-1071.nex is < 100 bp long
-    uce-720.nex is < 100 bp long
-
-    Lengths
-    -----
-    Total length(aln)        256066
-    Average length(aln)      318.490049751
-    95 CI length(aln)        10.6004273805
-    Minimum length(aln)      64
-    Maximum length(aln)      933
-
-    Taxa
-    -----
-    Average(taxa)            11.526119403
-    95 CI(taxa)              0.37345195065
-    min(taxa)                3
-    max(taxa)                21
-    Count(taxa:# alns)       {3: 77, 4: 44, 5: 38, 6: 35, 7: 36, 8: 33, 9: 47, 10: 35, 11: 31, 12: 34, 13: 50, 14: 62, 15: 54, 16: 58, 17: 38, 18: 45, 19: 41, 20: 35, 21: 11}
-
-    Base composition
-    -----
-    Bases                    {'A': 657715, 'C': 533302, '-': 380870, 'T': 667908, 'G': 523342}
-    Sum(all)                 2763137
-    Sum(nucleotide only)     2382267
-    Missing data from trim (%)5.41
-
-Sometimes, loci will contain bases that are not in the standard set of IUPAC
-base code (e.g. "X" or "N").  To identify these loci, you can run::
-
-    python phyluce/bin/align/screen_alignments_for_problems.py \
-        /path/to/alignment/output-renamed \
-        --input-format nexus
-
-
-Alignment name cleaning
-=======================
-
-So that you can visually check the resulting alignments to make sure the correct
-reads for each taxon are included in a given alignment, the `seqcap_align_2.py`
-program writes output files that contain the locus name as part of the taxon
-name in the output nexus files.
-
-This is likely to change in the near future.  However, in the meantime, you
-probably want to remove this designation from the resulting alignment files.
-You can easily do this with::
-
-    python phyluce/bin/align/remove_locus_name_from_nexus_lines.py \
-        /path/to/alignment/output \
-        /path/to/alignment/output-renamed \
-        3
-
-The second line gives the path to the output created during alignment, the third
-line gives the path to store the cleaned alignments, and the third line gives
-the number of taxa in each alignment.
-
-
-Alignment manipulation
-======================
+Operations on alignments
+========================
 
 Many workflows for phylogenetics simply involve converting one alignment format
 to another or changing something about the contents of a given alignment. We
@@ -1036,12 +930,14 @@ Converting one alignment format to another
 ------------------------------------------
 
 To convert one alignment type (e.g., nexus) to another (e.g., fasta), we have a
-relative simple bit of code to achieve that process. You can also speed this
-processing step on a multicore machine with the `--cores` option::
+relative simple bit of code to achieve that process. You can greatly speed this
+processing step up on a multicore machine with the ``--cores`` option:
 
-    python phyluce/bin/align/convert_one_align_to_another.py \
-        /path/to/input/alignments \
-        /path/to/output/alignments \
+.. code-block:: bash
+
+    convert_one_align_to_another.py \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus \
+        --output /path/to/uce/taxon-set1/mafft-fasta \
         --input-format nexus \
         --output-format fasta \
         --cores 8
@@ -1060,11 +956,13 @@ Shortening taxon names
 ----------------------
 
 You can shorten taxon names (e.g. for use with strict phylip) by modifying the
-above command slightly to add `--shorten-names`::
+above command slightly to add ``--shorten-names``:
 
-    python phyluce/bin/align/convert_one_align_to_another.py \
-        /path/to/input/alignments \
-        /path/to/output/alignments \
+.. code-block:: bash
+
+    convert_one_align_to_another.py \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus \
+        --output /path/to/uce/taxon-set1/mafft-fasta-shortnames \
         --input-format nexus \
         --output-format fasta \
         --cores 8 \
@@ -1076,10 +974,12 @@ Excluding loci or taxa
 
 You may want to exclude loci less than a certain length or having fewer than
 a particular number of taxa, or only containing certain taxa.  You can
-accomplish that using::
+accomplish that using:
 
-    python phyluce/bin/align/filter_alignments.py \
-        /path/to/alignment/output-renamed \
+.. code-block:: bash
+
+    filter_alignments.py \
+        /path/to/uce/taxon-set1/mafft-nexus \
         --input-format nexus \
         --containing-data-for genus_species1 genus_species2 \
         --min-length 100 \
@@ -1090,21 +990,21 @@ This will filter alignments that do not contain the taxa requested, those
 alignments shorter than 100 bp, and those alignments having fewer than 5 taxa
 (taxa with only missing data are not counted).
 
-
 Extracting taxon data from alignments
 -------------------------------------
 
 Sometimes you may have alignments from which you want to extract data from a
 given taxon, format the alignment string as fasta, and do something with the
-fasta results::
+fasta results:
 
-    python phyluce/bin/align/extract_taxon_data_from_alignments.py \
+.. code-block:: bash
+
+    extract_taxon_data_from_alignments.py \
         /path/to/alignment/ \
         genus_species1 \
         /path/to/output/file.fasta \
         --input-format nexus
 
-.. _data-analysis:
 
 Preparing alignment data for analysis
 =====================================
@@ -1119,16 +1019,17 @@ RAxML
 -----
 
 For RAxML, you need a concatenated phylip file.  This is pretty easily created
-if you have an input directory of nexus alignments.  First, make an output
-directory::
+if you have an input directory of nexus alignments.  To create a concatenated
+phylip file from run:
 
-    mkdir raxml
+.. code-block:: bash
 
-Then run::
+    format_nexus_files_for_raxml.py \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus \
+        --output /path/to/uce/taxon-set1/mafft-raxml
 
-    python phyluce/bin/align/format_nexus_files_for_raxml.py \
-        /path/to/alignment/output-renamed \
-        raxml/output-file-name.phylip
+This will output a concatenated file named ``mafft-raxml.phylip`` in
+``/path/to/uce/taxon-set1/mafft-raxml``.
 
 .. _strict-phylip:
 
@@ -1137,8 +1038,9 @@ PHYLIP/CloudForest
 
 PHYLIP, PhyML, and other programs like CloudForest_ require input files to be in
 strict phylip format for analysis.  Converting alignment files to this format
-was discussed above, and is simple a matter of (use `--cores` if you have
-a multicore machine as that will greatly speed processing)::
+was discussed above, and is simple a matter of:
+
+.. code-block:: bash
 
     python phyluce/bin/align/convert_one_align_to_another.py \
         /path/to/input/alignments \
@@ -1162,7 +1064,9 @@ file to the program that creates a nexus file for MrBayes.
 
 First, estimate the substitution models using cloudforest (this will also give
 you genetrees for all loci, as a bonus).  You will need your alignments in
-strict phylip format::
+strict phylip format:
+
+.. code-block:: bash
 
     python cloudforest/cloudforest_mpi.py \
         /path/to/strict/phylip/alignments/ \
@@ -1174,14 +1078,18 @@ strict phylip format::
 
 In the above, `genetrees` is a keyword that tells CloudForest_ that you mean to
 estimate genetrees (instead of bootstraps).  Depending on the size of your
-dataset (and computer), this may take some time.  Once this is done::
+dataset (and computer), this may take some time.  Once this is done:
+
+.. code-block:: bash
 
     python phyluce/bin/genetrees/split_models_from_genetrees.py \
         /path/to/cloudforest/output/genetrees.tre \
         /path/to/output_models.txt
 
 Now, you're ready to go with formatting for MrBayes - note that we're inputting
-the path of the models file created above (output_models.txt) on line 3::
+the path of the models file created above (output_models.txt) on line 3:
+
+.. code-block:: bash
 
     python phyluce/bin/align/format_nexus_files_for_mrbayes.py \
         /path/to/input/nexus/ \
@@ -1192,7 +1100,9 @@ the path of the models file created above (output_models.txt) on line 3::
 
 This should create a partitioned data file for you. The partitioning will be by
 model, not by locus. Should you want to fully partition by locus (which may
-overparamterize), then you can run::
+overparamterize), then you can run:
+
+.. code-block:: bash
 
     python phyluce/bin/align/format_nexus_files_for_mrbayes.py \
         /path/to/input/nexus/ \
@@ -1211,7 +1121,9 @@ Data input to CloudForest should be in strict phylip format (see
 :ref:`strict-phylip`).  First, as above, run genetree analysis on your data (
 if you ran this above, you don't need to run it again).  This will estimate
 the genetrees for each locus in your dataset, using it's best fitting
-substitution model)::
+substitution model):
+
+.. code-block:: bash
 
     python cloudforest/cloudforest_mpi.py \
         /path/to/strict/phylip/alignments/ \
@@ -1221,7 +1133,9 @@ substitution model)::
         --parallelism multiprocessing \
         --cores 8
 
-The, to generate bootstrap replicates, you can run::
+The, to generate bootstrap replicates, you can run:
+
+.. code-block:: bash
 
     python cloudforest/cloudforest_mpi.py \
         /path/to/strict/phylip/alignments/ \
@@ -1234,7 +1148,9 @@ The, to generate bootstrap replicates, you can run::
         --genetrees /path/to/store/cloudforest/output/genetrees.tre
 
 **NOTE** that depending on your system, you may need to choose another value
-for the path to PhyML::
+for the path to PhyML:
+
+.. code-block:: bash
 
     $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64
 
@@ -1245,9 +1161,11 @@ RaXML (genetree/species tree)
 We can also use RaXML to genrate gene trees to turn into a species tree. To keep
 the taxa names similar to what I run through CloudForest_, I usually input
 strict phylip formatted files to these runs (see :ref:`strict-phylip`).  Once
-that's done, you can generate genetrees with::
+that's done, you can generate genetrees with:
 
-    python phyluce/bin/genetrees/run_raxml_genetrees.py \
+.. code-block:: bash
+
+    run_raxml_genetrees.py \
         /path/to/strict/phylip/alignments/ \
         /path/to/store/raxml/output/ \
         --outgroup genus_species1 \
@@ -1261,7 +1179,9 @@ processed at once is the fastest route to go.
 
 Once that's finished, you can genrate bootstrap replicates for those same loci::
 
-    python phyluce/bin/genetrees/run_raxml_bootstraps.py \
+.. code-block:: bash
+
+    run_raxml_bootstraps.py \
         /path/to/strict/phylip/alignments/ \
         /path/to/store/raxml/output/ \
         --bootreps 100 \
