@@ -1008,6 +1008,8 @@ fasta results:
         --output /path/to/output/file.fasta
 
 
+.. _data-analysis:
+
 Preparing alignment data for analysis
 =====================================
 
@@ -1052,6 +1054,8 @@ was discussed above, and is simple a matter of:
         --cores 8 \
         --shorten-names \
         --log-path log
+
+.. _mrbayes:
 
 MrBayes
 --------
@@ -1116,6 +1120,8 @@ overparamterize), then you can run:
         --unlink \
         --fully-partition
 
+.. _cloudforest-genetrees:
+
 CloudForest (genetree/species tree)
 -----------------------------------
 
@@ -1158,6 +1164,7 @@ for the path to PhyML:
 
     $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64
 
+.. _raxml-genetrees:
 
 RaXML (genetree/species tree)
 -----------------------------
@@ -1170,8 +1177,8 @@ that's done, you can generate genetrees with:
 .. code-block:: bash
 
     run_raxml_genetrees.py \
-        /path/to/strict/phylip/alignments/ \
-        /path/to/store/raxml/output/ \
+        --alignments /path/to/strict/phylip/alignments/ \
+        --output /path/to/store/raxml/output/ \
         --outgroup genus_species1 \
         --cores 12 \
         --threads 1
@@ -1186,8 +1193,8 @@ Once that's finished, you can genrate bootstrap replicates for those same loci::
 .. code-block:: bash
 
     run_raxml_bootstraps.py \
-        /path/to/strict/phylip/alignments/ \
-        /path/to/store/raxml/output/ \
+        --alignments /path/to/strict/phylip/alignments/ \
+        --output /path/to/store/raxml/output/ \
         --bootreps 100 \
         --outgroup genus_species1 \
         --cores 12 \
