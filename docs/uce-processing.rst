@@ -890,7 +890,7 @@ This will produce output that looks similar to::
     2014-04-24 20:12:33,388 - get_only_loci_with_min_taxa - INFO - Argument --taxa: 27
     2014-04-24 20:12:33,388 - get_only_loci_with_min_taxa - INFO - Argument --verbosity: INFO
     2014-04-24 20:12:33,388 - get_only_loci_with_min_taxa - INFO - Getting alignment files
-    2014-04-24 20:12:35,293 - get_only_loci_with_min_taxa - INFO - Copied 1010 alignments of 1104 total containing ≥ 0.75 proportion of taxa (n = 20)
+    2014-04-24 20:12:35,293 - get_only_loci_with_min_taxa - INFO - Copied 1010 alignments of 1104 total containing >= 0.75 proportion of taxa (n = 20)
     2014-04-24 20:12:35,294 - get_only_loci_with_min_taxa - INFO - ============= Completed get_only_loci_with_min_taxa =============
 
 .. _missing data:
