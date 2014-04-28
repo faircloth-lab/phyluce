@@ -1,9 +1,5 @@
 phyluce: software for UCE (and general) phylogenomics
-=====================================================
-
-:Author: Brant C. Faircloth
-:Date: |date|
-:Copyright: This documentation is available under a Creative Commons (`CC-BY`_) license.
+-----------------------------------------------------
 
 phyluce_ (phy-**loo**-chee) is a software package that was initially developed
 for analyzing data collected from ultraconserved elements in organismal genomes.
@@ -29,8 +25,8 @@ Installing
 ----------
 
 We **strongly** suggest installating phyluce_ using anaconda_/miniconda_ and the
-conda_.  We build and test phyluce_ dependencies and function on the following
-platforms
+conda_ package manager for python_.  We build and test phyluce_ dependencies and
+function on the following platforms.
 
 - Apple OSX 10.9.x
 - CentOS 6.x
@@ -46,11 +42,11 @@ Quick version
     python -V
     Python 2.7.6 :: Anaconda 1.8.0 (x86_64)
 
-#. Add the faircloth-lab_ repository to your ``.condarc``::
+#. Add the `faircloth-lab binstar`_ repository to your ``.condarc``::
 
     conda config --add channels http://conda.binstar.org/faircloth-lab
 
-#. Install phyluce_
+#. Install phyluce_::
 
     conda install phyluce
 
@@ -102,5 +98,7 @@ additional manuscript for the software, alone.
 .. _License: https://github.com/faircloth-lab/phyluce/blob/master/LICENSE.txt
 .. _License.txt: https://github.com/faircloth-lab/phyluce/blob/master/LICENSE.txt
 .. _Instructions: http://docs.continuum.io/anaconda/install.html
-.. _Installation documents: http://phyluce.readthedocs.org/en/working/installation.html
+.. _Installation documents: http://phyluce.readthedocs.org/en/installation.html
+.. _python: http://www.python.org
+.. _faircloth-lab binstar: binstar.org/faircloth-lab/
 
