@@ -16,7 +16,7 @@ from Bio.Nexus import Nexus
 from collections import OrderedDict
 from phyluce.helpers import is_dir, is_file, FullPaths
 
-import pdb
+# import pdb
 
 
 def get_args():
@@ -25,20 +25,22 @@ def get_args():
         file for MrBayes given an raw_input file of Nexus-formatted
         alignments and a file of models associated with loci.""")
     parser.add_argument(
-            "aligns",
+            "--alignments",
+            required=True,
             type=is_dir,
             action=FullPaths,
-            help="""The path to the alignment directory"""
+            help="""The path to the alignments directory"""
         )
     parser.add_argument(
-            "models",
+            "--models",
+            required=True,
             type=is_file,
             action=FullPaths,
             help="""The path to the model configuration file"""
         )
     parser.add_argument(
-            "output",
-            type=is_file,
+            "--output",
+            required=True,
             action=FullPaths,
             help="""The path to the output file"""
         )
@@ -198,10 +200,10 @@ def main():
 
 SUBS = {
     'GTR':{'nst':6, 'rates':None, 'statefreqpr':None},
-    'GTRI':{'nst':6, 'rates':'propinv', 'statefreqpr':None}, 
-    'GTRG':{'nst':6, 'rates':'gamma', 'statefreqpr':None}, 
+    'GTRI':{'nst':6, 'rates':'propinv', 'statefreqpr':None},
+    'GTRG':{'nst':6, 'rates':'gamma', 'statefreqpr':None},
     'GTRIG':{'nst':6, 'rates':'invgamma', 'statefreqpr':None},
-    'SYM':{'nst':6, 'rates': None, 'statefreqpr':'fixed(equal)'}, 
+    'SYM':{'nst':6, 'rates': None, 'statefreqpr':'fixed(equal)'},
     'SYMI':{'nst':6, 'rates': 'propinv', 'statefreqpr':'fixed(equal)'},
     'SYMG':{'nst':6, 'rates': 'gamma', 'statefreqpr':'fixed(equal)'},
     'SYMIG':{'nst':6, 'rates': 'invgamma', 'statefreqpr':'fixed(equal)'},
