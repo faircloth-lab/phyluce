@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 27 April 2014 17:37 PDT (-0700)
+"""
 
 import os
 import sys
@@ -8,34 +20,39 @@ from Bio import AlignIO
 from Bio.Align import MultipleSeqAlignment as Alignment
 from multiprocessing import Pool
 from Bio.Alphabet import IUPAC, Gapped
-from phyluce.helpers import get_file_extensions, is_dir, FullPaths
+
+from phyluce.helpers import get_file_extensions, is_dir, FullPaths, CreateDir
+from phyluce.log import setup_logging
 
 
 import pdb
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description="""Align records in a file of UCE fastas""")
-    parser.add_argument('indir',
+    parser = argparse.ArgumentParser(description="""Convert alignments from one format to another.""")
+    parser.add_argument(
+            '--alignments',
+            required=True,
             type=is_dir,
             action=FullPaths,
-            help='The file containing fasta reads associated with UCE loci')
-    parser.add_argument('outdir',
-            type=is_dir,
-            action=FullPaths,
-            help='A directory for the output.')
+            help='The directory containing the alignments to convert.')
+    parser.add_argument(
+            '--output',
+            required=True,
+            action=CreateDir,
+            help='An output directory to hold the converted alignments.')
     parser.add_argument(
             "--input-format",
             dest="input_format",
             choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
-            default='fasta',
+            default='nexus',
             help="""The input alignment format"""
         )
     parser.add_argument(
             "--output-format",
             dest="output_format",
             choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
-            default='nexus',
+            default='fasta',
             help="""The input alignment format"""
         )
     parser.add_argument(
@@ -57,6 +74,20 @@ def get_args():
             type=str,
             help="""A config-formatted file containing full-name:shortname mappings""",
         )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
     return parser.parse_args()
 
 
@@ -117,7 +148,7 @@ def convert_files_worker(params):
     if args.shorten_name:
         aln = rename_alignment_taxa(aln, name_map)
     new_name = os.path.splitext(os.path.split(f)[1])[0] + '.{0}'.format(args.output_format)
-    outf = open(os.path.join(args.outdir, new_name), 'w')
+    outf = open(os.path.join(args.output, new_name), 'w')
     AlignIO.write(aln, outf, args.output_format)
     outf.close()
     sys.stdout.write('.')
@@ -126,7 +157,14 @@ def convert_files_worker(params):
 
 def main():
     args = get_args()
-    files = get_files(args.indir, args.input_format)
+    # setup logging
+    log, my_name = setup_logging(args)
+    files = get_files(args.alignments, args.input_format)
+    if len(files) == 0:
+        raise IOError("There are no {}-formatted alignments in {}.".format(
+            args.input_format,
+            args.alignments
+        ))
     if args.shorten_name and not args.name_conf:
         name_map = shorten_name(args, files[0])
     elif args.shorten_name and args.name_conf:
@@ -143,10 +181,14 @@ def main():
         pool.map(convert_files_worker, params)
     else:
         map(convert_files_worker, params)
+    print ""
     if args.shorten_name:
-        print "\n\nTaxa renamed (from) => (to):"
+        log.info("Taxa renamed (from) => (to):")
         for k, v in name_map.iteritems():
-            print "\t{0} => {1}".format(k, v)
+            log.info("\t{0} => {1}".format(k, v))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
