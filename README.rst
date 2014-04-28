@@ -100,5 +100,5 @@ additional manuscript for the software, alone.
 .. _Instructions: http://docs.continuum.io/anaconda/install.html
 .. _Installation documents: http://phyluce.readthedocs.org/en/installation.html
 .. _python: http://www.python.org
-.. _faircloth-lab binstar: binstar.org/faircloth-lab/
+.. _faircloth-lab binstar: http://binstar.org/faircloth-lab/
 
