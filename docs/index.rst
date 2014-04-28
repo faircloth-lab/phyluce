@@ -31,7 +31,7 @@ As it stands, the phyluce_ package is useful for analyzing both data collected
 from UCE loci and also data collection from other types of loci for phylogenomic
 studies at the species, population, and individual levels.
 
-Countributions
+Contributions
 --------------
 
 phyluce_ is open-source (see :ref:`License`) and we welcome contributions from
