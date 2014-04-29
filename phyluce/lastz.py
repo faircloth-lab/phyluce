@@ -27,6 +27,27 @@ from collections import defaultdict
 
 import pdb
 
+class SimpleAlign():
+    '''docstring for lastz'''
+    def __init__(self, target, query, out=False):
+        # if not an output file, create a temp file to hold output
+        if not out:
+            fd, self.output = tempfile.mkstemp(suffix='.lastz')
+            os.close(fd)
+        else:
+            self.output = out
+        self.cli = 'lastz {0}[multiple,nameparse=full] {1}[nameparse=full]\
+                --output={2} \
+                --format=general-:score,name1,strand1,zstart1,end1,length1,name2,strand2,zstart2,end2,length2,diff,cigar,identity,continuity'.format(target, query, self.output)
+
+    def run(self):
+        lastz_stdout, lastz_stderr = subprocess.Popen(
+            self.cli,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE).communicate(None)
+        return lastz_stdout, lastz_stderr
+
 class Align():
     '''docstring for lastz'''
     def __init__(self, target, query, coverage, identity, out=False, min_match=None):

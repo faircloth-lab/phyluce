@@ -53,7 +53,7 @@ def get_args():
         "--coverage",
         type=float,
         default=83.0,
-        help="""The minimum coverage (%) required for a match"""
+        help="""The minimum coverage (%%) required for a match"""
     )
     cov_or_match.add_argument(
         "--min_match",

@@ -1,32 +1,104 @@
-Introduction
-************
+phyluce: software for UCE (and general) phylogenomics
+-----------------------------------------------------
 
-Please see the `documentation <http://faircloth-lab.github.com/phyluce/>`_ for
-information on using the code within this repository.
+phyluce_ (phy-**loo**-chee) is a software package that was initially developed
+for analyzing data collected from ultraconserved elements in organismal genomes.
 
-**Note** that not all programs in this repository are currently covered by
-the documentation, and some programs are likely to be changed or removed.
+The package now includes a number of tools spanning:
+
+- the assembly of raw read data to contigs
+- the separation of UCE loci from assembled contigs
+- parallel alignment generation, alignment trimming, and alignment data summary
+  methods in preparation for analysis
+- alignment and SNP calling using UCE or other types of raw-read data.
+
+As it stands, the phyluce_ package is useful for analyzing both data collected
+from UCE loci and also data collection from other types of loci for phylogenomic
+studies at the species, population, and individual levels.
+
+Please see the `Documentation <http://faircloth-lab.github.com/phyluce/>`_ for
+additional information on using phyluce_
+
+.. _Installation:
+
+Installing
+----------
+
+We **strongly** suggest installating phyluce_ using anaconda_/miniconda_ and the
+conda_ package manager for python_.  We build and test phyluce_ dependencies and
+function on the following platforms.
+
+- Apple OSX 10.9.x
+- CentOS 6.x
+- Ubuntu 14.04 LTS
+
+Quick version
+^^^^^^^^^^^^^
+
+#. Install JAVA for your platform
+#. Install anaconda_ for your platform (Instructions_)
+#. Check that anaconda_/miniconda_ are installed and in your ``$PATH``::
+
+    python -V
+    Python 2.7.6 :: Anaconda 1.8.0 (x86_64)
+
+#. Add the `faircloth-lab binstar`_ repository to your ``.condarc``::
+
+    conda config --add channels http://conda.binstar.org/faircloth-lab
+
+#. Install phyluce_::
+
+    conda install phyluce
+
+For more in-depth installation instructions, see the `Installation documents`_.
 
 License
 -------
 
-The code within this repository is available under a 3-clause BSD license.  See
-the License.txt file for more information.
+3-clause BSD. See `License.txt`_ for more information.
 
-Citation
---------
+Contributions
+--------------
 
-If you use this documentation or the phyluce software for your own research,
-please cite:
+phyluce_ is open-source (see License_), and we welcome contributions from anyone
+who is interested in contributing.  To contribute code, please make a pull
+request on github_.  The issue tracker for phyluce_ is also `available on github
+<https://github.com/faircloth-lab/phyluce/issues>`_.
 
-Faircloth BC, McCormack JE, Crawford NG, Harvey MG, Brumfield RT, Glenn TC
-(2012). Ultraconserved Elements Anchor Thousands of Genetic Markers Spanning
-Multiple Evolutionary Timescales. Systematic Biology 61: 717-726. pmid:
-`22232343 <http://www.ncbi.nlm.nih.gov/pubmed?term=22232343%5Buid%5D>`_ doi:
-`10.1093/sysbio/SYS004 <http://dx.doi.org/10.1093/sysbio/SYS004>`_
+Issues
+------
 
-Please also provide the link to this software repository in your manuscript::
+If you have an issue, please ensure that you are experiencing this issue on a
+supported OS (see :ref:`Installation`) using the conda_ installation of
+phyluce_.  If possible, please submit a test case demonstrating the issue and
+indicate which platform, git checkout, and phyluce version you are using.
 
-    https://github.com/faircloth-lab/phyluce
+Citing
+------
 
+If you use `phyluce`_ ,please cite the `phyluce`_ repository using:
+
+.. [BCF2014] Faircloth BC. 2014. phyluce: phylogenetic estimation from
+   ultraconserved elements.
+   doi:`10.6079/J9PHYL <http://doi.org/10.6079/J9PHYL>`_.
+
+Please also cite the following manuscript, which describes the first use of the
+computer code as well as the general approach.  We should soon have an
+additional manuscript for the software, alone.
+
+.. [BCF2012] BC Faircloth, McCormack JE, Crawford NG, Harvey MG, Brumfield RT,
+   Glenn TC. 2012. Ultraconserved elements anchor thousands of genetic markers
+   spanning multiple evolutionary timescales. Systematic Biology 61: 717–726.
+   doi:`10.1093/sysbio/SYS004 <http://doi.org/10.1093/sysbio/SYS004>`_.
+
+.. _phyluce: https://github.com/faircloth-lab/phyluce
+.. _conda: http://docs.continuum.io/conda/
+.. _anaconda: http://docs.continuum.io/anaconda/install.html
+.. _miniconda: http://repo.continuum.io/miniconda/
+.. _License: https://github.com/faircloth-lab/phyluce/blob/master/LICENSE.txt
+.. _License.txt: https://github.com/faircloth-lab/phyluce/blob/master/LICENSE.txt
+.. _Instructions: http://docs.continuum.io/anaconda/install.html
+.. _Installation documents: http://phyluce.readthedocs.org/en/installation.html
+.. _python: http://www.python.org
+.. _faircloth-lab binstar: http://binstar.org/faircloth-lab/
 

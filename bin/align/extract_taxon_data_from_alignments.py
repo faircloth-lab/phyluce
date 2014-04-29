@@ -13,33 +13,39 @@ sequence data for a single taxon and output in fasta format.
 """
 
 import os
-import glob
+import sys
 import argparse
 from Bio import AlignIO
-from phyluce.helpers import is_dir, FullPaths, get_file_extensions
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from phyluce.helpers import is_dir, FullPaths, get_alignment_files
+
+from phyluce.log import setup_logging
 
 import pdb
-
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
             description="""Extract sequence of a given taxa from alignments""")
     parser.add_argument(
-            "alignments",
+            "--alignments",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The directory of alignments"""
         )
     parser.add_argument(
-            "taxon",
+            "--taxon",
+            required=True,
             type=str,
             help="""The taxon to extract"""
         )
     parser.add_argument(
-            "output",
-            type=argparse.FileType('w'),
-            help="""The output file"""
+            "--output",
+            required=True,
+            action=FullPaths,
+            help="""The output FASTA file"""
         )
     parser.add_argument(
             "--input-format",
@@ -48,26 +54,49 @@ def get_args():
             default='nexus',
             help="""The input format of the alignments""",
         )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
-    alignments = []
-    for ftype in get_file_extensions(args.input_format):
-        alignments.extend(glob.glob(os.path.join(args.alignments, "*{}".format(ftype))))
-    for count, f in enumerate(alignments):
-        aln = AlignIO.read(f, args.input_format)
-        for taxon in aln:
-            if taxon.id == args.taxon:
-                seq = str(taxon.seq).replace('-', '')
-                locus = os.path.splitext(os.path.basename(f))[0]
-                if not len(seq) == 0:
-                    args.output.write(">{0}\n{1}\n".format(locus, seq))
-                else:
-                    print locus
-    args.output.close()
-
+    # setup logging
+    log, my_name = setup_logging(args)
+    # get input files
+    files = get_alignment_files(log, args.alignments, args.input_format)
+    sys.stdout.write("Running")
+    sys.stdout.flush()
+    with open(args.output, 'w') as outf:
+        for f in files:
+            aln = AlignIO.read(f, args.input_format)
+            locus = os.path.splitext(os.path.basename(f))[0]
+            for taxon in aln:
+                if taxon.id == args.taxon:
+                    seq = str(taxon.seq).replace('-', '').replace('?','')
+                    record = SeqRecord(Seq(seq), id=locus, name="", description="")
+                    if not len(seq) == 0:
+                        outf.write(record.format("fasta"))
+                        sys.stdout.write(".")
+                        sys.stdout.flush()
+                    else:
+                        log.info("Could not write {}".format(locus))
+    print ""
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
