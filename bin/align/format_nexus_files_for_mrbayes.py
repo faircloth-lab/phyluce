@@ -140,7 +140,7 @@ def fully_partition(metadata, aligns):
     check_for_missing_models(metadata, aligns)
     for model in metadata:
         for locus in metadata[model]:
-            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nex".format(locus))))
+            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nexus".format(locus))))
             end = start + nex.nchar - 1
             metadata[model][locus] = (start, end)
             to_combine.append((locus, nex))
@@ -157,7 +157,7 @@ def model_partition(metadata, aligns):
     new_metadata = OrderedDict()
     for model in metadata:
         for locus in metadata[model]:
-            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nex".format(locus))))
+            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nexus".format(locus))))
             end += nex.nchar
             to_combine.append((locus, nex))
         new_metadata[model] = (start, end)
@@ -198,10 +198,10 @@ def main():
 
 SUBS = {
     'GTR':{'nst':6, 'rates':None, 'statefreqpr':None},
-    'GTRI':{'nst':6, 'rates':'propinv', 'statefreqpr':None}, 
-    'GTRG':{'nst':6, 'rates':'gamma', 'statefreqpr':None}, 
+    'GTRI':{'nst':6, 'rates':'propinv', 'statefreqpr':None},
+    'GTRG':{'nst':6, 'rates':'gamma', 'statefreqpr':None},
     'GTRIG':{'nst':6, 'rates':'invgamma', 'statefreqpr':None},
-    'SYM':{'nst':6, 'rates': None, 'statefreqpr':'fixed(equal)'}, 
+    'SYM':{'nst':6, 'rates': None, 'statefreqpr':'fixed(equal)'},
     'SYMI':{'nst':6, 'rates': 'propinv', 'statefreqpr':'fixed(equal)'},
     'SYMG':{'nst':6, 'rates': 'gamma', 'statefreqpr':'fixed(equal)'},
     'SYMIG':{'nst':6, 'rates': 'invgamma', 'statefreqpr':'fixed(equal)'},
