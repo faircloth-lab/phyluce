@@ -149,13 +149,13 @@ def get_and_trim_alignments(params):
 def main():
     args = get_args()
     # setup logging
-    log, my_name = setup_logging(args.verbosity, args.log_path)
+    log, my_name = setup_logging(args)
     text = " Starting {} ".format(my_name)
     log.info(text.center(65, "="))
     alignments = []
     log.info("Getting aligned sequences for trimming")
     for ftype in get_file_extensions(args.input_format):
-        alignments.extend(glob.glob(os.path.join(args.input, "*{}".format(ftype))))
+        alignments.extend(glob.glob(os.path.join(args.alignments, "*{}".format(ftype))))
     # package up needed arguments for map()
     package = [args.input_format, args.window, args.threshold, args.proportion, args.max_divergence, args.min_length]
     params = zip([package] * len(alignments), alignments)
