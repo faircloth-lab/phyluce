@@ -20,6 +20,7 @@ import argparse
 import subprocess
 import multiprocessing
 from phyluce.helpers import is_dir, FullPaths
+from phyluce.third_party import which
 
 import pdb
 
@@ -69,7 +70,7 @@ def get_args():
 
 def get_many_thread_raxml_cmd(threads, outgroup, alignment, outputdir):
     cmd = [
-            "/home/bcf/git/raxml/raxmlHPC-PTHREADS-SSE3",
+            which("raxmlHPC-PTHREADS-SSE3")[0],
             "-T",
             str(threads),
             "-o",
@@ -92,7 +93,7 @@ def get_many_thread_raxml_cmd(threads, outgroup, alignment, outputdir):
 
 def get_one_thread_raxml_cmd(threads, outgroup, alignment, outputdir):
     cmd = [
-            "/home/bcf/git/raxml/raxmlHPC-SSE3",
+            which("raxmlHPC-SSE3")[0],
             "-o",
             outgroup,
             "-m",
