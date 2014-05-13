@@ -18,16 +18,58 @@ import os
 import sys
 import glob
 import argparse
+import multiprocessing
 from Bio import AlignIO
 from Bio.Alphabet import IUPAC, Gapped
-from Bio.Align.Generic import Alignment
-from phyluce.helpers import is_dir
+from Bio.Align import MultipleSeqAlignment
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from phyluce.log import setup_logging
+from phyluce.helpers import is_dir, FullPaths, get_alignment_files, CreateDir
 
 def get_args():
     parser = argparse.ArgumentParser(description='Parse fastq files and drop reads containing Ns.')
-    parser.add_argument('input', help="The input directory containing nexus files", type=is_dir)
-    parser.add_argument('output', help="The directory in which to store the output files", type=is_dir)
-    
+    parser.add_argument(
+        '--alignments',
+        required=True,
+        action=FullPaths,
+        type=is_dir,
+        help="The input directory containing nexus files"
+    )
+    parser.add_argument(
+        '--output',
+        required=True,
+        action=CreateDir,
+        help="The directory in which to store the output files"
+    )
+    parser.add_argument(
+        "--input-format",
+        dest='input_format',
+        choices=['nexus', 'newick', 'fasta', 'phylip'],
+        default='nexus',
+        help="""The input format of the alignments""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--exclude',
         type=str,
@@ -41,6 +83,7 @@ def get_args():
         help='Taxa to include')
     return parser.parse_args()
 
+
 def get_samples_to_run(args, all_names):
     """docstring for get_samples_to_run"""
     if args.exclude:
@@ -49,8 +92,9 @@ def get_samples_to_run(args, all_names):
         return set([name for name in all_names if name in args.include])
     else:
         return all_names
-    
-def get_all_taxon_names(nexus_files):
+
+def get_all_taxon_names(log, nexus_files):
+    log.info("Getting taxon names")
     taxa = set()
     for align_file in nexus_files:
         for align in AlignIO.parse(align_file, "nexus"):
@@ -60,22 +104,50 @@ def get_all_taxon_names(nexus_files):
     return taxa
 
 def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
+    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nexus'))
+
+def record_formatter(seq, name):
+    """return a string formatted as a biopython sequence record"""
+    return SeqRecord(
+        Seq(seq, Gapped(IUPAC.ambiguous_dna, "-?")),
+        id=name,
+        name=name,
+        description=name
+    )
+
+def worker(work):
+    args, taxa_to_keep, align_file = work
+    new_align = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
+    for align in AlignIO.parse(align_file, "nexus"):
+        for taxon in list(align):
+            if taxon.name in taxa_to_keep:
+                new_align.append(taxon)
+    outf = os.path.join(args.output, os.path.basename(align_file))
+    AlignIO.write(new_align, open(outf, 'w'), 'nexus')
+    sys.stdout.write(".")
+    sys.stdout.flush()
 
 def main():
     args = get_args()
-    nexus_files = get_files(args.input)
-    taxa = get_all_taxon_names(nexus_files)
+    # setup logging
+    log, my_name = setup_logging(args)
+    files = get_alignment_files(log, args.alignments, args.input_format)
+    taxa = get_all_taxon_names(log, files)
     taxa_to_keep = get_samples_to_run(args, taxa)
-    for count, align_file in enumerate(nexus_files):
-        new_align = Alignment(Gapped(IUPAC.unambiguous_dna, "-"))
-        for align in AlignIO.parse(align_file, "nexus"):
-            for taxon in list(align):
-                if taxon.name in taxa_to_keep:
-                    new_align.add_sequence(taxon.name, str(taxon.seq))
-        outf = os.path.join(args.output, os.path.basename(align_file))
-        AlignIO.write(new_align, open(outf, 'w'), 'nexus')
-        print count
+    work = [(args, taxa_to_keep, file) for file in files]
+    log.info("Excluding/Including taxa")
+    sys.stdout.write("Running")
+    sys.stdout.flush()
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
+        pool.map(worker, work)
+    else:
+        map(worker, work)
+    # end
+    print ""
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == '__main__':
