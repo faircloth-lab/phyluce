@@ -69,7 +69,7 @@ def main():
     args = get_args()
     log, my_name = setup_logging(args)
     fasta_files = glob.glob(os.path.join(args.contigs, '*.fa*'))
-    for contig in fasta_files:
+    for contig in sorted(fasta_files):
         # get a name for the output file
         critter = os.path.basename(contig).split('.')[0].replace('-', "_")
         text = " Processing {} ".format(critter)
