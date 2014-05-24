@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# encoding: utf-8
 """
 File: assemblo.py
 Author: Brant Faircloth
