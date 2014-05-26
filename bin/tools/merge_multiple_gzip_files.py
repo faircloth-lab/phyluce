@@ -18,6 +18,7 @@ import argparse
 import ConfigParser
 
 from phyluce.helpers import is_file, is_dir, FullPaths, CreateDir
+from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
 
 import pdb
@@ -43,6 +44,7 @@ def get_args():
     parser.add_argument(
         "--section",
         type=str,
+        default="samples",
         help="""The section holding the merge info."""
     )
     parser.add_argument(
@@ -59,6 +61,12 @@ def get_args():
         default=None,
         help="""The path to a directory to hold logs."""
     )
+    parser.add_argument(
+        "--trimmed",
+        action="store_true",
+        default=False,
+        help="""If the reads have already been trimmed.""",
+    )
     return parser.parse_args()
 
 
@@ -69,18 +77,44 @@ def main():
     conf = ConfigParser.ConfigParser()
     conf.optionxform = str
     conf.read(args.config)
-    items = conf.items("samples")
+    items = conf.items(args.section)
     #pdb.set_trace()
-    for item in items:
-        name, file_names = item
-        files = file_names.strip().split(",")
-        with open(os.path.join(args.output, name), 'wb') as outfile:
-            for infile in sorted(files):
-                shutil.copyfileobj(open(infile), outfile)
-                log.info("Copied {} to {}".format(
-                    os.path.basename(infile),
-                    name
-                ))
+    if not args.trimmed:
+        for item in items:
+            name, file_names = item
+            files = file_names.strip().split(",")
+            with open(os.path.join(args.output, name), 'wb') as outfile:
+                for infile in sorted(files):
+                    shutil.copyfileobj(open(infile), outfile)
+                    log.info("Copied {} to {}".format(
+                        os.path.basename(infile),
+                        name
+                    ))
+    elif args.trimmed:
+        for item in items:
+            name, path_names = item
+            paths = path_names.strip().split(",")
+            read_names = {"r1":[], "r2":[], "s":[]}
+            for path in paths:
+                # get the files in a given path
+                reads = get_input_files(path, "", log)
+                read_names['r1'].append(reads.r1)
+                read_names['r2'].append(reads.r2)
+                read_names['s'].append(reads.singleton)
+            # make the output dir
+            output_dir = os.path.join(args.output, name, "split-adapter-quality-trimmed")
+            os.makedirs(output_dir)
+            for read in (("r1", "READ1"), ("r2","READ2"), ("s","READ-singleton")):
+                new_name = "{}-{}.fastq.gz".format(name, read[1])
+                with open(os.path.join(output_dir, new_name), 'wb') as outfile:
+                    for infile in sorted(read_names[read[0]]):
+                        #print infile
+                        shutil.copyfileobj(open(infile.pth), outfile)
+                        log.info("Copied {} to {}".format(
+                            os.path.basename(infile.pth),
+                            new_name
+                        ))
+
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))

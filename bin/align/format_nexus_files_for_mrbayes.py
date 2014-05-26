@@ -142,7 +142,7 @@ def fully_partition(metadata, aligns):
     check_for_missing_models(metadata, aligns)
     for model in metadata:
         for locus in metadata[model]:
-            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nex".format(locus))))
+            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nexus".format(locus))))
             end = start + nex.nchar - 1
             metadata[model][locus] = (start, end)
             to_combine.append((locus, nex))
@@ -159,7 +159,7 @@ def model_partition(metadata, aligns):
     new_metadata = OrderedDict()
     for model in metadata:
         for locus in metadata[model]:
-            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nex".format(locus))))
+            nex = Nexus.Nexus(open(os.path.join(aligns, "{0}.nexus".format(locus))))
             end += nex.nchar
             to_combine.append((locus, nex))
         new_metadata[model] = (start, end)
