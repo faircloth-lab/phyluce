@@ -12,11 +12,10 @@ to values in a configuration file
 
 """
 
-import os
-import sys
 import dendropy
 import argparse
 import ConfigParser
+from phyluce.helpers import is_file, is_dir, FullPaths
 
 import pdb
 
@@ -26,48 +25,64 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Rename the leaves of an input tree""")
     parser.add_argument(
-            "input",
+            "--input",
+            required=True,
+            type=is_file,
+            action=FullPaths,
             help="""The input tree file"""
         )
     parser.add_argument(
-            "config",
+            "--config",
+            required=True,
+            type=is_file,
+            action=FullPaths,
             help="""A python config file mapping one name to another"""
         )
     parser.add_argument(
-            "output",
+            "--output",
+            required=True,
+            type=is_file,
+            action=FullPaths,
             help="""The output tree file"""
         )
     parser.add_argument(
-            "section",
+            "--section",
+            required=True,
             type=str,
             help="""The section of the conf file to use"""
         )
     parser.add_argument(
-            "order",
+            "--order",
             type=str,
-            default="short:long",
-            choices = ["short:long", "long:short"],
-            help="""The order of names in the config file to use"""
+            default="left:right",
+            choices = ["left:right", "right:left"],
+            help="""Map the names as entered or in reverse"""
         )
     parser.add_argument(
             "--input-format",
             dest='input_format',
             choices=['nexus', 'newick', 'fasta', 'phylip'],
-            default='nexus',
+            default='newick',
             help="""The tree file format"""
         )
     parser.add_argument(
             "--output-format",
             dest='output_format',
             choices=['nexus', 'newick', 'fasta', 'phylip'],
-            default='nexus',
+            default='newick',
             help="""The tree file format"""
         )
     parser.add_argument(
             "--reroot",
             type=str,
-            default=None,
+            default=False,
             help="""The resulting name to root the tree on""",
+        )
+    parser.add_argument(
+            "--do-not-preserve-spaces",
+            type=str,
+            default=False,
+            help="""Do not retain spaces in output names""",
         )
     return parser.parse_args()
 
@@ -77,11 +92,10 @@ def main():
     conf = ConfigParser.ConfigParser()
     conf.read(args.config)
     names = conf.items(args.section)
-    if args.order == "short:long":
-        names = dict([(name[0].replace("-","_").upper(), name[1]) for name in names])
-    elif args.order == "long:short":
-        names = dict([(name[1].replace("-","_").upper(), name[0]) for name in names])
-    #pdb.set_trace()
+    if args.order == "left:right":
+        names = dict([(name[0].replace("-","_"), name[1]) for name in names])
+    elif args.order == "right:left":
+        names = dict([(name[1].replace("-","_"), name[0]) for name in names])
     trees = dendropy.TreeList(stream=open(args.input), schema=args.input_format)
     new_labels = []
     for tree in trees:
@@ -89,17 +103,19 @@ def main():
             if leaf.taxon.label in new_labels:
                 pass
             try:
-                new_label = names[leaf.taxon.label.upper()]
+                new_label = names[leaf.taxon.label]
             except:
-                new_label = names[leaf.taxon.label.replace(' ', '_').upper()]
+                new_label = names[leaf.taxon.label.replace(' ', '_')]
             new_labels.append(new_label)
             leaf.taxon.label = new_label
         # reroot
         if args.reroot:
             reroot_node = tree.find_node_with_taxon_label(args.reroot)
             tree.reroot_at_node(reroot_node)
-    trees.write_to_path(args.output, args.output_format)
-
+    if args.do_not_preserve_spaces:
+        trees.write_to_path(args.output, args.output_format)
+    else:
+        trees.write_to_path(args.output, args.output_format, preserve_spaces=True)
 
 if __name__ == '__main__':
     main()
