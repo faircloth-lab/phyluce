@@ -45,6 +45,12 @@ def get_args():
         default=False,
         help="""Split file by taxon and not by locus""",
     )
+    parser.add_argument(
+        "--split-char",
+        type=str,
+        default="_",
+        help="""The character to split on""",
+    )
     return parser.parse_args()
 
 
@@ -63,12 +69,12 @@ def main():
     if not args.by_taxon:
         with open(args.input, 'rU') as input:
             for seq in SeqIO.parse(input, 'fasta'):
-                uce = seq.id.split('_')[0]
+                uce = seq.id.split(args.split_char)[0]
                 seqdict[uce].append(seq)
     elif args.by_taxon:
         with open(args.input, 'rU') as input:
             for seq in SeqIO.parse(input, 'fasta'):
-                taxon = '-'.join(seq.id.split('_')[1:])
+                taxon = '-'.join(seq.id.split(args.split_char)[1:])
                 seqdict[taxon].append(seq)
     print "Writing fasta..."
     for uce, sequences in seqdict.iteritems():
