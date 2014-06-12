@@ -71,7 +71,7 @@ def get_args():
     parser.add_argument(
             "--no-dir",
             action="store_true",
-            default=True,
+            default=False,
             help="""If genome sequences are not in their own abbr. directory""",
         )
     parser.add_argument(
