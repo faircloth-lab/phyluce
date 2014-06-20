@@ -23,7 +23,7 @@ from Bio.Alphabet import generic_dna
 from phyluce.helpers import get_file_extensions, is_dir, is_file, FullPaths
 
 
-import pdb
+#import pdb
 
 
 def get_args():
