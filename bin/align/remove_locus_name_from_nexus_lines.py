@@ -105,7 +105,7 @@ def worker(work):
             new_align.append(seq)
     if args.taxa is not None:
         assert len(all_taxa) == args.taxa, "Taxon names are not identical"
-    outf = os.path.join(args.output, os.path.split(f)[1])
+    outf = os.path.join(args.output, "{}.{}".format(os.path.splitext(os.path.basename(f))[0], args.output_format))
     try:
         with open(outf, 'w') as outfile:
             AlignIO.write(new_align, outfile, out_type)
