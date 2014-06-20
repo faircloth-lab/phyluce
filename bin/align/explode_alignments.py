@@ -31,13 +31,15 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Program description""")
     parser.add_argument(
-            "input",
+            "--alignments",
+            required=True,
             action=FullPaths,
             type=is_dir,
             help="""Input folder of alignments"""
         )
     parser.add_argument(
-            "output",
+            "--output",
+            required=True,
             action=FullPaths,
             type=is_dir,
             help="""Output folder of fasta files"""
