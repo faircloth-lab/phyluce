@@ -17,6 +17,9 @@ import glob
 import argparse
 import ConfigParser
 from Bio import AlignIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import generic_dna
 from phyluce.helpers import get_file_extensions, is_dir, is_file, FullPaths
 
 
@@ -112,9 +115,10 @@ def main():
                     new_file = shortname + ".fasta"
                     d[shortname] = open(os.path.join(args.output, new_file), 'w')
                 seq = str(taxon.seq).replace('-', '')
-                seq = str(taxon.seq).replace('?', '')
+                seq = str(seq).replace('?', '')
                 if not len(seq) == 0:
-                    d[shortname].write(">{0}\n{1}\n".format(taxon.id, seq))
+                    record = SeqRecord(Seq(seq, generic_dna), id="taxon.id", name="", description="")
+                    d[shortname].write("{}".format(record.format('fasta')))
         for k, v in d.iteritems():
             v.close()
     else:
@@ -137,9 +141,10 @@ def main():
                     except:
                         shortname = name
                     seq = str(taxon.seq).replace('-', '')
-                    seq = str(taxon.seq).replace('?', '')
+                    seq = str(seq).replace('?', '')
                     if not len(seq) == 0:
-                        outp.write(">{0}\n{1}\n".format(shortname, seq))
+                        record = SeqRecord(Seq(seq, generic_dna), id=shortname, name="", description="")
+                        outp.write("{}".format(record.format('fasta')))
                         count += 1
                     else:
                         print locus
