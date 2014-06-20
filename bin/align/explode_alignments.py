@@ -89,7 +89,7 @@ def get_files(input_dir, input_format):
 
 def main():
     args = get_args()
-    files = get_files(args.input, args.input_format)
+    files = get_files(args.alignments, args.input_format)
     if args.conf:
         conf = ConfigParser.ConfigParser()
         conf.read(args.conf)
