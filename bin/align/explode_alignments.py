@@ -119,7 +119,7 @@ def main():
                 seq = str(taxon.seq).replace('-', '')
                 seq = str(seq).replace('?', '')
                 if not len(seq) == 0:
-                    record = SeqRecord(Seq(seq, generic_dna), id="taxon.id", name="", description="")
+                    record = SeqRecord(Seq(seq, generic_dna), id=taxon.id, name="", description="")
                     d[shortname].write("{}".format(record.format('fasta')))
         for k, v in d.iteritems():
             v.close()
