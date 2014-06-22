@@ -7,19 +7,15 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 21 July 2012 12:07 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 import os
 import gzip
-import glob
 import numpy
-import tempfile
 import argparse
-import subprocess
-from itertools import groupby, imap
-from phyluce.helpers import is_dir, FullPaths
-from Bio import SeqIO
+from itertools import groupby
+from phyluce.helpers import FullPaths
 
 import pdb
 
@@ -58,7 +54,10 @@ def fasta_iter(fasta):
 def main():
     args = get_args()
     lengths = numpy.array([int(record) for record in fasta_iter(args.input)])
-    std_error = numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths))
+    if len(lengths) > 1:
+        std_error = numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths))
+    else:
+        std_error = 0
     if not args.csv:
         print "Reads:\t\t{:,}".format(len(lengths))
         print "Bp:\t\t{:,}".format(sum(lengths))

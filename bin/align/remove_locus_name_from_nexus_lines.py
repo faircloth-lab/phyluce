@@ -91,15 +91,11 @@ def get_args():
     return parser.parse_args()
 
 
-def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex*'))
-
-
 def worker(work):
     all_taxa = []
-    args, f = work
+    args, f, in_type, out_type = work
     new_align = MultipleSeqAlignment([], generic_dna)
-    for align in AlignIO.parse( f, 'nexus'):
+    for align in AlignIO.parse(f, in_type):
         for seq in list(align):
             fname = os.path.splitext(os.path.basename(f))[0]
             new_seq_name = re.sub("^(_R_)*{}_*".format(fname), "", seq.name)
@@ -109,10 +105,10 @@ def worker(work):
             new_align.append(seq)
     if args.taxa is not None:
         assert len(all_taxa) == args.taxa, "Taxon names are not identical"
-    outf = os.path.join(args.output, os.path.split(f)[1])
+    outf = os.path.join(args.output, "{}.{}".format(os.path.splitext(os.path.basename(f))[0], args.output_format))
     try:
         with open(outf, 'w') as outfile:
-            AlignIO.write(new_align, outfile, 'nexus')
+            AlignIO.write(new_align, outfile, out_type)
         sys.stdout.write(".")
         sys.stdout.flush()
     except ValueError:
@@ -124,7 +120,7 @@ def main():
     # setup logging
     log, my_name = setup_logging(args)
     files = get_alignment_files(log, args.alignments, args.input_format)
-    work = [(args, f) for f in files]
+    work = [(args, f, args.input_format, args.output_format) for f in files]
     sys.stdout.write("Running")
     sys.stdout.flush()
     if args.cores > 1:

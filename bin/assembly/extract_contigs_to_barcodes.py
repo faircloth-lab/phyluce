@@ -1,0 +1,110 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 12 June 2014 10:21 PDT (-0700)
+"""
+
+import os
+import sys
+import argparse
+import ConfigParser
+from phyluce.helpers import FullPaths, is_file, is_dir
+from phyluce.log import setup_logging
+
+from Bio import SeqIO
+
+import pdb
+
+
+def get_args():
+    parser = argparse.ArgumentParser(
+            description="""Parse the log file from match_contigs_to_barcodes to output a table of results""")
+    parser.add_argument(
+        '--contigs',
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="The directory containing the assembled contigs."
+    )
+    parser.add_argument(
+        '--config',
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="A config file containing the contigs to extract."
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=FullPaths,
+        help="""The output FASTA file to create"""
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    return parser.parse_args()
+
+
+def index(log, critter, pth, assembly):
+    text = " Processing {} ".format(critter)
+    log.info(text.center(65, "-"))
+    try:
+        log.info("Parsing FASTA {}".format(os.path.basename(assembly)))
+        return SeqIO.index(os.path.join(pth, assembly.replace("_", "-")), "fasta")
+    except IOError:
+        log.warn("Unable to parse FASTA {}".format(os.path.basename(assembly)))
+        return None
+
+def main():
+    args = get_args()
+    log, my_name = setup_logging(args)
+    config = ConfigParser.ConfigParser()
+    config.optionxform = str
+    config.read(args.config)
+    old_assembly = None
+    with open(args.output, 'w') as outf:
+        for assembly, contig in config.items("assemblies"):
+            assembly = assembly.split("|")[0]
+            critter = assembly.split('.')[0].replace('-', "_")
+            #if assembly == "pluvialis-dominica-fulva_JJW362.contigs.fasta":
+            #    pdb.set_trace()
+            if old_assembly is None:
+                old_assembly = assembly
+                record_dict = index(log, critter, args.contigs, assembly)
+            elif assembly != old_assembly:
+                record_dict = index(log, critter, args.contigs, assembly)
+                old_assembly = assembly
+            elif assembly == old_assembly:
+                # we don't need to reindex
+                pass
+            if record_dict is not None:
+                log.info("Getting contig {}".format(contig))
+                record = record_dict[contig]
+                # reset the record.id
+                record.id = "{}|{}".format(critter, record.id)
+                record.name = ""
+                record.description = ""
+                outf.write(record.format("fasta"))
+
+
+
+if __name__ == '__main__':
+    main()
