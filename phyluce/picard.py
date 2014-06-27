@@ -66,6 +66,27 @@ def clean_up_bam(log, sample, sample_dir, bam, type):
     return new_bam
 
 
+def fix_mate_information(log, sample, sample_dir, bam, type):
+    log.info("Fixing mate information for {}".format(sample))
+    new_bam = new_bam_name(bam, "CL")
+    cmd = [
+        JAVA,
+        JAVA_PARAMS,
+        "-jar",
+        os.path.join(JAR_PATH, "FixMateInformation.jar"),
+        "I={}".format(bam),
+        "O={}".format(new_bam),
+        "VALIDATION_STRINGENCY=SILENT"
+    ]
+    picard_clean_out_fname = os.path.join(sample_dir, '{}.{}.picard.fixmate.log'.format(sample, type))
+    with open(picard_clean_out_fname, 'w') as picard_out:
+        proc = subprocess.Popen(cmd, stdout=picard_out, stderr=subprocess.STDOUT)
+        proc.communicate()
+    # remove old bam
+    os.remove(bam)
+    return new_bam
+
+
 def add_rg_header_info(log, sample, sample_dir, flowcell, bam, type):
     #pdb.set_trace()
     log.info("Adding RG header to BAM for {}".format(sample))
