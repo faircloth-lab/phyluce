@@ -13,17 +13,16 @@ Created on 26 June 2014 17:22 PDT (-0700)
 
 
 import os
-import sys
-import logging
 import argparse
-import subprocess
 import ConfigParser
+
+from phyluce import ngm
+from phyluce import picard
+
 from phyluce.log import setup_logging
-from phyluce.third_party import which
 from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_files
-from phyluce import ng
-from phyluce import picard
+
 
 import pdb
 
@@ -106,7 +105,7 @@ def get_input_data(log, conf, output):
             assert os.path.isfile(ng_file)
         except:
             log.info("Need to create ng index file for reference")
-            ng.create_index_files(log, reference)
+            ngm.create_index_files(log, reference)
     individuals = conf.items('individuals')
     for sample in individuals:
         try:
@@ -132,7 +131,7 @@ def main():
     reference, individuals = get_input_data(log, conf, args.output)
     flowcells = dict(conf.items("flowcell"))
     if args.mem:
-        log.info("You are running BWA-MEM")
+        log.info("You are running NextGenMap")
     for indiv in individuals:
         bam, bam_se = False, False
         sample, dir = indiv
@@ -145,25 +144,25 @@ def main():
         # determine how many files we're dealing with
         fastq = get_input_files(dir, args.subfolder, log)
         if fastq.r1 and fastq.r2:
-            bam = ng.pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+            bam = ngm.pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
             # clean the bam up (MAPq 0 and trim overlapping reads)
-            bam = picard.clean_up_bam(log, sample, sample_dir, bam, "pe")
+            bam = picard.fix_mate_information(log, sample, sample_dir, bam, "pe")
             # get flowcell id
             fc = flowcells[sample]
             bam = picard.add_rg_header_info(log, sample, sample_dir, fc, bam, "pe")
             if not args.no_remove_duplicates:
-                bam = picard.mark_and_remove_dupes(log, sample, sample_dir, bam, "pe")
+                bam = picard.mark_duplicates(log, sample, sample_dir, bam, "pe")
             else:
                 log.info("You have selected to keep apparent duplicate reads")
         if fastq.singleton:
-            bam_se = ng.se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+            bam_se = ngm.se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
             # clean the bam up (MAPq 0 and trim overlapping reads)
-            bam_se = picard.clean_up_bam(log, sample, sample_dir, bam_se, "se")
+            bam_se = picard.fix_mate_information(log, sample, sample_dir, bam_se, "se")
             # get flowcell id
             fc = flowcells[sample]
             bam_se = picard.add_rg_header_info(log, sample, sample_dir, fc, bam_se, "se")
             if not args.no_remove_duplicates:
-                bam_se = picard.mark_and_remove_dupes(log, sample, sample_dir, bam_se, "se")
+                bam_se = picard.mark_duplicates(log, sample, sample_dir, bam_se, "se")
             else:
                 log.info("You have selected to keep apparent duplicate reads")
         if bam and bam_se:
