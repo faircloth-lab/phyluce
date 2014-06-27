@@ -155,7 +155,7 @@ def main():
             fc = flowcells[sample]
             bam = picard.add_rg_header_info(log, sample, sample_dir, fc, bam, "pe")
             if not args.no_remove_duplicates:
-                bam = picard.mark_dupes(log, sample, sample_dir, bam, "pe")
+                bam = picard.mark_duplicates(log, sample, sample_dir, bam, "pe")
             else:
                 log.info("You have selected to keep apparent duplicate reads")
         if fastq.singleton:
@@ -170,7 +170,7 @@ def main():
             fc = flowcells[sample]
             bam_se = picard.add_rg_header_info(log, sample, sample_dir, fc, bam_se, "se")
             if not args.no_remove_duplicates:
-                bam_se = picard.mark_dupes(log, sample, sample_dir, bam_se, "se")
+                bam_se = picard.mark_duplicates(log, sample, sample_dir, bam_se, "se")
             else:
                 log.info("You have selected to keep apparent duplicate reads")
         if bam and bam_se:
