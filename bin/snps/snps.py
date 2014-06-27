@@ -13,16 +13,16 @@ Description:
 
 
 import os
-import sys
-import logging
 import argparse
-import subprocess
 import ConfigParser
+
+from phyluce import bwa
+from phyluce import picard
+
 from phyluce.log import setup_logging
-from phyluce.third_party import which
 from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_files
-from phyluce.bwa import *
+
 
 import pdb
 
@@ -105,7 +105,7 @@ def get_input_data(log, conf, output):
             assert os.path.isfile(bwa_file)
         except:
             log.info("Need to create BWA index file for reference")
-            bwa_create_index_files(log, reference)
+            bwa.create_index_files(log, reference)
     individuals = conf.items('individuals')
     for sample in individuals:
         try:
@@ -146,35 +146,35 @@ def main():
         if fastq.r1 and fastq.r2:
             # bwa align r1 and r2
             if args.mem:
-                bam = bwa_mem_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+                bam = bwa.mem_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
             else:
-                bam = bwa_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+                bam = bwa.pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
             # clean the bam up (MAPq 0 and trim overlapping reads)
-            bam = picard_clean_up_bam(log, sample, sample_dir, bam, "pe")
+            bam = picard.clean_up_bam(log, sample, sample_dir, bam, "pe")
             # get flowcell id
             fc = flowcells[sample]
-            bam = picard_add_rg_header_info(log, sample, sample_dir, fc, bam, "pe")
+            bam = picard.add_rg_header_info(log, sample, sample_dir, fc, bam, "pe")
             if not args.no_remove_duplicates:
-                bam = picard_mark_and_remove_dupes(log, sample, sample_dir, bam, "pe")
+                bam = picard.mark_dupes(log, sample, sample_dir, bam, "pe")
             else:
                 log.info("You have selected to keep apparent duplicate reads")
         if fastq.singleton:
             # bwa align singleton reads
             if args.mem:
-                bam_se = bwa_mem_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+                bam_se = bwa.mem_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
             else:
-                bam_se = bwa_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+                bam_se = bwa.se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
             # clean the bam up (MAPq 0 and trim overlapping reads)
-            bam_se = picard_clean_up_bam(log, sample, sample_dir, bam_se, "se")
+            bam_se = picard.clean_up_bam(log, sample, sample_dir, bam_se, "se")
             # get flowcell id
             fc = flowcells[sample]
-            bam_se = picard_add_rg_header_info(log, sample, sample_dir, fc, bam_se, "se")
+            bam_se = picard.add_rg_header_info(log, sample, sample_dir, fc, bam_se, "se")
             if not args.no_remove_duplicates:
-                bam_se = picard_mark_and_remove_dupes(log, sample, sample_dir, bam_se, "se")
+                bam_se = picard.mark_dupes(log, sample, sample_dir, bam_se, "se")
             else:
                 log.info("You have selected to keep apparent duplicate reads")
         if bam and bam_se:
-            bam = picard_merge_two_bams(log, sample, sample_dir, bam, bam_se)
+            bam = picard.merge_two_bams(log, sample, sample_dir, bam, bam_se)
         elif bam_se and not bam:
             bam = bam_se
         if not bam:

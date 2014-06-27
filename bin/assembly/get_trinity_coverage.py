@@ -15,10 +15,15 @@ import os
 import glob
 import shutil
 import argparse
+
+from phyluce import bwa
+from phyluce import gatk
+from phyluce import picard
+from phyluce import samtools
+
 from phyluce.helpers import FullPaths, is_file, is_dir
 from phyluce.third_party import which
 from phyluce.raw_reads import get_input_data, get_input_files
-from phyluce.bwa import *
 from phyluce.log import setup_logging
 
 import pdb
@@ -120,7 +125,7 @@ def main():
     input = get_input_data(args.assemblo_config, None)
     # Get path to bwa
     try:
-        bwa = which('bwa')[0]
+        which('bwa')[0]
     except:
         raise EnvironmentError("Cannot find bwa.  Ensure it is installed and in your $PATH")
     # make the symlink directory within the output directory
@@ -144,48 +149,48 @@ def main():
         # determine the types of raw read data that we have
         fastq = get_input_files(reads, args.subfolder, log)
         # create the bwa index
-        bwa_create_index_files(log, assembly)
-        samtools_create_faidx(log, sample, assembly_pth, assembly)
-        picard_create_reference_dict(log, sample, assembly_pth, assembly)
+        bwa.create_index_files(log, assembly)
+        samtools.create_faidx(log, sample, assembly_pth, assembly)
+        picard.create_reference_dict(log, sample, assembly_pth, assembly)
         bam = False
         bam_se = False
         if args.bwa_mem and fastq.r1 and fastq.r2:
-            bam = bwa_mem_pe_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1, fastq.r2)
-            bam = picard_clean_up_bam(log, sample, assembly_pth, bam, "pe")
-            bam = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam, "pe")
+            bam = bwa.mem_pe_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1, fastq.r2)
+            bam = picard.clean_up_bam(log, sample, assembly_pth, bam, "pe")
+            bam = picard.add_rg_header_info(log, sample, assembly_pth, "Generic", bam, "pe")
         elif not args.bwa_mem and fastq.r1 and fastq.r2:
-            bam = bwa_pe_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1, fastq.r2)
-            bam = picard_clean_up_bam(log, sample, assembly_pth, bam, "pe")
-            bam = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam, "pe")
+            bam = bwa.pe_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1, fastq.r2)
+            bam = picard.clean_up_bam(log, sample, assembly_pth, bam, "pe")
+            bam = picard.add_rg_header_info(log, sample, assembly_pth, "Generic", bam, "pe")
         # get singleton reads for alignment
         if args.bwa_mem and fastq.singleton:
-            bam_se = bwa_mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
-            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
-            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+            bam_se = bwa.mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
+            bam_se = picard.clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard.add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         # if we only have se reads, those will be in fastq.r1 only
         elif args.bwa_mem and not fastq.r2 and fastq.r1:
-            bam_se = bwa_mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
-            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
-            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+            bam_se = bwa.mem_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
+            bam_se = picard.clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard.add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         elif not args.bwa_mem and fastq.singleton:
-            bam_se = bwa_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
-            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
-            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+            bam_se = bwa.se_align(log, sample, assembly_pth, assembly, args.cores, fastq.singleton)
+            bam_se = picard.clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard.add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         elif not args.bwa_mem and not fastq.r2 and fastq.r1:
-            bam_se = bwa_se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
-            bam_se = picard_clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
-            bam_se = picard_add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
+            bam_se = bwa.se_align(log, sample, assembly_pth, assembly, args.cores, fastq.r1)
+            bam_se = picard.clean_up_bam(log, sample, assembly_pth, bam_se, 'se')
+            bam_se = picard.add_rg_header_info(log, sample, assembly_pth, "Generic", bam_se, "se")
         if bam and bam_se:
-            bam = picard_merge_two_bams(log, sample, assembly_pth, bam, bam_se)
+            bam = picard.merge_two_bams(log, sample, assembly_pth, bam, bam_se)
         elif bam_se and not bam:
             bam = bam_se
         if not bam:
             raise IOError("There is no BAM file.  Check bwa log files for problems.")
-        samtools_index(log, sample, assembly_pth, bam)
-        coverage = gatk_coverage(log, sample, assembly_pth, assembly, args.cores, bam)
-        overall_contigs = get_coverage_from_gatk(log, sample, assembly_pth, coverage, args.velvet)
-        remove_gatk_coverage_files(log, assembly_pth, coverage)
-        trimmed_fasta_path = filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, overall_contigs)
+        samtools.index(log, sample, assembly_pth, bam)
+        coverage = gatk.coverage(log, sample, assembly_pth, assembly, args.cores, bam)
+        overall_contigs = gatk.get_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
+        gatk.remove_coverage_files(log, assembly_pth, coverage)
+        trimmed_fasta_path = gatk.filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, overall_contigs)
         symlink_trimmed_contigs(log, sample, contig_dir, trimmed_fasta_path)
     # end
     text = " Completed {} ".format(my_name)

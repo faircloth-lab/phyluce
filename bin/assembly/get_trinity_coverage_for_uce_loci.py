@@ -13,7 +13,6 @@ Description:
 
 import os
 import re
-import sys
 import gzip
 import glob
 import numpy
@@ -21,9 +20,9 @@ import sqlite3
 import argparse
 import ConfigParser
 
-from phyluce.helpers import FullPaths, CreateDir, is_file, is_dir
-from phyluce.bwa import *
+from phyluce import picard
 from phyluce.log import setup_logging
+from phyluce.helpers import FullPaths, CreateDir, is_file, is_dir
 
 import pdb
 
@@ -286,8 +285,8 @@ def main():
                 create_untrimmed_per_base_coverage_file(log, args.output, assembly, organism, locus_map, locus_map_names)
                 coverages_dict = create_untrimmed_per_locus_coverage_file(log, args.output, assembly, organism, locus_map, locus_map_names)
             # pass the same intervals as targets and base - we don't care that much here about bait performance
-            hs_metrics_file = picard_calculate_hs_metrics(log, organism, args.output, reference, bam, coverages_dict["interval_list"], coverages_dict["interval_list"])
-            on_target_dict = picard_get_percent_reads_on_target(log, hs_metrics_file, organism)
+            hs_metrics_file = picard.calculate_hs_metrics(log, organism, args.output, reference, bam, coverages_dict["interval_list"], coverages_dict["interval_list"])
+            on_target_dict = picard.get_percent_reads_on_target(log, hs_metrics_file, organism)
             log.info("\t{} contigs, mean trimmed length = {:.1f}, mean trimmed coverage = {:.1f}x, on-target bases (uce contigs) = {:.1f}%, unique reads aligned (all contigs) = {:.1f}%".format(
                 coverages_dict["count"],
                 coverages_dict["mean_length_trimmed"],
