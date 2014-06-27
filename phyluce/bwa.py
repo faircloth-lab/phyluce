@@ -12,13 +12,7 @@ Description:
 """
 
 import os
-import re
-import gzip
-import glob
-import numpy
 import subprocess
-from collections import OrderedDict
-from Bio import SeqIO
 
 import pdb
 
