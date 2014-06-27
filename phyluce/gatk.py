@@ -27,7 +27,7 @@ JAVA_PARAMS = "-Xmx20g"
 JAR_PATH = "/home/bcf/bin/"
 
 
-def gatk_coverage(log, sample, assembly_pth, assembly, cores, bam):
+def coverage(log, sample, assembly_pth, assembly, cores, bam):
     log.info("Computing coverage with GATK for {}".format(sample))
     cwd = os.getcwd()
     # move into reference directory
@@ -58,7 +58,7 @@ def gatk_coverage(log, sample, assembly_pth, assembly, cores, bam):
     return os.path.join(assembly_pth, "{}-coverage".format(sample))
 
 
-def compute_gatk_coverage_metrics(contig_depth):
+def compute_coverage_metrics(contig_depth):
     metadata = {
         "beginning-length":None,
         "beginning-mean-cov": None,
@@ -92,7 +92,7 @@ def compute_gatk_coverage_metrics(contig_depth):
     return metadata
 
 
-def get_coverage_from_gatk(log, sample, assembly_pth, coverage, velvet):
+def get_coverage_from_output(log, sample, assembly_pth, coverage, velvet):
     log.info("Screening and filtering contigs for coverage (3x ends, 5x avg.)")
     if not velvet:
         regex = re.compile("(comp\d+_c\d+_seq\d+).*:(\d+)")
@@ -139,7 +139,7 @@ def get_coverage_from_gatk(log, sample, assembly_pth, coverage, velvet):
                             contig_data[int(pos)] = line
                             contig_depth.append(int(ls[1]))
                         elif match_name != previous_match:
-                            metadata = compute_gatk_coverage_metrics(contig_depth)
+                            metadata = compute_coverage_metrics(contig_depth)
                             unt_per_contig_cov.write("{}\t{}\t{}\n".format(
                                     previous_match,
                                     metadata["beginning-length"],
@@ -178,7 +178,7 @@ def get_coverage_from_gatk(log, sample, assembly_pth, coverage, velvet):
     return overall_contigs
 
 
-def remove_gatk_coverage_files(log, assembly_pth, coverage):
+def remove_coverage_files(log, assembly_pth, coverage):
     log.info("Removing GATK coverage files we created (screened files remain)")
     for file in glob.glob("{}*".format(coverage)):
         # gzip coverage file - remove rest

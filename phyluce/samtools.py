@@ -15,7 +15,7 @@ import os
 import subprocess
 
 
-def samtools_index(log, sample, sample_dir, bam):
+def index(log, sample, sample_dir, bam):
     log.info("Indexing BAM for {}".format(sample))
     cmd = [
         "samtools",
@@ -28,7 +28,7 @@ def samtools_index(log, sample, sample_dir, bam):
         proc.communicate()
 
 
-def samtools_create_faidx(log, sample, sample_dir, fasta):
+def create_faidx(log, sample, sample_dir, fasta):
     log.info("Indexing fasta for {}".format(sample))
     cmd = [
         "samtools",
