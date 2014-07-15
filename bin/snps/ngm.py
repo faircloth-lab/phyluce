@@ -24,7 +24,7 @@ from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_files
 
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -98,13 +98,14 @@ def get_input_data(log, conf, output):
         assert os.path.isfile(reference)
     except:
         raise IOError("{} is not a file".format(reference))
-    # check reference to ensure that bwa has indexed
-    for suffix in ['ngm', 'gz-enc.ngm']:
-        ng_file = "{}.{}".format(reference, suffix)
+    # check reference to ensure that ngm has indexed
+    for suffix in ['fa-enc.ngm']:
+        ng_file = "{}.{}".format(os.path.splitext(reference)[0], suffix)
         try:
+            log.info("ngm index file already exists for reference")
             assert os.path.isfile(ng_file)
         except:
-            log.info("Need to create ng index file for reference")
+            log.warn("Need to create ngm index file for reference")
             ngm.create_index_files(log, reference)
     individuals = conf.items('individuals')
     for sample in individuals:
