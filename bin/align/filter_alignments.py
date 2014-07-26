@@ -64,6 +64,20 @@ def get_args():
             default=0,
             help="""Filter out alignments with fewer than --min-taxa"""
         )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
     return parser.parse_args()
 
 

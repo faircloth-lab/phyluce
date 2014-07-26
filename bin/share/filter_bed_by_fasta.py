@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 25 June 2014 17:39 PDT (-0700)
+"""
+
+import sys
+import argparse
+from Bio import SeqIO
+from phyluce.helpers import is_file
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Filter a BED file of UCEs given a FASTA file of UCEs"""
+    )
+    parser.add_argument(
+        "--bed",
+        required=True,
+        type=is_file,
+        help="""The BED file to filter."""
+    )
+    parser.add_argument(
+        "--fasta",
+        required=True,
+        type=is_file,
+        help="""The FASTA file to use as a filter."""
+    )
+    parser.add_argument(
+        "--output",
+        default=sys.stdout,
+        type=argparse.FileType('w'),
+        help="""The output BED file"""
+    )
+    return parser.parse_args()
+
+
+def build_locus_list(args):
+    loci = set()
+    with open(args.fasta, "rU") as infile:
+        for seq in SeqIO.parse(infile, "fasta"):
+            loci.add(seq.description.split("|")[1].strip())
+    return loci
+
+
+def main():
+    args = get_args()
+    loci = build_locus_list(args)
+    with open(args.bed, "rU") as infile:
+        for line in infile:
+            if not line.startswith("track"):
+                ls = line.strip().split("\t")
+                locus = ls[3].split("_")[0]
+                if locus in loci:
+                    args.output.write(line)
+            else:
+                args.output.write(line)
+    args.output.close()
+
+if __name__ == '__main__':
+    main()

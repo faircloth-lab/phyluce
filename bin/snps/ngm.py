@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+
 """
-File: snps.py
-Author: Brant Faircloth
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 29 July 2013 16:07 PDT (-0700)
-Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description:
-
+Created on 26 June 2014 17:22 PDT (-0700)
 """
 
 
@@ -16,7 +16,7 @@ import os
 import argparse
 import ConfigParser
 
-from phyluce import bwa
+from phyluce import ngm
 from phyluce import picard
 
 from phyluce.log import setup_logging
@@ -24,7 +24,7 @@ from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_files
 
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -98,14 +98,15 @@ def get_input_data(log, conf, output):
         assert os.path.isfile(reference)
     except:
         raise IOError("{} is not a file".format(reference))
-    # check reference to ensure that bwa has indexed
-    for suffix in ['amb', 'ann', 'bwt', 'pac',  'sa']:
-        bwa_file = "{}.{}".format(reference, suffix)
+    # check reference to ensure that ngm has indexed
+    for suffix in ['fa-enc.ngm']:
+        ng_file = "{}.{}".format(os.path.splitext(reference)[0], suffix)
         try:
-            assert os.path.isfile(bwa_file)
+            log.info("ngm index file already exists for reference")
+            assert os.path.isfile(ng_file)
         except:
-            log.info("Need to create BWA index file for reference")
-            bwa.create_index_files(log, reference)
+            log.warn("Need to create ngm index file for reference")
+            ngm.create_index_files(log, reference)
     individuals = conf.items('individuals')
     for sample in individuals:
         try:
@@ -131,7 +132,7 @@ def main():
     reference, individuals = get_input_data(log, conf, args.output)
     flowcells = dict(conf.items("flowcell"))
     if args.mem:
-        log.info("You are running BWA-MEM")
+        log.info("You are running NextGenMap")
     for indiv in individuals:
         bam, bam_se = False, False
         sample, dir = indiv
@@ -144,13 +145,9 @@ def main():
         # determine how many files we're dealing with
         fastq = get_input_files(dir, args.subfolder, log)
         if fastq.r1 and fastq.r2:
-            # bwa align r1 and r2
-            if args.mem:
-                bam = bwa.mem_pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
-            else:
-                bam = bwa.pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
+            bam = ngm.pe_align(log, sample, sample_dir, reference, args.cores, fastq.r1, fastq.r2)
             # clean the bam up (MAPq 0 and trim overlapping reads)
-            bam = picard.clean_up_bam(log, sample, sample_dir, bam, "pe")
+            bam = picard.fix_mate_information(log, sample, sample_dir, bam, "pe")
             # get flowcell id
             fc = flowcells[sample]
             bam = picard.add_rg_header_info(log, sample, sample_dir, fc, bam, "pe")
@@ -159,13 +156,9 @@ def main():
             else:
                 log.info("You have selected to keep apparent duplicate reads")
         if fastq.singleton:
-            # bwa align singleton reads
-            if args.mem:
-                bam_se = bwa.mem_se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
-            else:
-                bam_se = bwa.se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
+            bam_se = ngm.se_align(log, sample, sample_dir, reference, args.cores, fastq.singleton)
             # clean the bam up (MAPq 0 and trim overlapping reads)
-            bam_se = picard.clean_up_bam(log, sample, sample_dir, bam_se, "se")
+            bam_se = picard.fix_mate_information(log, sample, sample_dir, bam_se, "se")
             # get flowcell id
             fc = flowcells[sample]
             bam_se = picard.add_rg_header_info(log, sample, sample_dir, fc, bam_se, "se")

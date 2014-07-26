@@ -71,7 +71,7 @@ def main():
         search_result = re.search('_v_([A-Za-z0-9]+).lastz', os.path.basename(file))
         outname = search_result.groups()[0]
         log.info("Working on {}".format(outname))
-        outf = open(os.path.join(args.output, "{}.bed".format(outname)), 'w')
+        outf = open(os.path.join(args.output, "{}.probe.bed".format(outname)), 'w')
         outf.write('''track name="uce-v-{0}" description="UCE probe matches to {0}" visibility=2 itemRgb="On"\n'''.format(outname))
         written = set([])
         for match in lz:

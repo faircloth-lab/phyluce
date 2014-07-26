@@ -70,6 +70,12 @@ def get_args():
         help="""Process alignments in parallel using --cores for alignment. """ +
         """This is the number of PHYSICAL CPUs."""
     )
+    parser.add_argument(
+        "--skip-check",
+        action="store_true",
+        default=False,
+        help="""Skip the initial taxon determination""",
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--exclude',
         type=str,
@@ -122,8 +128,9 @@ def worker(work):
         for taxon in list(align):
             if taxon.name in taxa_to_keep:
                 new_align.append(taxon)
-    outf = os.path.join(args.output, os.path.basename(align_file))
-    AlignIO.write(new_align, open(outf, 'w'), 'nexus')
+    if len(new_align) > 1:
+        outf = os.path.join(args.output, os.path.basename(align_file))
+        AlignIO.write(new_align, open(outf, 'w'), 'nexus')
     sys.stdout.write(".")
     sys.stdout.flush()
 
@@ -132,8 +139,12 @@ def main():
     # setup logging
     log, my_name = setup_logging(args)
     files = get_alignment_files(log, args.alignments, args.input_format)
-    taxa = get_all_taxon_names(log, files)
-    taxa_to_keep = get_samples_to_run(args, taxa)
+    if not args.skip_check:
+        taxa = get_all_taxon_names(log, files)
+        taxa_to_keep = get_samples_to_run(args, taxa)
+    else:
+        assert args.include is not None, "--skip-check can only be used with args.include"
+        taxa_to_keep = set(args.include)
     work = [(args, taxa_to_keep, file) for file in files]
     log.info("Excluding/Including taxa")
     sys.stdout.write("Running")
