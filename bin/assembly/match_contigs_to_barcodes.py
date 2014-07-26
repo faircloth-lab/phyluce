@@ -62,6 +62,12 @@ def get_args():
         default=None,
         help="""The path to a directory to hold logs."""
     )
+    parser.add_argument(
+        "--no-bold",
+        action="store_true",
+        default=False,
+        help="""Don't run matches against BOLD""",
+    )
     args = parser.parse_args()
     return args
 
@@ -112,21 +118,22 @@ def main():
                     # keep fasta slice
                     slice.id = matching_contig
                     fasta_slices.append(slice)
-                    payload = {
-                        "sequence":matches_barcode_sequence,
-                        "db":"COX1_SPECIES"
-                    }
-                    r = requests.get("http://boldsystems.org/index.php/Ids_xml", params=payload)
-                    root = ElementTree.fromstring(r.content)
-                    id = [elem.text for elem in root.findall('match/ID')]
-                    matches = [elem.text for elem in root.findall('match/taxonomicidentification')]
-                    similarity = [elem.text for elem in root.findall('match/similarity')]
-                    log.info("\tBest BOLD systems match for locus {0}: {1} [{2}] ({3})".format(
-                        matching_contig,
-                        matches[0],
-                        id[0],
-                        similarity[0]
-                    ))
+                    if not args.no_bold:
+                        payload = {
+                            "sequence":matches_barcode_sequence,
+                            "db":"COX1_SPECIES"
+                        }
+                        r = requests.get("http://boldsystems.org/index.php/Ids_xml", params=payload)
+                        root = ElementTree.fromstring(r.content)
+                        id = [elem.text for elem in root.findall('match/ID')]
+                        matches = [elem.text for elem in root.findall('match/taxonomicidentification')]
+                        similarity = [elem.text for elem in root.findall('match/similarity')]
+                        log.info("\tBest BOLD systems match for locus {0}: {1} [{2}] ({3})".format(
+                            matching_contig,
+                            matches[0],
+                            id[0],
+                            similarity[0]
+                        ))
                 except IndexError:
                     log.warn("Did not find a match for locus {}".format(matching_contig))
             output = os.path.join(
