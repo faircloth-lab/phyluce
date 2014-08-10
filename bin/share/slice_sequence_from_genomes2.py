@@ -52,12 +52,6 @@ def get_args():
         help="""Path to the output directory for storing FASTA files"""
     )
     parser.add_argument(
-        "--flank",
-        type=int,
-        default=500,
-        help="""The amount of flanking sequence to add to each match""",
-    )
-    parser.add_argument(
         "--name-pattern",
         dest="pattern",
         type=str,
@@ -83,6 +77,19 @@ def get_args():
         action="store_true",
         default=False,
         help="""Check orientation by contigs versus probes - useful for multi-species probe sets""",
+    )
+    flank = parser.add_mutually_exclusive_group(required=True)
+    flank.add_argument(
+        "--flank",
+        type=int,
+        default=500,
+        help="""The amount of flanking sequence to add to each match""",
+    )
+    flank.add_argument(
+        "--probes",
+        type=int,
+        default=None,
+        help="""The probe length to use""",
     )
     return parser.parse_args()
 
@@ -111,15 +118,30 @@ def check_loci_for_dupes(matches):
     return dupe_set
 
 
-def slice_and_return_fasta(tb, name, min, max, flank):
-    if min - flank > 0:
-        ss = min - flank
+def slice_and_return_fasta(tb, name, min, max, flank, probes):
+    if probes is None:
+        if min - flank > 0:
+            ss = min - flank
+        else:
+            ss = 0
+        if max + flank < len(tb[name]):
+            se = max + flank
+        else:
+            se = len(tb[name])
     else:
-        ss = 0
-    if max + flank < len(tb[name]):
-        se = max + flank
-    else:
-        se = len(tb[name])
+        length = abs(max - min)
+        delta = probes - length
+        if delta > 0:
+            if delta % 2 != 0:
+                delta += 1
+            ss = min - delta / 2
+            se = max + delta / 2
+            if ss < 0:
+                ss = 0
+                se = se + (probes - se)
+        else:
+            ss = min
+            se = max
     return ss, se, tb[name][ss:se]
 
 
@@ -155,21 +177,25 @@ def remove_repetitive_ends(ss, se, sequence):
     return ss, se, sequence[new_start:len(sequence) - new_end]
 
 
-def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_positions, sequence):
+def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_positions, sequence, probes):
     ss, se, sequence = remove_ambiguous_ends(ss, se, sequence)
     ss, se, sequence = remove_repetitive_ends(ss, se, sequence)
-    name = "Node_{0}_length_{1}_cov_1000 |contig:{2}|slice:{3}-{4}|uce:{5}|match:{6}-{7}|orient:{8}|probes:{9}".format(
-        cnt,
-        len(sequence),
-        contig,
-        ss,
-        se,
-        uce,
-        min,
-        max,
-        list(orient)[0],
-        len(sorted_positions)
-    )
+    if not probes:
+        name_start = "Node_{0}_length_{1}_cov_1000".format(cnt)
+    else:
+        name_start = "slice_{}".format(cnt)
+        name = "{0}|contig:{2}|slice:{3}-{4}|uce:{5}|match:{6}-{7}|orient:{8}|probes:{9}".format(
+            name_start,
+            len(sequence),
+            contig,
+            ss,
+            se,
+            uce,
+            min,
+            max,
+            list(orient)[0],
+            len(sorted_positions)
+        )
     return SeqRecord(Seq(sequence), id=name, name='', description='')
 
 
@@ -283,8 +309,8 @@ def main():
                         if not bad:
                             min = sorted_positions[0][0]
                             max = sorted_positions[-1][-1]
-                            ss, se, sequence = slice_and_return_fasta(tb, contig_name, min, max, args.flank)
-                            seq = build_sequence_object(node_count, contig_name, ss, se, uce_name, min, max, orient, sorted_positions, sequence)
+                            ss, se, sequence = slice_and_return_fasta(tb, contig_name, min, max, args.flank, args.probes)
+                            seq = build_sequence_object(node_count, contig_name, ss, se, uce_name, min, max, orient, sorted_positions, sequence, args.probes)
                             outf.write(seq.format('fasta'))
                             node_count += 1
             output = "{}: {} uces, {} dupes, {} non-dupes, {} orient drop, {} length drop, {} written".format(
