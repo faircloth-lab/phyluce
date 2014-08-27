@@ -26,8 +26,8 @@ cause problems.
 """
 
 import os
-import re
 import sys
+import random
 import argparse
 import tempfile
 
@@ -67,6 +67,13 @@ def get_args():
         type=str,
         default=None,
         help='Your last name (to indicate who designed the probes)'
+    )
+    parser.add_argument(
+        '--design',
+        required=True,
+        type=str,
+        default=None,
+        help='The design name.'
     )
     parser.add_argument(
         '--probe-length',
@@ -122,6 +129,18 @@ def get_args():
         default=False,
         help='Remove loci with GC content outside 30 <= GC <= 70'
     )
+    parser.add_argument(
+        '--start-index',
+        type=int,
+        default=0,
+        help='The starting UCE index number to use.'
+    )
+    parser.add_argument(
+        '--two-probes',
+        action='store_true',
+        default=False,
+        help='Design only two probes for a given locus.'
+    )
     return parser.parse_args()
 
 
@@ -140,18 +159,14 @@ def middle_overlapper(region, args):
 
     '''
     seq_len = len(region.seq)
-    if seq_len == 179:
-        extra = 1
-    else:
-        extra = 0
     # determine the degree of overlap between tiles
     tile_overlap = args.length - (args.length/args.density)
     tile_non_overlap = args.length - tile_overlap
     coords = []
-    middle = seq_len/2
-    halfsies = tile_overlap/2
-    r_prb_strt = middle - halfsies - extra
-    l_prb_strt = middle + halfsies + 2*extra
+    middle = seq_len / 2
+    halfsies = tile_overlap / 2
+    r_prb_strt = middle - halfsies
+    l_prb_strt = middle + halfsies
     end = 0
     while r_prb_strt + args.length <= seq_len:
         end = r_prb_strt + args.length
@@ -242,7 +257,7 @@ def main():
     probe_set = []
     print "Probes removed for masking (.) / low GC % (G) / ambiguous bases (N):"
     for locus_count, locus in enumerate(SeqIO.parse(open(args.input, 'rU'), 'fasta')):
-        #pdb.set_trace()
+        locus_count += args.start_index
         global_coords = locus.description.split('|')[1]
         global_chromo, global_chromo_positions = global_coords.split(':')
         global_chromo_start, global_chromo_end = [int(i) for i in global_chromo_positions.split('-')]
@@ -251,6 +266,16 @@ def main():
         elif args.overlap == 'flush-left':
             coords = left_flush_overlapper(locus, args)
         coords.sort()
+        if args.two_probes:
+            if len(coords) % 2 == 0:
+                pos1 = len(coords) / 2 - 1
+                pos2 = len(coords) / 2
+                coords = [coords[pos1], coords[pos2]]
+            else:
+                pos1 = len(coords) / 2
+                pos2 = pos1 + random.choice([1,-1])
+                coords = [coords[pos1], coords[pos2]]
+                coords.sort()
         probes = []
         for k, coord in enumerate(coords):
             # need to get global starts and ends for probe
@@ -262,7 +287,7 @@ def main():
                 locus_count,
                 k + 1
             )
-            probe_description = " |designer:{0},probes-locus:{1},probes-probe:{2},probes-global-chromo:{3},probes-global-start:{4},probes-global-end:{5},probes-local-start:{6},probes-local-end:{7}".format(
+            probe_description = " |design:{8},designer:{0},probes-locus:{1},probes-probe:{2},probes-global-chromo:{3},probes-global-start:{4},probes-global-end:{5},probes-local-start:{6},probes-local-end:{7}".format(
                 args.designer,
                 locus_count,
                 k + 1,
@@ -270,7 +295,8 @@ def main():
                 global_probe_start,
                 global_probe_end,
                 coord[0],
-                coord[1]
+                coord[1],
+                args.design
             )
             # slice the sequence
             probe = locus[coord[0]:coord[1]]

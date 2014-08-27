@@ -24,13 +24,16 @@ def interface():
 
     p = optparse.OptionParser(usage)
 
-    p.add_option('--input', dest = 'input', action='store', 
-type='string', default = None, help='The path to input directory.', 
+    p.add_option('--input', dest = 'input', action='store',
+type='string', default = None, help='The path to input directory.',
 metavar='FILE')
 
-    p.add_option('--output', dest = 'output', action='store', 
-type='string', default = None, help='The path to output directory.', 
+    p.add_option('--output', dest = 'output', action='store',
+type='string', default = None, help='The path to output directory.',
 metavar='FILE')
+
+    p.add_option('--cores', dest = 'cores', action='store',
+type='integer', default = 1, help='The number of compute cores to use.')
 
     (options,arg) = p.parse_args()
     if not options.input or not options.output:
@@ -53,7 +56,7 @@ def main():
     phylip_files = glob.glob(os.path.join(options.input, '*.phylip'))
     output = [options.output] * len(phylip_files)
     files_to_process = zip(phylip_files, output)
-    pool = multiprocessing.Pool(7)
+    pool = multiprocessing.Pool(options.cores)
     pool.map(run_mraic, files_to_process)
     #map(run_mraic, files_to_process)
     output_files = glob.glob(os.path.join(options.output, '*.phylip.AICc*'))

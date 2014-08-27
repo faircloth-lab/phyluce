@@ -47,7 +47,7 @@ def get_args():
         "--filter-mask",
         dest='mask',
         type=float,
-        default=None,
+        default=0.25,
         help="""Filter strings with > X frequency of masked bases""",
     )
     parser.add_argument(
@@ -55,6 +55,12 @@ def get_args():
         type=int,
         default=0,
         help="""The maximum number of ambiguous bases ('N') to accept""",
+    )
+    parser.add_argument(
+        "--buffer-to",
+        type=int,
+        default=None,
+        help="""The length to which to buffer the extracted sequences""",
     )
     return parser.parse_args()
 
@@ -87,14 +93,22 @@ def main():
         for cnt, line in enumerate(open(args.bed, 'rU')):
             ls = [int(i) if i.isdigit() else i for i in line.strip().split('\t')]
             chromo, start, end = ls
+            if args.buffer_to is not None:
+                length = abs(end - start)
+                delta = args.buffer_to - length
+                if delta > 0:
+                    if delta % 2 != 0:
+                        delta += 1
+                    start -= delta / 2
+                    end += delta / 2
             sequence = tb[str(chromo)][start:end]
-            if n_count(sequence) <= args.max_n and not sequence_is_masked(args.mask, sequence, cnt):
+            if len(sequence) >= args.buffer_to and n_count(sequence) <= args.max_n and not sequence_is_masked(args.mask, sequence, cnt):
                 seq = create_sequence_object(cnt, sequence, chromo, start, end)
                 outf.write(seq.format('fasta'))
                 kept += 1
             else:
                 filtered += 1
-    print "Screened {} sequences.  Filtered {} with > {}% masked bases or > {} N-bases. Kept {}.".format(
+    print "Screened {} sequences.  Filtered {} < 160 bp or with > {}% masked bases or > {} N-bases. Kept {}.".format(
         cnt + 1,
         filtered,
         args.mask * 100,
