@@ -157,8 +157,11 @@ def write_gblocks_alignments_to_outdir(log, outdir, alignments, format):
                 get_file_extensions(format)[0]
             )
             #pdb.set_trace()
-            with open(outname, 'w') as outf:
-                AlignIO.write(aln, outf, format)
+            try:
+                with open(outname, 'w') as outf:
+                    AlignIO.write(aln, outf, format)
+            except ValueError:
+                log.warn("Unable to write {} - alignment too short".format(locus))
         else:
             log.warn("Missing information for locus {}".format(locus))
 
