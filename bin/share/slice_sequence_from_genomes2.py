@@ -59,6 +59,18 @@ def get_args():
         help="An alternate name pattern to transform the conf entry into"
     )
     parser.add_argument(
+        '--probe-prefix',
+        type=str,
+        default="uce-",
+        help='The prefix (e.g. "uce-") added to all probes designed'
+    )
+    parser.add_argument(
+        '--probe-regex',
+        type=str,
+        default='^({}\d+)(?:_p\d+.*)',
+        help='The regular expression to use for matching probes'
+    )
+    parser.add_argument(
         "--exclude",
         type=str,
         nargs='+',
@@ -107,7 +119,7 @@ def get_all_files_from_conf(conf, pattern=None):
     return files
 
 
-def new_get_probe_name(header, regex="^(uce-\d+)(?:_p\d+.*)"):
+def new_get_probe_name(header, regex):
     match = re.search(regex, header)
     return match.groups()[0]
 
@@ -178,11 +190,15 @@ def remove_repetitive_ends(ss, se, sequence):
 
 
 def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_positions, sequence, probes):
-    ss, se, sequence = remove_ambiguous_ends(ss, se, sequence)
-    ss, se, sequence = remove_repetitive_ends(ss, se, sequence)
+    # turn of the clipping if we're using these data for probes
     if not probes:
+        ss, se, sequence = remove_ambiguous_ends(ss, se, sequence)
+        ss, se, sequence = remove_repetitive_ends(ss, se, sequence)
         name_start = "Node_{0}_length_{1}_cov_1000".format(cnt)
     else:
+        orient = list(orient)[0]
+        if not orient == "+":
+            orient = "revcomp"
         name_start = "slice_{}".format(cnt)
         name = "{0}|contig:{2}|slice:{3}-{4}|uce:{5}|match:{6}-{7}|orient:{8}|probes:{9}".format(
             name_start,
@@ -193,13 +209,16 @@ def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_pos
             uce,
             min,
             max,
-            list(orient)[0],
+            orient,
             len(sorted_positions)
         )
-    return SeqRecord(Seq(sequence), id=name, name='', description='')
+    if orient == "revcomp":
+        return SeqRecord(Seq(sequence).reverse_complement(), id=name, name='', description='')
+    else:
+        return SeqRecord(Seq(sequence), id=name, name='', description='')
 
 
-def parse_lastz_file(lz, contig_orient):
+def parse_lastz_file(lz, contig_orient, regex):
     all_uce_names = set()
     uce_matches = defaultdict(lambda: defaultdict(list))
     orientation = defaultdict(lambda: defaultdict(set))
@@ -207,7 +226,7 @@ def parse_lastz_file(lz, contig_orient):
         # get strandedness of match
         contig_name = lz.name1
         # get name of UCE from lastz info
-        uce_name = new_get_probe_name(lz.name2)
+        uce_name = new_get_probe_name(lz.name2, regex)
         # keep a record of all UCEs matched
         all_uce_names.add(uce_name)
         uce_matches[uce_name][contig_name].append([lz.zstart1, lz.end1])
@@ -268,7 +287,8 @@ def main():
                 tb = twobit.TwoBitFile(file(twobit_name))
                 # parse the lastz results of the alignment
                 lz = os.path.join(args.lastz, long_name)
-                all_uce_names, uce_matches, orientation = parse_lastz_file(lz, args.contig_orient)
+                regex = args.probe_regex.format(args.probe_prefix)
+                all_uce_names, uce_matches, orientation = parse_lastz_file(lz, args.contig_orient, regex)
                 # we need to check nodes for dupe matches to the same probes
                 uce_loci_matching_mult_contigs = check_loci_for_dupes(uce_matches)
                 # delete those loci that hit multiple probes or had multiple probes hit them
@@ -311,8 +331,11 @@ def main():
                             max = sorted_positions[-1][-1]
                             ss, se, sequence = slice_and_return_fasta(tb, contig_name, min, max, args.flank, args.probes)
                             seq = build_sequence_object(node_count, contig_name, ss, se, uce_name, min, max, orient, sorted_positions, sequence, args.probes)
-                            outf.write(seq.format('fasta'))
-                            node_count += 1
+                            if args.probes and len(seq) < args.probes:
+                                pass
+                            else:
+                                outf.write(seq.format('fasta'))
+                                node_count += 1
             output = "{}: {} uces, {} dupes, {} non-dupes, {} orient drop, {} length drop, {} written".format(
                 short_name,
                 len(all_uce_names),
