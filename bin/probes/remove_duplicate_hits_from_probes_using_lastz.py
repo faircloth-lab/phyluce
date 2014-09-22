@@ -49,6 +49,12 @@ def get_args():
         help='The prefix (e.g. "uce-") added to all probes designed'
     )
     parser.add_argument(
+        '--probe-regex',
+        type=str,
+        default='^({}\d+)(?:_p\d+.*)',
+        help='The regular expression to use for matching probes'
+    )
+    parser.add_argument(
         '--probe-bed',
         type=str,
         default=None,
@@ -113,7 +119,7 @@ def return_screened_filename(s):
 
 def main():
     args = get_args()
-    regex = "^({}\d+)(?:_p\d+.*)".format(args.probe_prefix)
+    regex = args.probe_regex.format(args.probe_prefix)
     dupes = get_dupes(args.lastz, regex, args.long)
     fasta_output = return_screened_filename(args.fasta)
     fasta_kept = 0
