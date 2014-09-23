@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 11 April 2014 11:18 PDT (-0700)
+"""
+
+import os
+import argparse
+
+from bx.seq import twobit
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+
+from phyluce.helpers import FullPaths
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Given an input BED file for one taxon, remove repetitive BED entried by base taxon"""
+    )
+    parser.add_argument(
+        "--bed",
+        required=True,
+        help="""The input BED file"""
+    )
+    parser.add_argument(
+        "--twobit",
+        required=True,
+        action=FullPaths,
+        help="""The input genome to slice in UCSC 2bit format"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        help="""The output BED file"""
+    )
+    parser.add_argument(
+        "--filter-mask",
+        dest='mask',
+        type=float,
+        default=None,
+        help="""Filter strings with > X frequency of masked bases""",
+    )
+    parser.add_argument(
+        "--max-n",
+        type=int,
+        default=0,
+        help="""The maximum number of ambiguous bases ('N') to accept""",
+    )
+    parser.add_argument(
+        "--min-length",
+        type=int,
+        default=0,
+        help="""The minimum length loci to keep""",
+    )
+    return parser.parse_args()
+
+
+def create_sequence_object(cnt, sequence, chromo, start, end):
+    name = "slice_{} |{}:{}-{}".format(cnt, chromo, start, end)
+    return SeqRecord(Seq(sequence), id=name, name='', description='')
+
+
+def sequence_is_masked(mask, sequence, cnt):
+    if mask == None:
+        return False
+    else:
+        masked_bases = float(sum([1 for i in sequence if i.islower()]))
+        if (masked_bases/len(sequence)) > mask:
+            return True
+        else:
+            return False
+
+def n_count(sequence):
+    return sequence.upper().count('N')
+
+
+def main():
+    args = get_args()
+    tb = twobit.TwoBitFile(file(args.twobit))
+    filtered = 0
+    kept = 0
+    with open(args.output, 'w') as outf:
+        for cnt, line in enumerate(open(args.bed, 'rU')):
+            ls = [int(i) if i.isdigit() else i for i in line.strip().split('\t')]
+            chromo, start, end = ls
+            sequence = tb[str(chromo)][start:end]
+            if args.min_length > 0:
+                if n_count(sequence) <= args.max_n and not sequence_is_masked(args.mask, sequence, cnt) and end - start >= args.min_length:
+                    outf.write("{}\t{}\t{}\n".format(chromo, start, end))
+                    kept += 1
+                else:
+                    filtered += 1
+            else:
+                if n_count(sequence) <= args.max_n and not sequence_is_masked(args.mask, sequence, cnt):
+                    outf.write("{}\t{}\t{}\n".format(chromo, start, end))
+                    kept += 1
+                else:
+                    filtered += 1
+    print "Screened {} sequences from {}.  Filtered {} with > {}% masked bases or > {} N-bases or < {} length. Kept {}.".format(
+        cnt + 1,
+        os.path.basename(args.bed),
+        filtered,
+        args.mask * 100,
+        args.max_n,
+        args.min_length,
+        kept
+    )
+
+
+if __name__ == '__main__':
+    main()
