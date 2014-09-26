@@ -194,24 +194,24 @@ def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_pos
     if not probes:
         ss, se, sequence = remove_ambiguous_ends(ss, se, sequence)
         ss, se, sequence = remove_repetitive_ends(ss, se, sequence)
-        name_start = "Node_{0}_length_{1}_cov_1000".format(cnt)
+        name_start = "Node_{0}_length_{1}_cov_1000".format(cnt, len(sequence))
     else:
         orient = list(orient)[0]
         if not orient == "+":
             orient = "revcomp"
         name_start = "slice_{}".format(cnt)
-        name = "{0}|contig:{2}|slice:{3}-{4}|uce:{5}|match:{6}-{7}|orient:{8}|probes:{9}".format(
-            name_start,
-            len(sequence),
-            contig,
-            ss,
-            se,
-            uce,
-            min,
-            max,
-            orient,
-            len(sorted_positions)
-        )
+    name = "{0}|contig:{2}|slice:{3}-{4}|uce:{5}|match:{6}-{7}|orient:{8}|probes:{9}".format(
+        name_start,
+        len(sequence),
+        contig,
+        ss,
+        se,
+        uce,
+        min,
+        max,
+        orient,
+        len(sorted_positions)
+    )
     if orient == "revcomp":
         return SeqRecord(Seq(sequence).reverse_complement(), id=name, name='', description='')
     else:
