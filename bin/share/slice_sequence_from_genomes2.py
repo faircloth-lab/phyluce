@@ -194,7 +194,7 @@ def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_pos
     if not probes:
         ss, se, sequence = remove_ambiguous_ends(ss, se, sequence)
         ss, se, sequence = remove_repetitive_ends(ss, se, sequence)
-        name_start = "Node_{0}_length_{1}_cov_1000".format(cnt)
+        name = "Node_{0}_length_{1}_cov_1000".format(cnt, len(sequence))
     else:
         orient = list(orient)[0]
         if not orient == "+":
