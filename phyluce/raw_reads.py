@@ -107,7 +107,7 @@ def get_input_files(dir, subfolder, log):
         # get file name
         fname = os.path.basename(f)
         # find which reach this is
-        match = re.search("(?:.*)[_-](?:READ|Read|R)(\d)*[_-]*(singleton)*(?:.*)", fname)
+        match = re.search("(?:.*)[_-](?:READ|Read|R)(\d)*[_-]*(singleton|unpaired)*(?:.*)", fname)
         try:
             if match.groups()[0] == '1':
                 assert fq.r1 is None
@@ -115,7 +115,7 @@ def get_input_files(dir, subfolder, log):
             elif match.groups()[0] == '2':
                 assert fq.r2 is None
                 fq.set_read('r2', dir, fname)
-            elif match.groups()[1] == 'singleton':
+            elif match.groups()[1] == 'singleton'or match.groups()[1] == 'unpaired':
                 assert fq.singleton is None
                 fq.set_read('singleton', dir, fname)
         except:
