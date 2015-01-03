@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 22 September 2014 17:09 CDT (-0500)
+"""
+
+
+import re
+import argparse
+from collections import Counter
+
+from Bio import SeqIO
+
+from phyluce.helpers import is_file, FullPaths
+
+import pdb
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Given an input file of probes, filter the list for certain taxa"""
+    )
+    parser.add_argument(
+        "--probes",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The probe file to filter."""
+    )
+    parser.add_argument(
+        "--taxa",
+        required=True,
+        default=None,
+        type=str,
+        nargs="+",
+        help="""The taxa for which to filter probes."""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        type=str,
+        help="""The file in which to store the output."""
+    )
+    parser.add_argument(
+        "--regex",
+        type=str,
+        default="^(uce-\d+)(?:_p\d+.*)",
+        help="""A regular expression to apply to the probe names for replacement [default='^(uce-\d+)(?:_p\d+.*)'].""",
+    )
+    return parser.parse_args()
+
+def get_locus_name(header, regex):
+    match = re.search(regex, header)
+    return match.groups()[0]
+
+def main():
+    args = get_args()
+    probes_to_keep = []
+    probes_kept = []
+    loci_kept = []
+    taxa = Counter()
+    with open(args.probes, "rU") as infile:
+        for seq in SeqIO.parse(infile, "fasta"):
+            ss = seq.description.split("|")[1].split(",")
+            taxon = ss[4].split(":")[1]
+            taxa.update([taxon])
+            if taxon in args.taxa:
+                probes_to_keep.append(seq)
+                probes_kept.append(1)
+                locus = get_locus_name(seq.id, args.regex)
+                loci_kept.append(locus)
+    with open(args.output, "w") as outfile:
+        SeqIO.write(probes_to_keep, outfile, "fasta")
+    print 'All probes = {0}'.format(sum(taxa.values()))
+    print '--- Probes by taxon ---'
+    for taxon, count in taxa.iteritems():
+        print "{}\t{}".format(taxon, count)
+    print '--- Post  filtering ---'
+    print 'Conserved locus count = {0}'.format(len(set(loci_kept)))
+    print 'Probe Count = {0}'.format(sum(probes_kept))
+
+
+
+if __name__ == '__main__':
+    main()

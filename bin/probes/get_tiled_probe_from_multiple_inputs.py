@@ -1,0 +1,317 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 22 September 2014 10:00 CDT (-0500)
+"""
+
+import os
+import sys
+import glob
+import random
+import argparse
+import ConfigParser
+
+from Bio import SeqIO
+
+from phyluce.helpers import is_file, is_dir, FullPaths, CreateDir, get_names_from_config
+
+import pdb
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Given a folder of FASTA reads of appropriate format and """ +
+        """length (e.g. output by slice_sequence_from_genomes2.py), design """ +
+        """probes from the multiple fasta output files"""
+    )
+    parser.add_argument(
+        "--fastas",
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The folder of fasta files from which to design probes"""
+    )
+    parser.add_argument(
+        "--multi-fasta-output",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The output config file from query_multi_fasta_table.py"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        type=str,
+        help="""The file in which to store the output"""
+    )
+    parser.add_argument(
+        '--probe-prefix',
+        required=True,
+        type=str,
+        default=None,
+        help='The prefix (e.g. "uce-") to add to all probes designed'
+    )
+    parser.add_argument(
+        '--designer',
+        required=True,
+        type=str,
+        default=None,
+        help='Your last name (to indicate who designed the probes)'
+    )
+    parser.add_argument(
+        '--design',
+        required=True,
+        type=str,
+        default=None,
+        help='The design name.'
+    )
+    parser.add_argument(
+        '--probe-length',
+        dest='length',
+        type=int,
+        default=120,
+        help='The length of the probes sequence to design'
+    )
+    parser.add_argument(
+        '--tiling-density',
+        dest='density',
+        type=float,
+        default=2,
+        help='The tiling density'
+    )
+    parser.add_argument(
+        '--overlap',
+        type=str,
+        choices=['middle', "flush-left"],
+        default='middle',
+        help='The method of tiling'
+    )
+    parser.add_argument(
+        '--probe-bed',
+        type=str,
+        default=None,
+        help='The path to an output file for outputting the probe coordinates in BED format'
+    )
+    parser.add_argument(
+        '--locus-bed',
+        type=str,
+        default=None,
+        help='The path to an output file for outputting the locus coordinates in BED format'
+    )
+    parser.add_argument(
+        '--masking',
+        dest='mask',
+        type=float,
+        default=None,
+        help='The maximum frequency of per-probe masking allowed containing the sequence'
+    )
+    parser.add_argument(
+        '--do-not-remove-ambiguous',
+        dest='amb',
+        action='store_true',
+        default=True,
+        help='Do not remove loci with probes containing ambiguous bases'
+    )
+    parser.add_argument(
+        '--remove-gc',
+        dest='gc',
+        action='store_true',
+        default=False,
+        help='Remove loci with GC content outside 30 <= GC <= 70'
+    )
+    parser.add_argument(
+        '--start-index',
+        type=int,
+        default=1,
+        help='The starting UCE index number to use.'
+    )
+    parser.add_argument(
+        '--two-probes',
+        action='store_true',
+        default=False,
+        help='Design only two probes for a given locus.'
+    )
+    return parser.parse_args()
+
+
+def get_fasta_files(input_dir):
+    #log.info("Getting fasta files")
+    fastas = []
+    for ftype in ('.fasta', '.fsa', '.aln', '.fa'):
+        fastas.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
+    return fastas
+
+
+def middle_overlapper(region, args):
+    '''
+    for the middle class, the idea is that you start designing probes at
+    the middle of the sequence and work outwards towards the ends.  At the
+    middle, the typical overlap is split to each side of the middle position,
+    like so (space in sequence denotes middle)
+
+    probe-top-2     TTGATCAGCGGCCC
+    probe-top-1              CGGCCCCTTCCGA G ATTA
+    sequence    TGGATTGATCAGCGGCCCCTTCCCGA G ATTAAACTTGTAGCAGCTGATACACTTGGC
+    probe-bottom-1                    CCGA G ATTAAACTTGTAG
+    probe-bottom-2                                ACTTGTAGCAGCTGAT
+
+    '''
+    seq_len = len(region.seq)
+    # determine the degree of overlap between tiles
+    tile_overlap = args.length - (args.length/args.density)
+    tile_non_overlap = args.length - tile_overlap
+    coords = []
+    middle = seq_len / 2
+    halfsies = tile_overlap / 2
+    r_prb_strt = middle - halfsies
+    l_prb_strt = middle + halfsies
+    end = 0
+    while r_prb_strt + args.length <= seq_len:
+        end = r_prb_strt + args.length
+        coords.append((int(r_prb_strt), int(end)))
+        r_prb_strt += tile_non_overlap
+    start = l_prb_strt
+    while l_prb_strt - args.length >= 0:
+        start = l_prb_strt - args.length
+        coords.append((int(start), int(l_prb_strt)))
+        l_prb_strt -= tile_non_overlap
+    if coords == []:
+        raise IOError("Ensure your tiling density is sensible.")
+    return coords
+
+
+def dots(letter=None):
+    """flush, to stdout, some indicator of progress when screening"""
+    if not letter:
+        sys.stdout.write(".")
+    else:
+        sys.stdout.write("{}".format(letter))
+    sys.stdout.flush()
+
+
+def design_probes(locus_name, loci, args):
+    k = args.start_index
+    probe_set = []
+    for locus in loci:
+        global_split = locus.description.split('|')
+        global_chromo = global_split[1].split(':')[1]
+        global_chromo_positions = global_split[2].split(':')[1]
+        global_chromo_start, global_chromo_end = [int(i) for i in global_chromo_positions.split('-')]
+        global_source = global_split[-1].split(":")[1]
+        coords = middle_overlapper(locus, args)
+        coords.sort()
+        if args.two_probes:
+            if len(coords) % 2 == 0:
+                pos1 = len(coords) / 2 - 1
+                pos2 = len(coords) / 2
+                coords = [coords[pos1], coords[pos2]]
+            else:
+                pos1 = len(coords) / 2
+                pos2 = pos1 + random.choice([1,-1])
+                coords = [coords[pos1], coords[pos2]]
+                coords.sort()
+        probes = []
+        for coord in coords:
+            # need to get global starts and ends for probe
+            global_probe_start = global_chromo_start + coord[0]
+            global_probe_end = global_chromo_start + coord[1]
+            #
+            probe_id = '{0}_p{1}'.format(
+                locus_name,
+                k
+            )
+            probe_description = " |design:{8},designer:{0},probes-locus:{1},probes-probe:{2},probes-source:{9},probes-global-chromo:{3},probes-global-start:{4},probes-global-end:{5},probes-local-start:{6},probes-local-end:{7}".format(
+                args.designer,
+                locus_name,
+                k,
+                global_chromo,
+                global_probe_start,
+                global_probe_end,
+                coord[0],
+                coord[1],
+                args.design,
+                global_source
+            )
+            # slice the sequence
+            probe = locus[coord[0]:coord[1]]
+            # set slice to uppercase
+            probe.seq = probe.seq.upper()
+            # set the id and description
+            probe.id, probe.name = probe_id, probe_id
+            probe.description = probe_description
+            masked = sum([1 for base in probe.seq if base.islower()]) / len(probe.seq)
+            gc = sum([1. for base in probe.seq if base.upper() == 'C' or base.upper() == 'G']) / len(probe.seq)
+            if args.mask and masked >= args.mask:
+                dots('M')
+            elif args.amb and ('N' in probe.seq or 'n' in probe.seq):
+                dots('N')
+            elif args.gc and (gc > 0.7 or gc < 0.3):
+                dots('G')
+            elif len(probe.seq) < args.length:
+                dots('L')
+            else:
+                probes.append(probe)
+            # add to index
+            k += 1
+        if probes and probes != []:
+            probe_set.extend(probes)
+    return probe_set
+
+def meta_to_dict(s):
+    return dict([i.split(':') for i in s.split(',')])
+
+def main():
+    args = get_args()
+    # get list of loci in which we are interested - allowing no values
+    # (e.g. no ":" in config file)
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.optionxform = str
+    config.read(args.multi_fasta_output)
+    # build a dict from the "good" loci that we've found in multiple taxa
+    names = get_names_from_config(config, "hits")
+    d = {name:[] for name in names}
+    fastas = get_fasta_files(args.fastas)
+    # create container for probe sequences
+    probe_set = []
+    # iterate over the fasta files, read in those loci from --taxa fasta files
+    for file in fastas:
+        # split name
+        taxon_name = os.path.splitext(os.path.basename(file))[0]
+        with open(file, "rU") as infile:
+            for locus in SeqIO.parse(infile, "fasta"):
+                locus.id = "{}|source:{}".format(locus.id, taxon_name)
+                locus.name = "{}|source:{}".format(locus.name, taxon_name)
+                locus.description = "{}|source:{}".format(locus.description, taxon_name)
+                locus_name = locus.id.split("|")[3].split(":")[1]
+                if locus_name in d.keys():
+                    d[locus_name].append(locus)
+    # to keep locus probe-numbers the same across sets, design probes for all taxa
+    for locus_name, loci in d.iteritems():
+        probe_set.append(design_probes(locus_name, loci, args))
+    cons_count = len(probe_set)
+    probe_count = 0
+    probe_count = sum([len(probes) for probes in probe_set])
+    print '\n\n'
+    print 'Conserved locus count = {0}'.format(cons_count)
+    print 'Probe Count = {0}'.format(probe_count)
+    with open(args.output, "w") as outp:
+        for ps in probe_set:
+            for probe in ps:
+                outp.write(">{0}{1}\n{2}\n".format(
+                    probe.id,
+                    probe.description,
+                    probe.seq
+                ))
+    #pdb.set_trace()
+    # parse all files and collect
+
+
+if __name__ == '__main__':
+    main()
