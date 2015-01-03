@@ -90,6 +90,7 @@ def get_args():
 def main():
     args = get_args()
     conf = ConfigParser.ConfigParser()
+    conf.optionxform = str
     conf.read(args.config)
     names = conf.items(args.section)
     if args.order == "left:right":
@@ -111,7 +112,8 @@ def main():
         # reroot
         if args.reroot:
             reroot_node = tree.find_node_with_taxon_label(args.reroot)
-            tree.reroot_at_node(reroot_node)
+            parent_node = reroot_node._get_parent_node()
+            tree.reroot_at_node(parent_node)
     if args.do_not_preserve_spaces:
         trees.write_to_path(args.output, args.output_format)
     else:
