@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import glob
+import shlex
 import random
 import argparse
 import subprocess
@@ -22,6 +23,7 @@ import multiprocessing
 from phyluce.helpers import is_dir, FullPaths, CreateDir
 
 import pdb
+
 
 def get_args():
     """Get arguments from CLI"""
@@ -35,10 +37,23 @@ def get_args():
             help="""The input directory containing alignments in phylip format"""
         )
     parser.add_argument(
+            "--best-trees",
+            required=True,
+            type=is_dir,
+            action=FullPaths,
+            help="""The directory containing the best trees"""
+        )
+    parser.add_argument(
             "--output",
             required=True,
             action=CreateDir,
             help="""The output directory to hold alignments"""
+        )
+    parser.add_argument(
+            "--bootreps",
+            type=int,
+            default=100,
+            help="""The number of bootstrap replicates to run"""
         )
     parser.add_argument(
             "--outgroup",
@@ -50,12 +65,6 @@ def get_args():
             type=int,
             default=1,
             help="""The number of RAxML threads to run (best to determine empirically)"""
-        )
-    parser.add_argument(
-            "--tree-searches",
-            type=int,
-            default=20,
-            help="""The number of tree searches to run.""",
         )
     parser.add_argument(
             "--cores",
@@ -88,43 +97,47 @@ def get_outgroup(cmd, outgroup):
     return cmd
 
 
-def get_basic_raxml(alignment, outputdir):
+def get_basic_raxml(seeds, alignment, outputdir):
+    key = os.path.splitext(os.path.split(alignment)[1])[0]
+    p_seed = seeds[key]
     cmd = [
         "/home/bcf/git/raxml/raxmlHPC-SSE3",
         "-m",
         "GTRGAMMA",
         "-n",
-        "best",
+        "bootrep",
         "-s",
         alignment,
         "-N",
-        '20',
+        '100',
         "-p",
+        str(p_seed),
+        "-b",
         str(random.randint(0, 1000000)),
         "-w",
         outputdir
-        ]
+    ]
     return cmd
 
 
 def run_raxml(work):
-    threads, output, outgroup, time, patterns, alignment = work
+    threads, output, outgroup, bootreps, seeds, time, patterns, alignment = work
     # get the alignment name
     dirname = os.path.splitext(os.path.basename(alignment))[0]
     # make a directory for the alignment; raxml needs trailing slash
     outputdir = os.path.join(output, dirname) + "/"
     os.makedirs(outputdir)
-    # get basic raxml call
-    cmd = get_basic_raxml(alignment, outputdir)
+    cmd = get_basic_raxml(seeds, alignment, outputdir)
     if threads > 1:
         cmd = get_more_threads(cmd)
     if outgroup:
         cmd = get_outgroup(cmd)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
+    # get run time for number of patterns
     seconds = time.search(stdout).groups()[0]
     sites = patterns.search(stdout).groups()[0]
-    sys.stdout.write("name={0},seconds={1},sites={2}\n".format(dirname, seconds, sites))
+    sys.stdout.write("name={0},seconds={1},sites={2},bootreps={3}\n".format(dirname, seconds, sites, bootreps))
     sys.stdout.flush()
     return outputdir
 
@@ -146,16 +159,31 @@ def main():
     if correct_jobs == "Y":
         assert jobs < multiprocessing.cpu_count(), "The total number of jobs * threads is greather than the available CPUs"
         pool = multiprocessing.Pool(jobs)
-        time = re.compile("Overall\sexecution\stime:\s(\d+\.\d+)\ssecs")
+        # read through previous best trees to get seed values for -p
+        raxml_call_regex = re.compile("\n\nRAxML was called as follows:\n\n(.*)\n\n")
+        seeds = {}
+        all_tree_directories = glob.glob(os.path.join(args.best_trees, '*'))
+        all_tree_directories.remove(os.path.join(args.best_trees, "all-best-trees.tre"))
+        for treedir in all_tree_directories:
+            best_tree_info = open(os.path.join(treedir, "RAxML_info.best"), 'rb').read()
+            raxml_call = raxml_call_regex.search(best_tree_info).groups()[0]
+            parsed = shlex.split(raxml_call)
+            for k, v in enumerate(parsed):
+                if v == "-p":
+                    seed = parsed[k + 1]
+                    break
+            seeds[os.path.split(treedir)[1]] = seed
+        time = re.compile("Overall\sTime\sfor\s\d+\sBootstraps\s(\d+\.\d+)")
         patterns = re.compile("Alignment\sPatterns:\s(\d+)")
         alignments = glob.glob(os.path.join(args.input, '*.phylip'))
-        work = [[args.threads, args.output, args.outgroup, time, patterns, alignment] for alignment in alignments]
-        trees = pool.map(run_raxml, work)
-        output = open(os.path.join(args.output, "all-best-trees.tre"), 'w')
-        for treedir in trees:
-            best_tree = open(os.path.join(treedir, "RAxML_bestTree.best"), 'rb').read()
-            output.write(best_tree)
-        output.close()
+        work = [[args.threads, args.output, args.outgroup, args.bootreps, seeds, time, patterns, alignment] for alignment in alignments]
+        pool.map(run_raxml, work)
+        #output = open(os.path.join(args.output, "all-bootreps.tre"), 'w')
+        #for treedir in trees:
+        #    fname = glob.glob(os.path.join(treedir, "RAxML_bootstrap.*.ml"))[0]
+        #    bootreps = open(fname, 'rb').read()
+        #    output.write(bootreps)
+        #output.close()
 
 if __name__ == '__main__':
     main()
