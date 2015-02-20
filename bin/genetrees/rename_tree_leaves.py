@@ -90,6 +90,7 @@ def get_args():
 def main():
     args = get_args()
     conf = ConfigParser.ConfigParser()
+    conf.optionxform=str
     conf.read(args.config)
     names = conf.items(args.section)
     if args.order == "left:right":
