@@ -44,14 +44,14 @@ def get_args():
     parser.add_argument(
             "--input-format",
             dest="input_format",
-            choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
+            choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'phylip-sequential', 'clustal', 'emboss', 'stockholm'],
             default='nexus',
             help="""The input alignment format"""
         )
     parser.add_argument(
             "--output-format",
             dest="output_format",
-            choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
+            choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'phylip-sequential', 'clustal', 'emboss', 'stockholm'],
             default='fasta',
             help="""The input alignment format"""
         )
