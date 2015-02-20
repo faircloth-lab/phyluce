@@ -9,8 +9,8 @@ Created by Brant Faircloth on 26 February 2012 18:00 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
 Description: Takes a fasta of contigs and the UCE match database
-and outputs a merged fasta file with NCBI header info containing 
-those contigs matching UCE loci in the species checked - ready for 
+and outputs a merged fasta file with NCBI header info containing
+those contigs matching UCE loci in the species checked - ready for
 import to Sequin for => XML.
 
 """
@@ -53,16 +53,24 @@ def get_args():
         help="The outfile fasta to hold results"
         )
     parser.add_argument(
-        '--fish',
-        help="If working with fish data"
-        )
-    parser.add_argument(
         '--start-value',
         dest="start_value",
         type=int,
         default=0,
         help="The starting index value to append to sequences"
         )
+    parser.add_argument(
+        "--trinity",
+        action="store_true",
+        default=False,
+        help="""Contigs are from Trinity assemblies""",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=False,
+        help="""Do a dry run.""",
+    )
     return parser.parse_args()
 
 
@@ -110,6 +118,11 @@ def get_node_name(read):
     nn = "{}_{}".format(nn_split[0].strip('>').lower(), nn_split[1].lower())
     return nn
 
+def get_trinity_node_name(read):
+    # check for header match, if match get locus name for header
+    nn = read.identifier.split(" ")[0].lstrip(">")
+    return nn
+
 
 def get_new_identifier(species, uce, partial, counter, metadata, vouchers):
     title = "{0} ultra-conserved element locus {1}".format(species, uce)
@@ -152,18 +165,17 @@ def main():
         if species.lower() not in taxon_excludes:
             print "Working on {}".format(species)
             for read in FastaReader(infile):
-                nodename = get_node_name(read)
+                if not args.trinity:
+                    nodename = get_node_name(read)
+                else:
+                    nodename = get_trinity_node_name(read)
                 query = "SELECT uce FROM match_map WHERE {0} = '{1}(+)' OR {0} = '{1}(-)'".format(oldname, nodename)
                 cur.execute(query)
                 result = cur.fetchall()
                 if result:
                     # ensure we get only 1 result
                     assert len(result) == 1, "More than 1 result"
-                    # if getting fish data TODO: deprecate
-                    if args.fish:
-                        uce = result[0][0].split('_')[0]
-                    else:
-                        uce = result[0][0]
+                    uce = result[0][0]
                     if uce not in locus_excludes:
                         read.identifier = get_new_identifier(species, uce, partial, counter, metadata, vouchers)
                         #read.identifier = """{3}{2} [organism={0}] [molecule=DNA] [moltype=genomic] [location=genomic] [note=ultra conserved element locus {1}] {0} ultra-conserved element locus {1}.""".format(species, uce, partial, counter)
@@ -171,6 +183,8 @@ def main():
                         outf.write(read)
                         # if not match, pass
                         counter += 1
+                    if args.dry_run:
+                        break
                 else:
                     pass
         else:
