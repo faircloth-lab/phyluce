@@ -17,6 +17,8 @@ import argparse
 from collections import defaultdict
 from phyluce.helpers import FullPaths, is_file
 
+import pdb
+
 def get_args():
     """Parse the log file from get_trinity_coverage.py to output a nice table of results"""
     parser = argparse.ArgumentParser(
@@ -42,11 +44,11 @@ def main():
     # -------------- Processing xxx-yyy --------------
     regex1 = re.compile(".*-+\sProcessing\s(.*)\s-+$")
     # xxx contigs, mean coverage = yy.y, mean length = zzz.z
-    regex2 = re.compile(".*\s\s\s\s(\d+)\scontigs,\smean\scoverage\s=\s(\d+.\d+),\smean\slength\s=\s(\d+.\d+)$")
+    regex2 = re.compile(".*\t(\d+)\scontigs,\smean\scoverage\s=\s(\d+.\d+),\smean\slength\s=\s(\d+.\d+)$")
     args = get_args()
     args.output.write("taxon,Total contigs (after trimming),Total contigs coverage (x),Total contigs mean length\n")
     d = defaultdict(str)
-    with open(args.log) as infile:
+    with open(args.log, "rU") as infile:
         for line in infile:
             match1 = regex1.search(line)
             match2 = regex2.search(line)
