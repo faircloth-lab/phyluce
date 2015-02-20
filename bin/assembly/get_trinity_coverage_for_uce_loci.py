@@ -51,6 +51,12 @@ def get_args():
         help="""Whether to compute stats on trimmed or untrimmed UCE data."""
     )
     parser.add_argument(
+        "--exclude",
+        nargs="+",
+        type=str,
+        help="""A list of assemblies to ignore."""
+    )
+    parser.add_argument(
         "--locus-db",
         required=True,
         type=is_file,
@@ -255,7 +261,7 @@ def main():
     log.info("Fetching input filenames")
     assemblies = sorted(glob.glob(os.path.join(args.assemblies, "*")))
     # remove the contigs/contigs-trimmed directories
-    extra = set(['contigs', 'contigs-trimmed'])
+    extra = set(['contigs', 'contigs-trimmed'] + args.exclude)
     assemblies = [assembly for assembly in assemblies if os.path.basename(assembly) not in extra]
     loci = get_match_count_loci(log, args.match_count_output)
     # setup database connection
