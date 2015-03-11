@@ -32,7 +32,6 @@ def get_args():
         )
     parser.add_argument(
             "--output",
-            action=FullPaths,
             type=argparse.FileType('w'),
             default=sys.stdout,
             help="""The output CSV file to create"""
