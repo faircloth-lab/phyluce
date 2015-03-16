@@ -261,7 +261,10 @@ def main():
     log.info("Fetching input filenames")
     assemblies = sorted(glob.glob(os.path.join(args.assemblies, "*")))
     # remove the contigs/contigs-trimmed directories
-    extra = set(['contigs', 'contigs-trimmed'] + args.exclude)
+    if args.exclude is not None:
+        extra = set(['contigs', 'contigs-trimmed'] + args.exclude)
+    else:
+        extra = set(['contigs', 'contigs-trimmed'])
     assemblies = [assembly for assembly in assemblies if os.path.basename(assembly) not in extra]
     loci = get_match_count_loci(log, args.match_count_output)
     # setup database connection
