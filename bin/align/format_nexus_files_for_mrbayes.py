@@ -173,9 +173,9 @@ def main():
     args = get_args()
     metadata = get_loci_and_models(args.models)
     if args.fully:
-        concat, metadata = fully_partition(metadata, args.aligns)
+        concat, metadata = fully_partition(metadata, args.alignments)
     else:
-        concat, metadata = model_partition(metadata, args.aligns)
+        concat, metadata = model_partition(metadata, args.alignments)
     concat.write_nexus_data(
             filename=args.output,
             interleave=args.interleave,
