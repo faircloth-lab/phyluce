@@ -124,7 +124,7 @@ def add_mr_bayes_params(metadata, outfile, partition_fully, partition_name='full
 
 def check_for_missing_models(metadata, aligns):
     aln = set([os.path.splitext(os.path.basename(name))[0]
-            for name in glob.glob(os.path.join(aligns, '*.nex'))])
+            for name in glob.glob(os.path.join(aligns, '*.nexus'))])
     model = set([y for v in metadata.values() for y in v.keys()])
     missing = aln.difference(model)
     if missing:
@@ -173,9 +173,9 @@ def main():
     args = get_args()
     metadata = get_loci_and_models(args.models)
     if args.fully:
-        concat, metadata = fully_partition(metadata, args.aligns)
+        concat, metadata = fully_partition(metadata, args.alignments)
     else:
-        concat, metadata = model_partition(metadata, args.aligns)
+        concat, metadata = model_partition(metadata, args.alignments)
     concat.write_nexus_data(
             filename=args.output,
             interleave=args.interleave,
