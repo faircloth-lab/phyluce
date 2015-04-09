@@ -1,17 +1,16 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: get_alignment_matrix_estimate.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 02 May 2013 21:05 PDT (-0700)
-Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
-
-Description: Query a probe.matches.sqlite database for
-information about the eventual completeness of an alignment
-matrix.
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 09 April 2015 14:29 CDT (-0500)
+"""
+
 
 import numpy
 import sqlite3
@@ -19,21 +18,7 @@ import argparse
 from collections import defaultdict
 from phyluce.helpers import FullPaths, is_file
 
-import pdb
-
-def check_min_value(value):
-    """ensure min values for range are sane"""
-    value = float(value)
-    if value < 0 or value >= 1:
-        raise argparse.ArgumentTypeError("The min value must be 0 < value < 1")
-    return value
-
-def check_max_value(value):
-    """ensure max/step values for range/step are sane"""
-    value = float(value)
-    if not 0 <= value <= 1:
-        raise argparse.ArgumentTypeError("The max value must be 0 <= value <= 1")
-    return value
+#import pdb
 
 def get_args():
     """Get arguments from CLI"""
@@ -75,6 +60,22 @@ def get_args():
         nargs='+',
         help='Taxa to include')
     return parser.parse_args()
+
+
+def check_min_value(value):
+    """ensure min values for range are sane"""
+    value = float(value)
+    if value < 0 or value >= 1:
+        raise argparse.ArgumentTypeError("The min value must be 0 < value < 1")
+    return value
+
+
+def check_max_value(value):
+    """ensure max/step values for range/step are sane"""
+    value = float(value)
+    if not 0 <= value <= 1:
+        raise argparse.ArgumentTypeError("The max value must be 0 <= value <= 1")
+    return value
 
 
 def get_number_of_taxa_in_db(args, cur):
