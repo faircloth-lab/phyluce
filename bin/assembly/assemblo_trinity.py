@@ -1,22 +1,16 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: assemblo_trinity.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 02 June 2013 10:06 PDT (-0700)
-Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
-
-Description: Assemble UCE cleaned read data using Trinity
-(http://trinityrnaseq.sourceforge.net/).
-
-Trinity is an assembly suite tailored to assembling data
-where reads are at variable abundance.  This is in contrast
-to other assemblers (e.g. Velvet, ABySS) that generally
-assume a somewhat uniform coverage of reads across the genome
-or "targets".
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 02 June 2013 10:06 PDT (-0700)
+"""
+
 
 import os
 import glob
@@ -34,7 +28,7 @@ from phyluce.log import setup_logging
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Assemble UCE raw read using Trinity"""
+        description="""Assemble raw reads using trinity"""
     )
     parser.add_argument(
         "--output",
