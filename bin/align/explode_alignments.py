@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: explode_alignments.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 29 January 2013 10:01 PST (-0800)
-Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
-
-Description:
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 09 April 2015 14:20 CDT (-0500)
+"""
+
 
 import os
 import sys
@@ -20,7 +21,7 @@ from Bio import AlignIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import generic_dna
-from phyluce.helpers import get_file_extensions, is_dir, is_file, FullPaths
+from phyluce.helpers import get_file_extensions, is_dir, is_file, FullPaths, CreateDir
 
 
 #import pdb
@@ -29,7 +30,7 @@ from phyluce.helpers import get_file_extensions, is_dir, is_file, FullPaths
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Program description""")
+            description="""Explode a directory of alignments into FASTA-formatted files for each locus or taxon""")
     parser.add_argument(
             "--alignments",
             required=True,
@@ -40,8 +41,7 @@ def get_args():
     parser.add_argument(
             "--output",
             required=True,
-            action=FullPaths,
-            type=is_dir,
+            action=CreateDir,
             help="""Output folder of fasta files"""
         )
     parser.add_argument(
