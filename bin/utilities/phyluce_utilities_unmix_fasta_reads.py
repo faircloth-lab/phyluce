@@ -1,0 +1,135 @@
+
+import os
+import argparse
+import tempfile
+from Bio import SeqIO
+from itertools import tee, islice, chain, izip
+from phyluce.helpers import FullPaths, is_dir
+from phyluce.log import setup_logging
+
+import pdb
+
+def get_args():
+    parser = argparse.ArgumentParser(
+        description="""Turn a mixed file of fasta reads into R1, R2, and singleton reads"""
+    )
+    parser.add_argument("--mixed-reads",
+        required=True,
+        type=str,
+        help="""The file containing mixed fasta reads with \1 and \2 designators for reads."""
+    )
+    parser.add_argument("--singleton-reads",
+        type=str,
+        help="""The file containing singleton fasta reads."""
+    )
+    parser.add_argument("--out-r1",
+        required=True,
+        type=str,
+        help="""The output fasta for R1."""
+    )
+    parser.add_argument("--out-r2",
+        required=True,
+        type=str,
+        help="""The output fasta for R2."""
+    )
+    parser.add_argument("--out-r-singleton",
+        required=True,
+        type=str,
+        help="""The output fasta for singleton reads (RS)."""
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        '--new-style',
+        action='store_true',
+        default=False
+    )
+    return parser.parse_args()
+
+def current_and_next(some_iterable):
+    items, nexts = tee(some_iterable, 2)
+    #prevs = chain([None], prevs)
+    nexts = chain(islice(nexts, 1, None), [None])
+    return izip(items, nexts)
+
+def output_reads(outf, read):
+    outf.write(">{}\n{}\n".format(
+        read.description,
+        read.seq
+    ))
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    # get a fasta record dict due to large files
+    log.info("Appending read number to new-style Illumina reads")
+    if args.new_style:
+        temp_handle1, temp_name1 = tempfile.mkstemp(suffix=".temp.fasta")
+        with open(args.mixed_reads, 'rU') as infile:
+            for record in SeqIO.parse(infile, 'fasta'):
+                dsplit = record.description.split(' ')
+                readinfo = dsplit[1].split(':')
+                readnum = readinfo[0]
+                record.id = "{}/{}".format(record.id, readnum)
+                os.write(temp_handle1, ">{} {}\n{}\n".format(
+                    record.id,
+                    ' '.join(dsplit[1:]),
+                    record.seq
+                ))
+        os.close(temp_handle1)
+        args.mixed_reads = temp_name1
+    log.info("Indexing mixed input reads")
+    seq_dict = SeqIO.index(args.mixed_reads, "fasta")
+    log.info("Sorting mixed input reads")
+    temp_handle2, temp_name2 = tempfile.mkstemp(suffix=".temp.fasta")
+    for key in sorted(seq_dict.keys()):
+        record = seq_dict[key]
+        os.write(temp_handle2, ">{}\n{}\n".format(
+            record.description,
+            record.seq
+        ))
+    os.close(temp_handle2)
+    os.remove(temp_name1)
+    log.info("Writing R1, R2, and singleton files   ")
+    with open(args.out_r1, 'w') as out_R1:
+        with open(args.out_r2, 'w') as out_R2:
+            with open(args.out_r_singleton, 'w') as out_RS:
+                # copy over singleton reads if they exist
+                if args.singleton_reads:
+                    out_RS.writelines([l for l in open(args.singleton_reads).readlines()])
+                with open(temp_name2, 'rU') as infile:
+                    i = SeqIO.parse(infile, 'fasta')
+                    next_written = None
+                    for curr, next in current_and_next(i):
+                        if next is not None:
+                            curr_name, curr_read = curr.id.split("/")
+                            next_name, next_read = next.id.split("/")
+                            if curr_name == next_name and curr_read == '1' and next_read == '2':
+                                output_reads(out_R1, curr)
+                                output_reads(out_R2, next)
+                                next_written = next.id
+                            else:
+                                if curr.id != next_written:
+                                    output_reads(out_RS, curr)
+                        # make sure we write final, current read
+                        elif curr.id != next_written:
+                            output_reads(out_RS, curr)
+    # remove the temp file
+    os.remove(temp_name2)
+
+
+if __name__ == '__main__':
+    main()
