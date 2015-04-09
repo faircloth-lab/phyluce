@@ -1,15 +1,17 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: get_fastq_lengths.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 21 July 2012 12:07 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
-
-Description:
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 21 July 2012 12:07 PDT (-0700)
+"""
+
+
 import os
 import gzip
 import numpy
@@ -17,15 +19,16 @@ import argparse
 from itertools import groupby
 from phyluce.helpers import FullPaths
 
-import pdb
+#import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Get summary (length) data from fastq""")
+            description="""Get summary (length) data for a directory of FASTA files""")
     parser.add_argument(
-            "input",
+            "--input",
+            required=True,
             action=FullPaths,
             help="""The directory of fastq files to summarize"""
         )
