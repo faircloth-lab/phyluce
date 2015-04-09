@@ -30,18 +30,20 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Program description""")
+            description="""For a given folder of alignments, replace masked bases and/or insertion characters and convert to FASTA sequence files""")
     parser.add_argument(
-            "input",
+            "--input",
+            required=True,
             action=FullPaths,
             type=is_dir,
-            help="""The input files containing nexus files to filter"""
+            help="""The input alignment files to filter"""
         )
     parser.add_argument(
-            "output",
+            "--output",
+            required=True,
             action=FullPaths,
             type=is_dir,
-            help="""Help text""",
+            help="""The output FASTA file to create""",
         )
     parser.add_argument(
             "--input-format",
