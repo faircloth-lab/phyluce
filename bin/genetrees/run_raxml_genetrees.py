@@ -19,7 +19,8 @@ import random
 import argparse
 import subprocess
 import multiprocessing
-from phyluce.helpers import is_dir, FullPaths, CreateDir
+import ConfigParser
+from phyluce.helpers import is_dir, FullPaths, CreateDir, get_user_path
 
 import pdb
 
@@ -90,7 +91,7 @@ def get_outgroup(cmd, outgroup):
 
 def get_basic_raxml(alignment, outputdir):
     cmd = [
-        "/home/bcf/git/raxml/raxmlHPC-SSE3",
+        get_user_path("raxml", "raxmlHPC-SSE3"),
         "-m",
         "GTRGAMMA",
         "-n",
@@ -108,6 +109,7 @@ def get_basic_raxml(alignment, outputdir):
 
 
 def run_raxml(work):
+    pdb.set_trace()
     threads, output, outgroup, time, patterns, alignment = work
     # get the alignment name
     dirname = os.path.splitext(os.path.basename(alignment))[0]
@@ -131,26 +133,36 @@ def run_raxml(work):
 
 def main():
     args = get_args()
-    # get the number of jobs as available_procs / threads for raxml
-    jobs = args.cores / args.threads
-    question = "The total number of cores in use is {0}. This will run \n" + \
-        "{1} concurrent jobs of {2} thread(s). Is this correct [Y/n]? "
-    if args.quiet:
+    if args.cores == 1:
+        args.cores = 1
+        args.threads = 1
         correct_jobs = "Y"
     else:
-        correct_jobs = raw_input(question.format(
-            args.cores,
-            jobs,
-            args.threads)
-        )
+        # get the number of jobs as available_procs / threads for raxml
+        jobs = args.cores / args.threads
+        question = "The total number of cores in use is {0}. This will run \n" + \
+            "{1} concurrent jobs of {2} thread(s). Is this correct [Y/n]? "
+        if args.quiet:
+            correct_jobs = "Y"
+        else:
+            correct_jobs = raw_input(question.format(
+                args.cores,
+                jobs,
+                args.threads)
+            )
     if correct_jobs == "Y":
-        assert jobs < multiprocessing.cpu_count(), "The total number of jobs * threads is greather than the available CPUs"
-        pool = multiprocessing.Pool(jobs)
         time = re.compile("Overall\sexecution\stime:\s(\d+\.\d+)\ssecs")
         patterns = re.compile("Alignment\sPatterns:\s(\d+)")
-        alignments = glob.glob(os.path.join(args.input, '*.phylip'))
+        alignments = []
+        for ftype in ('.phylip', '.phy', '.phylip-relaxed'):
+            alignments.extend(glob.glob(os.path.join(args.input, "*{}".format(ftype))))
         work = [[args.threads, args.output, args.outgroup, time, patterns, alignment] for alignment in alignments]
-        trees = pool.map(run_raxml, work)
+        if args.cores > 1:
+            assert jobs < multiprocessing.cpu_count(), "The total number of jobs * threads is greather than the available CPUs"
+            pool = multiprocessing.Pool(jobs)
+            trees = pool.map(run_raxml, work)
+        else:
+            trees = map(run_raxml, work)
         output = open(os.path.join(args.output, "all-best-trees.tre"), 'w')
         for treedir in trees:
             best_tree = open(os.path.join(treedir, "RAxML_bestTree.best"), 'rb').read()

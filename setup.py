@@ -25,6 +25,7 @@ setup(
     packages=[
         'phyluce',
     ],
+    data_files=[('config', ['config/phyluce.conf'])],
     scripts=scrpt,
     classifiers=[
         "Development Status :: 4 - Beta",

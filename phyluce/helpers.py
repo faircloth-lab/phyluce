@@ -15,7 +15,7 @@ import glob
 import argparse
 import ConfigParser
 from phyluce import lastz
-from operator import itemgetter
+#from operator import itemgetter
 from collections import defaultdict
 import shutil
 
@@ -43,6 +43,16 @@ class CreateDir(argparse.Action):
         os.makedirs(d)
         # return the full path
         setattr(namespace, self.dest, d)
+
+
+def get_user_path(program, binary):
+    config = ConfigParser.ConfigParser()
+    config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+    # ensure program is in list
+    pth = config.get(program, binary)
+    # expand path as necessary
+    expand_pth = os.path.abspath(os.path.expanduser(os.path.expandvars(pth)))
+    return expand_pth
 
 
 def is_dir(dirname):
