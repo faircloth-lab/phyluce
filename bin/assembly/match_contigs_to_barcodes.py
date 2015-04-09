@@ -1,11 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 """
-match_contigs_to_probes.py
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 02 June 2011.
-Copyright 2011 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 2 June 2011
 """
 
 import os
@@ -22,11 +25,11 @@ from phyluce.log import setup_logging
 
 from Bio import SeqIO
 
-import pdb
+#import pdb
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description=""
+    parser = argparse.ArgumentParser(description="Match a folder of contig files against a barcode sequence(s) for a given group of taxa"
     )
     parser.add_argument(
         '--contigs',
