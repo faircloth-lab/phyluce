@@ -1,29 +1,22 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: assemblo_abyss.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 07 November 2013 21:11 PST (-0800)
-Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
-
-Description: Assemble UCE cleaned read data using Abyss
-(http://www.bcgsc.ca/platform/bioinfo/software/abyss).
-
-ABySS is an assembly suite that uses a De Bruijn for _de novo_
-contig assembly not unlike velvet, at least somewhat in theory.
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 07 November 2013 21:11 PST (-0800)
+"""
 
 import os
-import re
 import sys
 import glob
 import shutil
 import argparse
 import subprocess
-import ConfigParser
 from Bio import SeqIO
 from Bio.Seq import Seq
 from phyluce.log import setup_logging
@@ -31,14 +24,14 @@ from phyluce.third_party import which
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.helpers import FullPaths, is_dir, is_file
 
-import pdb
+#import pdb
 
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Assemble UCE raw read using Trinity"""
+        description="""Assemble raw reads using ABySS"""
     )
     parser.add_argument(
         "--output",
