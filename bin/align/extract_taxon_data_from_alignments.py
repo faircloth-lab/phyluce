@@ -27,7 +27,7 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Extract sequence of a given taxa from alignments""")
+            description="""From a set of input alignments, create a FASTA file of all sequences associated with a given taxon""")
     parser.add_argument(
             "--alignments",
             required=True,
