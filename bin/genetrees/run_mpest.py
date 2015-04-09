@@ -35,7 +35,7 @@ from collections import defaultdict
 from phyluce.helpers import is_file, FullPaths
 from ete2 import Tree
 
-import pdb
+#import pdb
 
 
 def get_args():

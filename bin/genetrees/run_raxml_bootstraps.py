@@ -22,7 +22,7 @@ import subprocess
 import multiprocessing
 from phyluce.helpers import is_dir, FullPaths, CreateDir
 
-import pdb
+#import pdb
 
 
 def get_args():

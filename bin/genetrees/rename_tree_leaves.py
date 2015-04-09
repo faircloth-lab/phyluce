@@ -15,9 +15,9 @@ to values in a configuration file
 import dendropy
 import argparse
 import ConfigParser
-from phyluce.helpers import is_file, is_dir, FullPaths
+from phyluce.helpers import is_file, FullPaths
 
-import pdb
+#import pdb
 
 
 def get_args():

@@ -36,7 +36,7 @@ from multiprocessing import Pool
 
 from phyluce.helpers import FullPaths, is_file
 
-import pdb
+#import pdb
 
 
 def get_args():

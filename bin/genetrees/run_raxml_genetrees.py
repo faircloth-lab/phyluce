@@ -19,10 +19,9 @@ import random
 import argparse
 import subprocess
 import multiprocessing
-import ConfigParser
 from phyluce.helpers import is_dir, FullPaths, CreateDir, get_user_path
 
-import pdb
+#import pdb
 
 def get_args():
     """Get arguments from CLI"""
