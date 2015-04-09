@@ -8,13 +8,7 @@ Created by Brant Faircloth on 13 June 2011.
 Copyright 2011 Brant C. Faircloth. All rights reserved.
 """
 
-import os
-import sys
 import argparse
-from phyluce import lastz
-from operator import itemgetter
-from collections import defaultdict
-from phyluce.helpers import get_name
 from phyluce.helpers import get_dupes
 
 def get_args():
