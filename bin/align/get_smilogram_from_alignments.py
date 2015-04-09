@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: get_smilogram_from_alignments.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 07 August 2012 21:08 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
-
-Description: Given a folder of alignments, generate a smilogram
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 07 August 2012 21:08 PDT (-0700)
+"""
+
 
 import os
 import re
@@ -35,15 +36,16 @@ def get_args():
             description="""Record variant positions in alignments"""
         )
     parser.add_argument(
-            'input',
+            '--input',
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The directory containing the alignment files"""
         )
     parser.add_argument(
-            'output',
-            type=str,
-            default='output',
+            '--output',
+            required=True,
+            action=FullPaths,
             help="""The output filename (without extension - code will add .sqlite)"""
         )
     parser.add_argument(
@@ -63,7 +65,7 @@ def get_args():
             "--smilogram",
             action="store_true",
             default=False,
-            help="""Help text""",
+            help="""Prepare output for smilogram figure""",
         )
     return parser.parse_args()
 
@@ -353,7 +355,7 @@ def main():
         for row in results:
             outf.write("{0}\n".format(','.join(map(str, row))))
         outf.close()
-        
+
         # get data for missing data smilogram
         outf = open("{0}-missing.csv".format(args.output), 'w')
         outf.write('substitutions,bp,freq,distance_from_center\n')
