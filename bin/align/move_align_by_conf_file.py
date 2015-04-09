@@ -1,44 +1,49 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: move_align_by_conf_file.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 08 June 2012 11:06 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
-
-Description: 
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 08 June 2012 11:06 PDT (-0700)
+"""
+
 
 import os
 import glob
 import shutil
 import argparse
 import ConfigParser
-from phyluce.helpers import is_dir, FullPaths
+from phyluce.helpers import is_dir, FullPaths, is_file, CreateDir
 
-import pdb
+#import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Move files if they are in (or with --opposite, not in) a config file""")
+            description="""Move alignment files as denoted by config file (or do not move if using --opposite)""")
     parser.add_argument(
-            "conf",
+            "--conf",
+            required=True,
+            action=FullPaths,
+            type=is_file,
             help="""The configuration file giving locus names"""
         )
     parser.add_argument(
-            "input",
+            "--input",
+            required=True,
             action=FullPaths,
             type=is_dir,
             help="""The input directory for the alignments"""
         )
     parser.add_argument(
-            "output",
-            action=FullPaths,
-            type=is_dir,
+            "--output",
+            required=True,
+            action=CreateDir,
             help="""The output directory for the alignments"""
         )
     parser.add_argument(
