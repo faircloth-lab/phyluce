@@ -1,22 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+
 """
-File: trim_align_only.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 06 May 2012 14:05 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description: Trim the edges of alignments files to remove nasties.
-
-Usage:
-
-    python ~/Git/brant/phyluce/bin/align/trim_align_only.py \
-        --alignents sate-fasta-untrimmed \
-        --output sate-nexus-trimmed \
-        --output-format phylip \
-        --cores 12
-
+Created on 06 May 2012 14:05 PDT (-0700)
 """
 
 import os
