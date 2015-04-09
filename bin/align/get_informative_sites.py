@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: get_informative_sites.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 07 August 2012 21:08 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
-
-Description:
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 07 August 2012 21:08 PDT (-0700)
+"""
+
 
 import os
 import glob
@@ -19,8 +20,7 @@ from Bio import AlignIO
 from collections import Counter
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
-
-import pdb
+#import pdb
 
 
 def get_args():

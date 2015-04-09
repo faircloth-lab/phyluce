@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+
 """
-File: get_indels_from_alignments.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 07 August 2012 21:08 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description: 
-
+Created on 07 August 2012 21:08 PDT (-0700)
 """
 
 import os
@@ -22,7 +22,7 @@ from Bio.Alphabet import generic_dna
 from Bio.Align import MultipleSeqAlignment
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 
-import pdb
+#import pdb
 
 
 def get_args():
