@@ -1,24 +1,19 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 """
-change_taxa_names.py
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 22 September 2010 12:48 PDT (-0700).
-Copyright (c) 2010 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-PURPOSE:  Remove the UCE locus name from nexus alignments.
-
-USAGE:  python remove_locus_name_from_nexus_lines.py \
-    --input my/input/folder/nexus \
-    --output my/input/folder/nexus-renamed
+Created on 22 September 2010 12:48 PDT (-0700)
 """
-
 
 import os
 import re
 import sys
-import glob
 import argparse
 import multiprocessing
 
