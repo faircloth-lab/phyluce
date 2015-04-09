@@ -25,7 +25,8 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Query a probes.matches.sqlite db for matrix completeness""")
     parser.add_argument(
-            "db",
+            "--db",
+            required=True,
             type=is_file,
             action=FullPaths,
             help="""The probe.matches.sqlite database to query"""
