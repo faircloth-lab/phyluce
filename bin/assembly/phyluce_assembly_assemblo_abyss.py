@@ -22,7 +22,7 @@ from Bio.Seq import Seq
 from phyluce.log import setup_logging
 from phyluce.third_party import which
 from phyluce.raw_reads import get_input_data, get_input_files
-from phyluce.helpers import FullPaths, is_dir, is_file
+from phyluce.helpers import FullPaths, is_dir, is_file, get_user_path
 
 #import pdb
 
@@ -262,8 +262,8 @@ def main():
     else:
         pass
     try:
-        abyss_pe = which('abyss-pe')[0]
-        abyss_se = which('ABYSS')[0]
+        abyss_pe = get_user_path("abyss", "abyss-pe")
+        abyss_se = get_user_path("abyss", "abyss")
     except:
         raise EnvironmentError("Cannot find abyss-pe or ABYSS.  Ensure they "
                                "are installed and in your $PATH")

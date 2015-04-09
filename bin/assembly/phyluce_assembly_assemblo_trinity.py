@@ -17,8 +17,7 @@ import glob
 import shutil
 import argparse
 import subprocess
-from phyluce.third_party import which
-from phyluce.helpers import FullPaths, is_dir, is_file
+from phyluce.helpers import FullPaths, is_dir, is_file, get_user_path
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
 
@@ -264,15 +263,10 @@ def main():
         os.makedirs(contig_dir)
     else:
         pass
-    # Get path to trinity.  Standard name is `Trinity.pl`.
-    # I usually symlink to `trinity`
-    #TODO:  Change this to system "which" - this is just to flaky in certain cases
     try:
-        trinity = which('trinity')[0]
-    except EnvironmentError:
-        trinity = which('Trinity.pl')[0]
+        trinity = get_user_path("trinity", "trinity")
     except:
-        raise EnvironmentError("Cannot find Trinity.  Ensure it is installed and in your $PATH")
+        raise EnvironmentError("Cannot find Trinity.  Ensure the $PATH is correctly entered in your phyluce.conf file.")
     for group in input:
         sample, dir = group
         # pretty print taxon status
