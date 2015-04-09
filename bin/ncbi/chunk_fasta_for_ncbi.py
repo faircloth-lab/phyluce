@@ -18,7 +18,7 @@ from phyluce.helpers import is_file
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Split a fasta file into chunks"""
+        description="""Split an input fasta into chunks for processing in 10k sequence units"""
     )
     parser.add_argument(
         "--input",
