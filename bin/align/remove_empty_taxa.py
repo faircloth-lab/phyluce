@@ -11,6 +11,7 @@ LICENSE.txt for more information.
 Created on 18 December 2014 11:01 CST (-0600)
 """
 
+
 import os
 import sys
 import argparse
@@ -21,12 +22,12 @@ from Bio.Align import MultipleSeqAlignment
 from phyluce.helpers import is_dir, FullPaths, CreateDir, get_alignment_files
 from phyluce.log import setup_logging
 
-import pdb
+#import pdb
 
 
 def get_args():
     parser = argparse.ArgumentParser(
-        description="""Screen a given set of alignments for problematic nucleotides""",
+        description="""Remove taxa having no data from a set of input nucleotides""",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
