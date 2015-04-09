@@ -86,7 +86,7 @@ To identify which of your assembled contigs are UCE contigs, run:
     # make a directory for log files
     mkdir log
     # match contigs to probes
-    match_contigs_to_probes.py \
+    phyluce_assembly_match_contigs_to_probes.py \
         --contigs /path/to/assembly/contigs/ \
         --probes uce-5k-probes.fasta \
         --output /path/to/uce/output \
@@ -363,7 +363,7 @@ matrix configuration file from this taxon-configuration file, run:
     mkdir /path/to/uce/taxon-set1/
 
     # create the data matrix configuration file
-    get_match_counts.py \
+    phyluce_assembly_get_match_counts.py \
         --locus-db /path/to/uce/output/probes.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset1' \
@@ -455,7 +455,7 @@ incomplete dataset using the following:
 .. code-block:: bash
 
     # create the data matrix configuration file
-    get_match_counts.py \
+    phyluce_assembly_get_match_counts.py \
         --locus-db /path/to/uce/output/probes.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset1' \
@@ -500,7 +500,7 @@ the data matrix configuration files:
 .. code-block:: bash
 
     # create the data matrix configuration file
-    get_match_counts.py \
+    phyluce_assembly_get_match_counts.py \
         --locus-db /path/to/uce/output/probes.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset2' \
@@ -549,7 +549,7 @@ Then, you need to pass ``get_match_counts.py`` the location of both **your**
 .. code-block:: bash
 
     # create the data matrix configuration file
-    get_match_counts.py \
+    phyluce_assembly_get_match_counts.py \
         --locus-db /path/to/uce/output/probes.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset3' \
@@ -585,7 +585,7 @@ configuration file, run:
 
 .. code-block:: bash
 
-    get_fastas_from_match_counts.py \
+    phyluce_assembly_get_fastas_from_match_counts.py \
         --contigs /path/to/assembly/contigs/ \
         --locus-db /path/to/uce/output/probes.matches.sqlite \
         --match-count-output /path/to/uce/taxon-set1/dataset1.conf \
@@ -600,7 +600,7 @@ data matrix configuration file, run:
 
 .. code-block:: bash
 
-    get_fastas_from_match_counts.py \
+    phyluce_assembly_get_fastas_from_match_counts.py \
         --contigs /path/to/assembly/contigs/ \
         --locus-db /path/to/uce/output/probes.matches.sqlite \
         --match-count-output /path/to/uce/taxon-set/dataset1.conf \
@@ -623,7 +623,7 @@ that includes exeternal data sources, run:
 
 .. code-block:: bash
 
-    get_fastas_from_match_counts.py \
+    phyluce_assembly_get_fastas_from_match_counts.py \
         --contigs /path/to/assembly/contigs/ \
         --locus-db /path/to/uce/output/probes.matches.sqlite \
         --match-count-output /path/to/uce/taxon-set1/dataset1.conf \
@@ -665,7 +665,7 @@ To align the loci, by taxon, in the FASTA file you just created, run:
 
 .. code-block:: bash
 
-    seqcap_align_2.py \
+    phyluce_align_seqcap_align.py \
         --fasta /path/to/uce/taxon-set1/dataset1.fasta \
         --output /path/to/uce/taxon-set1/mafft-nexus/ \
         --taxa 3 \
@@ -688,7 +688,7 @@ alignments by running:
 
 .. code-block:: bash
 
-    get_align_summary_data.py \
+    phyluce_align_get_align_summary_data.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
         --cores 12
 
@@ -758,7 +758,7 @@ this, run:
 
  .. code-block:: bash
 
-    remove_locus_name_from_nexus_lines.py \
+    phyluce_align_remove_locus_name_from_nexus_lines.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
         --output /path/to/uce/taxon-set1/mafft-nexus-clean/ \
         --taxa 3
@@ -776,7 +776,7 @@ not contain data across all taxa:
 
 .. code-block:: bash
 
-    seqcap_align_2.py \
+    phyluce_align_seqcap_align.py \
         --fasta /path/to/uce/taxon-set2/dataset2.fasta \
         --output /path/to/uce/taxon-set2/mafft-nexus/ \
         --taxa 34 \
@@ -793,7 +793,7 @@ alignments by running:
 
 .. code-block:: bash
 
-    get_align_summary_data.py \
+    phyluce_align_get_align_summary_data.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
         --cores 12
 
@@ -866,7 +866,7 @@ following, while inputting the set of alignments just generated using:
 .. code-block:: bash
 
     # the integer following --taxa is the number of TOTAL taxa
-    get_only_loci_with_min_taxa.py \
+    phyluce_align_get_only_loci_with_min_taxa.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
         --taxa 34 \
         --percent 0.75 \
@@ -905,7 +905,7 @@ about files having unequal numbers of taxa. To do this, run:
 
 .. code-block:: bash
 
-    add_missing_data_designators.py \
+    phyluce_align_add_missing_data_designators.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus-min-25-taxa \
         --output /path/to/uce/taxon-set1/mafft-nexus-min-25-taxa \
         --match-count-output /path/to/uce/taxon-set/dataset1.conf \
@@ -935,7 +935,7 @@ processing step up on a multicore machine with the ``--cores`` option:
 
 .. code-block:: bash
 
-    convert_one_align_to_another.py \
+    phyluce_align_convert_one_align_to_another.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus \
         --output /path/to/uce/taxon-set1/mafft-fasta \
         --input-format nexus \
@@ -961,7 +961,7 @@ above command slightly to add ``--shorten-names``:
 
 .. code-block:: bash
 
-    convert_one_align_to_another.py \
+    phyluce_align_convert_one_align_to_another.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus \
         --output /path/to/uce/taxon-set1/mafft-fasta-shortnames \
         --input-format nexus \
@@ -980,7 +980,7 @@ accomplish that using:
 
 .. code-block:: bash
 
-    filter_alignments.py \
+    phyluce_align_filter_alignments.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus \
         --output /path/to/a/new/directory \
         --input-format nexus \
@@ -1002,7 +1002,7 @@ fasta results:
 
 .. code-block:: bash
 
-    extract_taxon_data_from_alignments.py \
+    phyluce_align_extract_taxon_fasta_from_alignments.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus \
         --taxon genus_species1 \
         --output /path/to/output/file.fasta
@@ -1028,7 +1028,7 @@ phylip file from run:
 
 .. code-block:: bash
 
-    format_nexus_files_for_raxml.py \
+    phyluce_align_format_nexus_files_for_raxml.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus \
         --output /path/to/uce/taxon-set1/mafft-raxml
 
@@ -1046,7 +1046,7 @@ was discussed above, and is simple a matter of:
 
 .. code-block:: bash
 
-    convert_one_align_to_another.py \
+    phyluce_align_convert_one_align_to_another.py \
         --alignments /path/to/uce/taxon-set1/mafft-nexus \
         --output /path/to/uce/taxon-set1/mafft-phylip-shortnames \
         --input-format nexus \
@@ -1090,7 +1090,7 @@ dataset (and computer), this may take some time.  Once this is done:
 
 .. code-block:: bash
 
-    split_models_from_genetrees.py \
+    phyluce_genetrees_split_models_from_genetrees.py \
         --genetrees /path/to/cloudforest/output/genetrees.tre \
         --output /path/to/output_models.txt
 
@@ -1099,7 +1099,7 @@ the path of the models file created above (output_models.txt) on line 3:
 
 .. code-block:: bash
 
-    format_nexus_files_for_mrbayes.py \
+    phyluce_align_format_nexus_files_for_mrbayes.py \
         --alignments /path/to/input/nexus/ \
         --models /path/to/output_models.txt \
         --output /path/to/output/mrbayes.nexus \
@@ -1112,7 +1112,7 @@ overparamterize), then you can run:
 
 .. code-block:: bash
 
-    python phyluce/bin/align/format_nexus_files_for_mrbayes.py \
+    phyluce_align_format_nexus_files_for_mrbayes.py \
         /path/to/input/nexus/ \
         /path/to/output_models.txt \
         /path/to/output/mrbayes.nexus \
@@ -1176,7 +1176,7 @@ that's done, you can generate genetrees with:
 
 .. code-block:: bash
 
-    run_raxml_genetrees.py \
+    phyluce_genetrees_run_raxml_genetrees.py \
         --alignments /path/to/strict/phylip/alignments/ \
         --output /path/to/store/raxml/output/ \
         --outgroup genus_species1 \
@@ -1188,11 +1188,11 @@ Number of `--cores` is the number of simultaneous trees to estimate, while
 counterintuitive, I've found that 1 `--thread` per locus and many locis being
 processed at once is the fastest route to go.
 
-Once that's finished, you can genrate bootstrap replicates for those same loci::
+Once that's finished, you can generate bootstrap replicates for those same loci::
 
 .. code-block:: bash
 
-    run_raxml_bootstraps.py \
+    phyluce_genetrees_run_raxml_bootstraps.py \
         --alignments /path/to/strict/phylip/alignments/ \
         --output /path/to/store/raxml/output/ \
         --bootreps 100 \
