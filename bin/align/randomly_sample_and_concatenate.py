@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+
 """
-File: randomly_sample_and_concatenate.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 26 April 2012 15:04 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description: Given an input directory of nexus files, randomly sample
-some, concatenate them, and return a conatenated nexus file as output.
-
+Created on 6 April 2012 15:04 PDT (-0700)
 """
 
 import os
@@ -18,9 +17,9 @@ import glob
 import numpy
 import argparse
 from Bio.Nexus import Nexus
-from phyluce.helpers import is_dir, FullPaths
+from phyluce.helpers import is_dir, FullPaths, CreateDir
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -28,16 +27,17 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Randomly sample a directory of nexus files, concatenate, and output""")
     parser.add_argument(
-            "nexus",
+            "--nexus",
+            required=True,
             action=FullPaths,
             type=is_dir,
-            help="""The input directory of nexus files"""
+            help="""The input directory of NEXUS files"""
         )
     parser.add_argument(
-            "output",
-            action=FullPaths,
-            type=is_dir,
-            help="""The output directory of contenated files"""
+            "--output",
+            required=True,
+            action=CreateDir,
+            help="""The output directory to hold concatenated files"""
         )
     parser.add_argument(
             "--sample-size",
