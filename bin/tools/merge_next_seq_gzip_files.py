@@ -26,7 +26,7 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Given a config file and inputs, merge multiple gz files into one"""
+        description="""Given a config file and inputs, merge multiple read files output by the NextSeq into one"""
     )
     parser.add_argument(
         "--input",
