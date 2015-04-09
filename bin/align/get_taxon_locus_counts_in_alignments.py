@@ -1,25 +1,24 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+
 """
-File: get_taxon_locus_counts_in_alignments.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 15 June 2013 10:06 PDT (-0700)
-Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description:
-
+Created on 15 June 2013 10:06 PDT (-0700)
 """
 
 import os
-import re
 import glob
 import argparse
 from Bio import AlignIO
 from phyluce.helpers import is_dir, FullPaths, get_file_extensions
 from collections import Counter
 
-import pdb
+#import pdb
 
 
 def get_args():
