@@ -17,7 +17,7 @@ import subprocess
 
 from phyluce.helpers import get_user_path
 
-import pdb
+#import pdb
 
 
 def create_index_files(log, reference):
@@ -25,7 +25,7 @@ def create_index_files(log, reference):
     cwd = os.getcwd()
     # move into reference directory
     os.chdir(os.path.dirname(reference))
-    cmd = ["ngm", "-r", reference]
+    cmd = [get_user_path("ngm", "ngm"), "-r", reference]
     with open('ngm.index.log', 'a') as outf:
         proc = subprocess.Popen(cmd, stdout=outf, stderr=subprocess.STDOUT)
         proc.communicate()
