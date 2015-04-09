@@ -1,40 +1,41 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+
 """
-File: concat_to_nexus.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 26 June 2012 22:06 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description: 
-
+Created on 09 April 2015 14:17 CDT (-0500)
 """
 
 import os
-import sys
 import argparse
 from Bio import AlignIO
 from Bio.Nexus import Nexus
-from phyluce.helpers import is_dir, is_file, FullPaths
+from phyluce.helpers import FullPaths, is_file, CreateDir
 
-import pdb
+#import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Program description""")
+            description="""Split a concatenated NEXUS file into component loci using the charsets values""")
     parser.add_argument(
-            "nexus",
+            "--nexus",
+            required=True,
             type=is_file,
-            help="""Help text"""
+            action=FullPaths,
+            help="""The input NEXUS file"""
         )
     parser.add_argument(
-            "output",
-            action=FullPaths,
-            type=is_dir,
-            help="""Help text""",
+            "--output",
+            action=CreateDir,
+            required=True,
+            help="""The output directory in which to store alignments""",
         )
     return parser.parse_args()
 
@@ -64,7 +65,6 @@ def main():
             print "Died on partition {0}".format(k)
         outf.close()
 
-# charset AC010974= 1320460-1320459;
-# charset AC069154= 1324339-1324338;
+
 if __name__ == '__main__':
     main()
