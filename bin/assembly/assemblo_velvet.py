@@ -1,17 +1,15 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: assemblo_velvet.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 10 November 2013 21:11 PST (-0800)
-Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
-
-Description: Assemble UCE cleaned read data using Velvet assembly
-with a static kmer value.
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 10 November 2013 21:11 PST (-0800)
+"""
 
 import os
 import sys
@@ -23,14 +21,14 @@ from phyluce.third_party import which
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 
-import pdb
+#import pdb
 
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Assemble UCE raw read using Trinity"""
+        description="""Assemble raw reads using velvet"""
     )
     parser.add_argument(
         "--output",
