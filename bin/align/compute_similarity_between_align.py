@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 05 April 2012 15:04 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -36,9 +36,10 @@ def get_args():
             description="""Compute summary parameters for alignments"""
         )
     parser.add_argument(
-            'nexus',
+            '--nexus',
             type=is_dir,
             action=FullPaths,
+            required=True,
             help='The directory containing the nexus files'
         )
     parser.add_argument(
