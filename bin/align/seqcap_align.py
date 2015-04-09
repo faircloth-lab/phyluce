@@ -1,25 +1,16 @@
 #!/usr/bin/env python
-# encoding: utf-8
-"""
-File: seqcap_align_2.py
-Author: Brant Faircloth
-
-Created by Brant Faircloth on 08 March 2012 11:03 PST (-0800)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
-
-Description: Parallel aligner for UCE fasta files generated with
-assembly/get_fastas_from_match_counts.py.
-
-Usage:
-
-    python ~/git/phyluce/bin/align/seqcap_align_2.py \
-        --fasta test.fasta \
-        --output test-nexus \
-        --taxa 41 \
-        --incomplete-matrix \
-        --output-format phylip
+# -*- coding: utf-8 -*-
 
 """
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+08 March 2012 11:03 PST (-0800)
+"""
+
 
 import os
 import sys
@@ -37,7 +28,7 @@ from phyluce.log import setup_logging
 
 def get_args():
     parser = argparse.ArgumentParser(
-        description="""Align and trim records in a monolothic FASTA file containing all loci for all taxa""",
+        description="""Align and possibly trim records in a monolithic UCE FASTA file with MAFFT or MUSCLE""",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
@@ -62,7 +53,7 @@ def get_args():
     )
     parser.add_argument(
         "--aligner",
-        choices=["dialign", "muscle", "mafft"],
+        choices=["muscle", "mafft"],
         default="mafft",
         help="""The alignment engine to use."""
     )
