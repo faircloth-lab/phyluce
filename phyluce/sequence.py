@@ -8,15 +8,13 @@ Created by Brant Faircloth on 04 May 2010 21:34 PDT (-0700).
 Copyright (c) 2010 Brant C. Faircloth. All rights reserved.
 """
 
-import pdb
-import os
-import sys
 import string
 import hashlib
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 from Bio.SeqRecord import SeqRecord
 
+import pdb
 
 def reverse_complement(seq):
     '''Return reverse complement of seq'''
