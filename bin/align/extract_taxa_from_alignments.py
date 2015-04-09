@@ -27,8 +27,9 @@ from Bio.SeqRecord import SeqRecord
 from phyluce.log import setup_logging
 from phyluce.helpers import is_dir, FullPaths, get_alignment_files, CreateDir
 
+
 def get_args():
-    parser = argparse.ArgumentParser(description='Parse fastq files and drop reads containing Ns.')
+    parser = argparse.ArgumentParser(description="Create a new set of alignments from an old set of alignments by excluding or keeping certain taxa")
     parser.add_argument(
         '--alignments',
         required=True,
