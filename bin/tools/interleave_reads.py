@@ -16,8 +16,7 @@ from itertools import izip
 from seqtools.sequence import fastq
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Interleave two split, " + \
-        "paired-end fastq file into one file")
+    parser = argparse.ArgumentParser(description="Interleave R1 and R2 split files")
     parser.add_argument("read1", help="The output read1 FASTQ file name")
     parser.add_argument("read2", help="The output read2 FASTQ file name")
     parser.add_argument("output", help="The output fastq file")
