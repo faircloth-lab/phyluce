@@ -55,6 +55,12 @@ def get_user_path(program, binary):
     return expand_pth
 
 
+def get_user_param(section, param):
+    config = ConfigParser.ConfigParser()
+    config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+    return config.get(section, param)
+
+
 def is_dir(dirname):
     if not os.path.isdir(dirname):
         msg = "{0} is not a directory".format(dirname)

@@ -14,11 +14,12 @@ Created on 26 June 2014 17:13 PDT (-0700)
 
 import os
 import subprocess
+from phyluce.helpers import get_user_path, get_user_param
 
 
-JAVA = "java"
-JAVA_PARAMS = "-Xmx20g"
-JAR_PATH = "/home/bcf/bin/"
+JAVA = get_user_param("java", "executable")
+JAVA_PARAMS = get_user_param("java", "mem")
+JAR_PATH = get_user_path("jar", "jar"),
 
 
 def new_bam_name(bam, append):
