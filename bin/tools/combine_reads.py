@@ -28,7 +28,7 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Program description"""
+        description="""Combine groups of reads based on an input file in config format"""
     )
     parser.add_argument(
         "--config",
