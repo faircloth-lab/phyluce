@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 """
-get_counts_of_taxa_in_align.py
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 16 August 2011.
-Copyright 2011 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-The program iterates through a folder of nexus files and returns the count
-of alignments having more than "--percent" of "--taxa" taxa.
+Created on 16 August 2011.
 """
 
 
