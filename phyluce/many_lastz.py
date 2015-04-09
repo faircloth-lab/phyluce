@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 31 August 2012 14:08 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -17,6 +17,8 @@ import tempfile
 import subprocess
 import bx.seq.twobit
 import multiprocessing
+
+from phyluce.helpers import get_user_path
 
 import pdb
 
@@ -46,7 +48,7 @@ def run_lastz(work):
 def lastz_params(target, query, coverage, identity, outfile):
     output_format = "general-:score,name1,strand1,zstart1,end1,length1,name2,strand2,zstart2,end2,length2,diff,cigar,identity,continuity,coverage"
     cmd = [
-            "lastz",
+            get_user_path("lastz", "lastz"),
             "{0}[multiple]".format(target),
             "{0}[nameparse=full]".format(query),
             "--strand=both",
@@ -98,7 +100,7 @@ def chunk_scaffolds(target, size):
         elif sequence_count >= tb_key_len:
 	    temp_out_handle.close()
             # put tempfile name on stack
-            chromos.append(temp_out)	
+            chromos.append(temp_out)
     return chromos
 
 
