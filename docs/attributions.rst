@@ -29,7 +29,7 @@ Contributed to the code
 Developed the UCE approach
 ==========================
 
-* Brant Faircloth (UCLA)
+* Brant Faircloth (LSU)
 * Travis Glenn (UGA)
 
 Contributed to the UCE approach
@@ -42,7 +42,7 @@ Contributed to the UCE approach
 * Mike Harvey (LSU)
 * Roger Nilsen (UGA)
 * Brian Smith (LSU)
-* Laurie Sorenson (UCLA)
+* Laurie Sorenson (LSU)
 * Kevin Winker (U. Alaska - Fairbanks)
 
 Contributed samples, funding, time, comments, etc.

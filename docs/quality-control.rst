@@ -83,6 +83,16 @@ If you **divide these numbers by 4**, then that is the count of R1 reads.  The
 number of reads in the R2 files, if you have paired-end data, should **always**
 be equal.
 
+Get read counts using phyluce_
+------------------------------
+
+There is a bit of code in phyluce that lets you count reads.  To use it, you
+enter the directory containing the read data and run:
+
+.. code-block:: bash
+
+    for i in *_R1_*; do get_fastq_lengths.py $i --csv; done
+
 
 Adapter- and quality-trimming
 ==============================

@@ -1,5 +1,7 @@
 .. include:: global.rst
 
+.. _UCE Processing:
+
 ********************************
 UCE Processing for Phylogenomics
 ********************************
@@ -75,7 +77,7 @@ problematic.
     locus.
 
     If you are using a custom probe file, then you will either need to ensure
-    that your naming scheem conforms to this approach **OR** you will need to
+    that your naming scheme conforms to this approach **OR** you will need to
     input a different regular expression to convert the probe names to locus
     names using the ``--regex`` flag.
 
@@ -146,9 +148,9 @@ summarized in the::
 
     probe.matches.sqlite
 
-database.  It's probably a good idea to have some knowledge of how this database
-is structured, since it's basically what makes the next few steps work.  So,
-let's go over the structure and contents of this database.
+database file.  It's probably a good idea to have some knowledge of how this
+database is structured, since it's basically what makes the next few steps work.
+So, let's go over the structure and contents of this database.
 
 The probe.matches.sqlite database
 .................................
@@ -283,8 +285,8 @@ As stated above, these results show which assembled contigs "hit" particular UCE
 loci. So, if we were to open the
 ``$ASSEMBLY/contigs/genus_species1.contigs.fasta`` symlink the contig named
 ``node_1676`` corresponds to UCE locus ``uce-503``.  Because contigs are named
-arbitrarily, this same UCE locus is also found in genus_species2, but it is
-named ``node-243``.
+arbitrarily during assembly, this same UCE locus is also found in
+genus_species2, but it is named ``node-243``.
 
 Each entry in the rows also provides the orientation for particular contigs
 ``(-)`` or ``(+)``. This orientation is relative to the orientation of the UCE
@@ -312,9 +314,10 @@ The data matrix generation process consists of two distinct parts:
 Creating a data matrix configuration file
 ==========================================
 
-Before we extract fasta data from our ``$ASSEMBLY/contigs``, we need to create a
-data matrix configuration file that denotes (1) which taxa we want to include
-in a given analysis and (2) which loci will be included with this taxon set.
+After we identify the UCE loci we enriched, but before we extract fasta data
+from our ``$ASSEMBLY/contigs`` corresponding to those loci, we need to create a
+data matrix configuration file that denotes (1) which taxa we want to include in
+a given analysis and (2) which loci will be included with this taxon set.
 
 The taxa included in the data matrix configuration file are determined by the
 user - you input a list of taxa you want to the analysis.  The UCE loci included
@@ -449,8 +452,8 @@ Incomplete data matrix
 ----------------------
 
 You may not always want a complete data matrix. Or generating a complete matrix
-drops too many loci for your tastes.  In that case, you can easily generate an
-incomplete dataset using the following:
+drops too many loci for your tastes (it often does).  In that case, you can
+easily generate an incomplete dataset using the following:
 
 .. code-block:: bash
 
