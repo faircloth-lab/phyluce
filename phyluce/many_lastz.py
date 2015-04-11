@@ -18,7 +18,7 @@ import subprocess
 import bx.seq.twobit
 import multiprocessing
 
-from phyluce.helpers import get_user_path
+from phyluce.user_pth import get_user_path
 
 import pdb
 

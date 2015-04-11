@@ -14,7 +14,7 @@ Created on 26 June 2014 17:13 PDT (-0700)
 
 import os
 import subprocess
-from phyluce.helpers import get_user_path, get_user_param
+from phyluce.user_pth import get_user_path, get_user_param
 
 
 JAVA = get_user_param("java", "executable")
