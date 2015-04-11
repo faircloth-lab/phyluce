@@ -10,13 +10,13 @@ Setup
 =====
 
 Once your reads are clean, you're ready to assemble. At the moment, you can use
-velvet_ and ABySS_ for assembly, and there is also a script for assembling your
-data data using Trinity_, although there is not yet a conda_ install package for
-Trinity_ due to some difficulties in how that package is structured.
+velvet_, ABySS_, and Trinity_ for assembly. However, be aware that there is not
+a conda_ install package for Trinity_ due to some difficulties in how that
+package is structured.
 
 .. attention:: If you want to use Trinity_ for assembly, it is currently best to
     install that package outside of conda_/phyluce_ following the instructions
-    on the Trinity_ site.
+    on the Trinity_ site.  Make sure that Trinity_ is in your `$PATH`
 
 Most of the assembly process is automated using code within phyluce_,
 specifically the following 3 scripts:
@@ -75,15 +75,13 @@ directory containing read data in a format similar to that described above.
         anas_carolinensis1
         dendrocygna_bicolor1
 
-    We are working to ensure that you will also not have problems if you use a
-    naming scheme that suffixes the species binomial(s) with an accession number
-    that is **simply** formatted (e.g. no slashes, dashes, etc.)::
+    You should also not have problems if you use a naming scheme that suffixes
+    the species binomial(s) with an accession number that is **simply**
+    formatted (e.g. no slashes, dashes, etc.)::
 
         anas_platyrhynchos_KGH2267
         anas_carolinensis_KGH2269
         dendrocygna_bicolor_DWF4597
-
-    **However**, you may occasionally have problems with such a naming scheme.
 
 Running the assembly
 ====================
@@ -205,6 +203,7 @@ Trinity
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --subfolder split-adapter-quality-trimmed \
+        --clean \
         --cores 12 \
         --log-path log
 
@@ -214,6 +213,13 @@ Trinity
 
     Trinity assembles using a "static" or "program-defined" (i.e., not user-
     defined) kmer value of 25.
+
+.. admonition:: Question: What is the `--clean` option?
+    :class: admonition tip
+
+    The `--clean` option removes extraneous temporary files that Trinity creates
+    during the assembly process.  This results in a vastly smaller `assemblies`
+    directory.
 
 
 Results
@@ -236,16 +242,21 @@ Common questions
 .. admonition:: Question: Which assembly program do I pick?
     :class: admonition tip
 
-    [more info soon]
+    Generally, I would suggest that you use Trinity.  In my hands, it produces
+    reasonable contig assemblies that are longer than the assemblies built by
+    either velvet_ or ABySS_.  There are some caveats, however.  If you want the
+    **most accurate** assemblies possibly, then it may be best to use ABySS_.
+    This is because ABySS_ runs read-based error correction prior to assembly
+    which results in more accurate contigs.
 
 
 .. admonition:: Question: For ABySS and velvet, what --kmer value do I use?
     :class: admonition tip
 
-    [more info soon]
-
-
-.. admonition:: Question: Why is there a `contigs` folder containing symlinks?
-    :class: admonition tip
-
-    [more info soon]
+    Also a hard question.  Part of the reason that it is hard is due to the fact
+    that we are trying to assemble data of heterogenous read depth (i.e., our
+    reads are spread across (mostly) UCE loci, but the depth of coverage of each
+    locus is varaible due to capture efficiency).  Longer kmer values can give
+    you longer (but fewer) contigs, while shorter kmer values produce fewer,
+    more abundant contigs.  In most cases, your assemblies will be decent with a
+    kmer value around 55-65.
