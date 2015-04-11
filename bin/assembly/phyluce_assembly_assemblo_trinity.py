@@ -20,7 +20,7 @@ import subprocess
 from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
-from phyluce.pth import get_user_path
+from phyluce.pth import get_user_path, get_user_param
 
 #import pdb
 
@@ -130,10 +130,8 @@ def run_trinity_pe(trinity, reads, cores, min_kmer, log):
         trinity,
         "--seqType",
         "fq",
-        "--JM",
-        "10G",
-        "--min_kmer_cov",
-        str(min_kmer),
+        "--max_memory",
+        get_user_param("trinity", "max_memory"),
         "--left",
         os.path.join(reads.r1.dir, reads.r1.file),
         "--right",
@@ -176,10 +174,8 @@ def run_trinity_se(trinity, reads, cores, min_kmer, log):
         trinity,
         "--seqType",
         "fq",
-        "--JM",
-        "10G",
-        "--min_kmer_cov",
-        str(min_kmer),
+        "--max_memory",
+        get_user_param("trinity", "max_memory"),
         "--single",
         os.path.join(reads.r1.dir, reads.r1.file),
         "--CPU",
