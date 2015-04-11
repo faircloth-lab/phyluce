@@ -270,7 +270,8 @@ def main():
         text = " Processing {} ".format(sample)
         log.info(text.center(65, "-"))
         # make a directory for sample-specific assemblies
-        sample_dir = os.path.join(args.output, sample)
+        sample_name = "{0}_trinity".format(sample)
+        sample_dir = os.path.join(args.output, sample_name)
         os.makedirs(sample_dir)
         # determine how many files we're dealing with
         reads = get_input_files(dir, args.subfolder, log)
