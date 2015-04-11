@@ -17,7 +17,7 @@ import glob
 import argparse
 import subprocess
 from phyluce.log import setup_logging
-from phyluce.third_party import which
+from phyluce.pth import get_user_path
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 
@@ -221,8 +221,8 @@ def main():
     else:
         pass
     try:
-        velveth = which('velveth')[0]
-        velvetg = which('velvetg')[0]
+        velveth = get_user_path("velvet", "velveth")
+        velvetg = get_user_path("velvet", "velvetg")
     except:
         raise EnvironmentError("Cannot find velveth or velvetg.  Ensure they "
                                "are installed and in your $PATH")
