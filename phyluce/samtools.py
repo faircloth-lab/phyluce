@@ -14,11 +14,13 @@ Created on 26 June 2014 17:16 PDT (-0700)
 import os
 import subprocess
 
+from phyluce.helpers import get_user_path
+
 
 def index(log, sample, sample_dir, bam):
     log.info("Indexing BAM for {}".format(sample))
     cmd = [
-        "samtools",
+        get_user_path("samtools", "samtools"),
         "index",
         bam
     ]
@@ -31,7 +33,7 @@ def index(log, sample, sample_dir, bam):
 def create_faidx(log, sample, sample_dir, fasta):
     log.info("Indexing fasta for {}".format(sample))
     cmd = [
-        "samtools",
+        get_user_path("samtools", "samtools"),
         "faidx",
         fasta
     ]

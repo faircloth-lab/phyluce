@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+
 """
-File: mafft.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 10 March 2012 09:03 PST (-0800)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description: Alignement class wrapping MAFFT aligner
-(http://mafft.cbrc.jp/alignment/software/)
-
+Created on 0 March 2012 09:03 PST (-0800)
 """
 
 
@@ -20,10 +19,10 @@ import subprocess
 from Bio import AlignIO
 from Bio.Alphabet import IUPAC, Gapped
 
-from phyluce.helpers import which
+from phyluce.helpers import get_user_path
 from phyluce.generic_align import GenericAlign
 
-import pdb
+#import pdb
 
 
 class Align(GenericAlign):
@@ -36,13 +35,12 @@ class Align(GenericAlign):
         super(Align, self).__init__(input)
 
     def run_alignment(self, clean=True):
-        mafft = which("mafft")
         # create results file
         fd, aln = tempfile.mkstemp(suffix='.mafft')
         os.close(fd)
         aln_stdout = open(aln, 'w')
         # run MAFFT on the temp file
-        cmd = [mafft, "--adjustdirection", "--maxiterate", "1000", self.input]
+        cmd = [get_user_path("mafft", "mafft"), "--adjustdirection", "--maxiterate", "1000", self.input]
         # just pass all ENV params
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,

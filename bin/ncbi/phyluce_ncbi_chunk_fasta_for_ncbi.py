@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 09 June 2014 17:01 PDT (-0700)
+"""
+
+import argparse
+from Bio import SeqIO
+from phyluce.helpers import is_file
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Split an input fasta into chunks for processing in 10k sequence units"""
+    )
+    parser.add_argument(
+        "--input",
+        required=True,
+        type=is_file,
+        help="""The input FASTA"""
+    )
+    parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=10000
+    )
+    parser.add_argument(
+        "--output-prefix",
+        type=str,
+        default="split"
+    )
+    parser.add_argument(
+        "--output-suffix",
+        type=str,
+        default="fsa"
+    )
+    return parser.parse_args()
+
+
+def batch_iterator(iterator, batch_size) :
+    """Returns lists of length batch_size.
+
+    This can be used on any iterator, for example to batch up
+    SeqRecord objects from Bio.SeqIO.parse(...), or to batch
+    Alignment objects from Bio.AlignIO.parse(...), or simply
+    lines from a file handle.
+
+    This is a generator function, and it returns lists of the
+    entries from the supplied iterator.  Each list will have
+    batch_size entries, although the final list may be shorter.
+    """
+    entry = True #Make sure we loop once
+    while entry :
+        batch = []
+        while len(batch) < batch_size :
+            try :
+                entry = iterator.next()
+            except StopIteration :
+                entry = None
+            if entry is None :
+                #End of file
+                break
+            batch.append(entry)
+        if batch :
+            yield batch
+
+
+def main():
+    args = get_args()
+    record_iter = SeqIO.parse(open(args.input), "fasta")
+    for i, batch in enumerate(batch_iterator(record_iter, args.chunk_size)) :
+        i += 1
+        filename = "{}_{}.{}".format(args.output_prefix, i, args.output_suffix)
+        with open(filename, "w") as outf:
+            count = SeqIO.write(batch, outf, "fasta")
+        print "Wrote {} records to {}".format(count, filename)
+
+
+if __name__ == '__main__':
+    main()

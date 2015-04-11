@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2014 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 01 December 2014 15:45 CST (-0600)
+"""
+
+import argparse
+import ConfigParser
+from Bio import SeqIO
+
+import pdb
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Program description"""
+    )
+    parser.add_argument(
+        "--probes",
+        required=True,
+        help="""The input probe file"""
+    )
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="""The input conf file of probes names to remove"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        help="""The output probe file to write"""
+    )
+
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
+    # parse the config file - allowing no values (e.g. no ":" in config file)
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.optionxform = str
+    config.read(args.config)
+    kept = []
+    kept_loci = []
+    dropped_loci = []
+    excludes = set([i[0] for i in config.items("exclude")])
+    print "There are {} loci to exclude".format(len(excludes))
+    for seq in SeqIO.parse(args.probes, "fasta"):
+        locus = seq.id.split("_")[0]
+        #meta = dict([i.split(":") for i in seq.description.split("|")[1].split(",")])
+        if locus not in excludes:
+            kept.append(seq)
+            kept_loci.append(locus)
+        else:
+            dropped_loci.append(locus)
+    with open(args.output, 'w') as outf:
+        SeqIO.write(kept, outf, "fasta")
+    #pdb.set_trace()
+    # done
+    print "Kept {} loci".format(len(set(kept_loci)))
+    print "Dropped {} loci".format(len(set(dropped_loci)))
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,176 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 06 May 2012 14:05 PDT (-0700)
+"""
+
+import os
+import sys
+import glob
+import argparse
+import multiprocessing
+
+from phyluce.log import setup_logging
+from phyluce.generic_align import GenericAlign
+from phyluce.helpers import FullPaths, CreateDir, is_dir, get_file_extensions, write_alignments_to_outdir
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Use the PHYLUCE trimming algorithm to trim existing alignments in parallel""",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--alignments",
+        required=True,
+        action=FullPaths,
+        type=is_dir,
+        help="""The directory containing alignments to be trimmed."""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=CreateDir,
+        help="""The directory in which to store the resulting alignments."""
+    )
+    parser.add_argument(
+        "--input-format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="fasta",
+        help="""The input alignment format.""",
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The output alignment format.""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--window",
+        type=int,
+        default=20,
+        help="Sliding window size for trimming."
+    )
+    parser.add_argument(
+        "--proportion",
+        type=float,
+        default=0.65,
+        help="The proportion of taxa required to have sequence at alignment ends."
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.65,
+        help="""The proportion of residues required across the window in """ +
+        """proportion of taxa."""
+    )
+    parser.add_argument(
+        "--max_divergence",
+        type=float,
+        default=0.20,
+        help="""The max proportion of sequence divergence allowed between any row """ +
+        """of the alignment and the alignment consensus."""
+    )
+    parser.add_argument(
+        "--min-length",
+        type=int,
+        default=100,
+        help="""The minimum length of alignments to keep."""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
+    )
+    return parser.parse_args()
+
+
+def get_and_trim_alignments(params):
+    trimming_params, align_file = params
+    input_format, window, threshold, proportion, divergence, min_len = trimming_params
+    name = os.path.basename(os.path.splitext(align_file)[0])
+    aln = GenericAlign(align_file)
+    # call private method to read alignment into alignment object
+    try:
+        aln._read(input_format)
+        # dont return consensus
+        aln.trim_alignment(
+            method="running",
+            window_size=window,
+            proportion=proportion,
+            threshold=threshold,
+            max_divergence=divergence,
+            min_len=min_len
+        )
+        if aln.trimmed:
+            sys.stdout.write(".")
+        else:
+            sys.stdout.write("X")
+        sys.stdout.flush()
+        return (name, aln)
+    except ValueError, e:
+        if e.message == "No records found in handle":
+            return (name, aln)
+        else:
+            raise ValueError("Something is wrong with alignment {0}".format(name))
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    text = " Starting {} ".format(my_name)
+    log.info(text.center(65, "="))
+    alignments = []
+    log.info("Getting aligned sequences for trimming")
+    for ftype in get_file_extensions(args.input_format):
+        alignments.extend(glob.glob(os.path.join(args.alignments, "*{}".format(ftype))))
+    # package up needed arguments for map()
+    package = [args.input_format, args.window, args.threshold, args.proportion, args.max_divergence, args.min_length]
+    params = zip([package] * len(alignments), alignments)
+    log.info("Alignment begins. 'X' indicates dropped alignments (these are reported after alignment)")
+    # if --multprocessing, use Pool.map(), else use map()
+    # can also extend to MPI map, but not really needed on multicore
+    # machine
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores - 1)
+        alignments = pool.map(get_and_trim_alignments, params)
+    else:
+        alignments = map(get_and_trim_alignments, params)
+    # kick the stdout down one line since we were using sys.stdout
+    print("")
+    # drop back into logging
+    log.info("Alignment ends")
+    # write the output files
+    write_alignments_to_outdir(log, args.output, alignments, args.output_format)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+
+if __name__ == '__main__':
+    main()

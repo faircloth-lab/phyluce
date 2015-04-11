@@ -1,0 +1,112 @@
+
+
+import os
+import gzip
+import random
+import argparse
+import subprocess
+import ConfigParser
+from phyluce.helpers import FullPaths, CreateDir, is_file
+
+import pdb
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="""""", )
+    parser.add_argument('--conf',
+        required=True,
+        type=is_file,
+        help='The path to the config file giving reads to sample'
+    )
+    parser.add_argument('--output',
+        required=True,
+        action=CreateDir,
+        help='The path to output directory'
+    )
+    return parser.parse_args()
+
+
+def run_seqtk(frac, total_reads, rand, fastq, reads, output, output_dir):
+    if output == 0:
+        out_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R1_001.fastq.gz".format(
+            os.path.basename(output_dir),
+            frac * 100,
+            total_reads
+        ))
+        err_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R1_001.seqtk-err.txt".format(
+            os.path.basename(output_dir),
+            frac * 100,
+            total_reads
+        ))
+    elif output == 1:
+        out_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R2_001.fastq.gz".format(
+            os.path.basename(output_dir),
+            frac * 100,
+            total_reads
+        ))
+        err_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R2_001.seqtk-err.txt".format(
+            os.path.basename(output_dir),
+            frac * 100,
+            total_reads
+        ))
+    print "\tfrac:{}, input:{}, rand:{}, reads:{}, out_fname:{}".format(frac, fastq, rand, reads, out_fname)
+    with open(out_fname, 'ab') as out:
+        with open(err_fname, 'a') as err:
+            cmd = [
+                'seqtk',
+                'sample',
+                '-s{}'.format(rand),
+                fastq,
+                str(reads)
+            ]
+            proc1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=err)
+            proc2 = subprocess.Popen('gzip', stdin=proc1.stdout, stdout=out)
+            proc2.wait()
+            proc1.wait()
+
+
+def sample_reads_with_seqtk(frac, total_reads, reads, to_get, output_dir):
+    print "\tGetting reads for {} UCE fraction".format(frac)
+    for name, count in to_get.iteritems():
+        # get random int see for seqtk
+        rand = random.randrange(0,1000000)
+        for item, path in enumerate(reads[name]):
+            run_seqtk(frac, total_reads, rand, path, count, item, output_dir)
+
+
+def main():
+    args = get_args()
+    conf = ConfigParser.ConfigParser()
+    conf.optionxform = str
+    conf.read(args.conf)
+    temp_reads = dict(conf.items('reads'))
+    reads = {}
+    for k, v in temp_reads.iteritems():
+        reads[k] = v.split(',')
+    total_reads = conf.getint('splits', 'total_reads')
+    uce_frac = [float(i) for i in conf.get('splits', 'uce_reads').split(',')]
+    mtdna_frac = conf.getfloat('splits', 'mtdna_reads')
+    to_get = {}
+    for frac in uce_frac:
+        to_get['uce'] = int(frac * total_reads)
+        with gzip.open(reads['mtdna'][0]) as infile:
+            for i, l in enumerate(infile):
+                pass
+            mtdna_reads = (i + 1) / 4
+        to_get['mtdna'] = int(mtdna_frac * mtdna_reads)
+        to_get['genome'] = int(total_reads - to_get['uce'] - to_get['mtdna'])
+        print "Reads:{}, UCE:{} - {} on target, mtDNA:{}, genome:{}".format(
+            total_reads,
+            to_get['uce'],
+            frac,
+            to_get['mtdna'],
+            to_get['genome'],
+            )
+        sample_reads_with_seqtk(frac, total_reads, reads, to_get, args.output)
+
+
+
+
+
+if __name__ == '__main__':
+    main()

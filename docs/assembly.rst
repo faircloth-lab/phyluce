@@ -21,9 +21,9 @@ package is structured.
 Most of the assembly process is automated using code within phyluce_,
 specifically the following 3 scripts:
 
-- `assemblo_abyss.py`
-- `assemblo_trinity.py`
-- `assemblo_velvet.py`
+- `phyluce_assembly_assemblo_abyss.py`
+- `phyluce_assembly_assemblo_trinity.py`
+- `phyluce_assembly_assemblo_velvet.py`
 
 The code of each of the above programs **always** expects your input directories
 to have the following structure (from the :ref:`Quality Control` section)::
@@ -117,7 +117,7 @@ velvet
     # make a directory for log files
     mkdir log
     # run the assembly
-    python $HOME/anaconda/bin/assemblo_velvet.py \
+    python phyluce_assembly_assemblo_velvet.py \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --kmer 35 \
@@ -150,7 +150,7 @@ ABySS
     # make a directory for log files
     mkdir log
     # run the assembly
-    python $HOME/anaconda/bin/assemblo_abyss.py \
+    python phyluce_assembly_assemblo_abyss.py \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --kmer 35 \
@@ -199,7 +199,7 @@ Trinity
     # make a directory for log files
     mkdir log
     # run the assembly
-    python $HOME/anaconda/bin/assemblo_trinity.py \
+    python phyluce_assembly_assemblo_trinity.py \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --subfolder split-adapter-quality-trimmed \

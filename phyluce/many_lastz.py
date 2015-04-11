@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 31 August 2012 14:08 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -18,7 +18,9 @@ import subprocess
 import bx.seq.twobit
 import multiprocessing
 
-#import pdb
+from phyluce.helpers import get_user_path
+
+import pdb
 
 
 def run_lastz(work):
@@ -46,7 +48,7 @@ def run_lastz(work):
 def lastz_params(target, query, coverage, identity, outfile):
     output_format = "general-:score,name1,strand1,zstart1,end1,length1,name2,strand2,zstart2,end2,length2,diff,cigar,identity,continuity,coverage"
     cmd = [
-            "lastz",
+            get_user_path("lastz", "lastz"),
             "{0}[multiple]".format(target),
             "{0}[nameparse=full]".format(query),
             "--strand=both",
@@ -76,8 +78,10 @@ def chunk_scaffolds(target, size):
     temp_out_handle = open(temp_out, 'w')
     tb = bx.seq.twobit.TwoBitFile(file(target))
     sequence_length = 0
+    tb_key_len = len(tb.keys()) - 1
+    print '\nRunning against {}'.format(os.path.basename(target))
     print 'Running with the --huge option.  Chunking files into {0} bp...'.format(size)
-    for seq in tb.keys():
+    for sequence_count, seq in enumerate(tb.keys()):
         sequence = tb[seq][0:]
         sequence_length += len(sequence)
         # write it to the outfile
@@ -92,6 +96,11 @@ def chunk_scaffolds(target, size):
             temp_out_handle = open(temp_out, 'w')
             # reset sequence length
             sequence_length = 0
+        # if we hit the end of the twobit file
+        elif sequence_count >= tb_key_len:
+	    temp_out_handle.close()
+            # put tempfile name on stack
+            chromos.append(temp_out)
     return chromos
 
 

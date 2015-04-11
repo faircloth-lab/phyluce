@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: combine_reads.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 30 October 2013 16:10 PDT (-0700)
+Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
+
+Description:
+
+"""
+
+
+import os
+import re
+import glob
+import shutil
+import argparse
+import subprocess
+import ConfigParser
+from collections import defaultdict
+from phyluce.helpers import FullPaths, CreateDir, is_file
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Combine groups of reads based on an input file in config format"""
+    )
+    parser.add_argument(
+        "--config",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The configuration file for reads we are combining"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        #action=CreateDir,
+        action=FullPaths,
+        help="""The configuration file for reads we are combining"""
+    )
+    parser.add_argument(
+        "--subfolder",
+        type=str,
+        default='',
+        help="""A subdirectory, below the level of the group, containing the reads"""
+    )
+    return parser.parse_args()
+
+def main():
+    args = get_args()
+    conf = ConfigParser.ConfigParser()
+    conf.optionxform = str
+    conf.read(args.config)
+    locations = conf.items("samples")
+    directories = defaultdict(list)
+    for name, dirs in locations:
+        directories[name] = dirs.split(',')
+    for name, locations in directories.iteritems():
+        all_files = defaultdict(list)
+        for location in locations:
+            files = glob.glob(os.path.join(location, args.subfolder, "*.fastq.gz"))
+            for file in files:
+                match = re.search("(?:.*)[_-](?:READ|Read|R)(\d)*[_-]*(singleton)*(?:.*)", os.path.basename(file))
+                if match.groups()[0] is not None:
+                    all_files[match.groups()[0]].append(file)
+                elif match.groups()[1] is not None:
+                    all_files[match.groups()[1]].append(file)
+        # make the output directory
+        output_dir = os.path.join(args.output, name, args.subfolder)
+        os.makedirs(output_dir)
+        print "Processing {}".format(name)
+        for read, files in all_files.iteritems():
+            print "\tProcessing read {}".format(read)
+            if read == '1' or read == '2':
+                new_file_name = "{}-READ{}.fastq.gz".format(name, read)
+            else:
+                new_file_name = "{}-READ-{}.fastq.gz".format(name, read)
+            for i, file in enumerate(files):
+                new_file_pth = os.path.join(output_dir, new_file_name)
+                if i == 0:
+                    print "\t\tCopying file {} to {}".format(os.path.basename(file), os.path.basename(new_file_pth))
+                    shutil.copyfile(file, new_file_pth)
+                else:
+                    print "\t\tAppending file {} to {}".format(os.path.basename(file), os.path.basename(new_file_pth))
+                    with open(new_file_pth, "ab") as outf:
+                        cmd = [
+                            "cat",
+                            file
+                        ]
+                        proc = subprocess.Popen(cmd, stdout=outf)
+                        proc.communicate()
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    main()

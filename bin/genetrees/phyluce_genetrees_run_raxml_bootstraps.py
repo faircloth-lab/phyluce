@@ -1,0 +1,189 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: run_raxml_genetrees.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 13 September 2012 18:09 PDT (-0700)
+Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+
+Description:
+
+"""
+
+import os
+import re
+import sys
+import glob
+import shlex
+import random
+import argparse
+import subprocess
+import multiprocessing
+from phyluce.helpers import is_dir, FullPaths, CreateDir
+
+#import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Program description""")
+    parser.add_argument(
+            "--input",
+            required=True,
+            type=is_dir,
+            action=FullPaths,
+            help="""The input directory containing alignments in phylip format"""
+        )
+    parser.add_argument(
+            "--best-trees",
+            required=True,
+            type=is_dir,
+            action=FullPaths,
+            help="""The directory containing the best trees"""
+        )
+    parser.add_argument(
+            "--output",
+            required=True,
+            action=CreateDir,
+            help="""The output directory to hold alignments"""
+        )
+    parser.add_argument(
+            "--bootreps",
+            type=int,
+            default=100,
+            help="""The number of bootstrap replicates to run"""
+        )
+    parser.add_argument(
+            "--outgroup",
+            type=str,
+            help="""The outgroup to use"""
+        )
+    parser.add_argument(
+            "--threads",
+            type=int,
+            default=1,
+            help="""The number of RAxML threads to run (best to determine empirically)"""
+        )
+    parser.add_argument(
+            "--cores",
+            type=int,
+            default=1,
+            help="""The number of concurrent RAxML jobs to run"""
+        )
+    parser.add_argument(
+            "--quiet",
+            action="store_true",
+            default=False,
+            help="""Suppress the CPU usage question""",
+        )
+    return parser.parse_args()
+
+
+def get_more_threads(cmd, threads):
+    cmd = cmd.append([
+        "-T",
+        str(threads),
+    ])
+    return cmd
+
+
+def get_outgroup(cmd, outgroup):
+    cmd = cmd.append([
+        "-o",
+        outgroup,
+    ])
+    return cmd
+
+
+def get_basic_raxml(seeds, alignment, outputdir):
+    key = os.path.splitext(os.path.split(alignment)[1])[0]
+    p_seed = seeds[key]
+    cmd = [
+        "/home/bcf/git/raxml/raxmlHPC-SSE3",
+        "-m",
+        "GTRGAMMA",
+        "-n",
+        "bootrep",
+        "-s",
+        alignment,
+        "-N",
+        '100',
+        "-p",
+        str(p_seed),
+        "-b",
+        str(random.randint(0, 1000000)),
+        "-w",
+        outputdir
+    ]
+    return cmd
+
+
+def run_raxml(work):
+    threads, output, outgroup, bootreps, seeds, time, patterns, alignment = work
+    # get the alignment name
+    dirname = os.path.splitext(os.path.basename(alignment))[0]
+    # make a directory for the alignment; raxml needs trailing slash
+    outputdir = os.path.join(output, dirname) + "/"
+    os.makedirs(outputdir)
+    cmd = get_basic_raxml(seeds, alignment, outputdir)
+    if threads > 1:
+        cmd = get_more_threads(cmd)
+    if outgroup:
+        cmd = get_outgroup(cmd)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    # get run time for number of patterns
+    seconds = time.search(stdout).groups()[0]
+    sites = patterns.search(stdout).groups()[0]
+    sys.stdout.write("name={0},seconds={1},sites={2},bootreps={3}\n".format(dirname, seconds, sites, bootreps))
+    sys.stdout.flush()
+    return outputdir
+
+
+def main():
+    args = get_args()
+    # get the number of jobs as available_procs / threads for raxml
+    jobs = args.cores / args.threads
+    question = "The total number of cores in use is {0}. This will run \n" + \
+        "{1} concurrent jobs of {2} thread(s). Is this correct [Y/n]? "
+    if args.quiet:
+        correct_jobs = "Y"
+    else:
+        correct_jobs = raw_input(question.format(
+            args.cores,
+            jobs,
+            args.threads)
+        )
+    if correct_jobs == "Y":
+        assert jobs < multiprocessing.cpu_count(), "The total number of jobs * threads is greather than the available CPUs"
+        pool = multiprocessing.Pool(jobs)
+        # read through previous best trees to get seed values for -p
+        raxml_call_regex = re.compile("\n\nRAxML was called as follows:\n\n(.*)\n\n")
+        seeds = {}
+        all_tree_directories = glob.glob(os.path.join(args.best_trees, '*'))
+        all_tree_directories.remove(os.path.join(args.best_trees, "all-best-trees.tre"))
+        for treedir in all_tree_directories:
+            best_tree_info = open(os.path.join(treedir, "RAxML_info.best"), 'rb').read()
+            raxml_call = raxml_call_regex.search(best_tree_info).groups()[0]
+            parsed = shlex.split(raxml_call)
+            for k, v in enumerate(parsed):
+                if v == "-p":
+                    seed = parsed[k + 1]
+                    break
+            seeds[os.path.split(treedir)[1]] = seed
+        time = re.compile("Overall\sTime\sfor\s\d+\sBootstraps\s(\d+\.\d+)")
+        patterns = re.compile("Alignment\sPatterns:\s(\d+)")
+        alignments = glob.glob(os.path.join(args.input, '*.phylip'))
+        work = [[args.threads, args.output, args.outgroup, args.bootreps, seeds, time, patterns, alignment] for alignment in alignments]
+        pool.map(run_raxml, work)
+        #output = open(os.path.join(args.output, "all-bootreps.tre"), 'w')
+        #for treedir in trees:
+        #    fname = glob.glob(os.path.join(treedir, "RAxML_bootstrap.*.ml"))[0]
+        #    bootreps = open(fname, 'rb').read()
+        #    output.write(bootreps)
+        #output.close()
+
+if __name__ == '__main__':
+    main()

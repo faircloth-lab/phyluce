@@ -20,11 +20,14 @@ import numpy
 import subprocess
 from collections import OrderedDict
 
+from phyluce.helpers import get_user_param, get_user_path
+
 from Bio import SeqIO
 
-JAVA = "java"
-JAVA_PARAMS = "-Xmx20g"
-JAR_PATH = "/home/bcf/bin/"
+
+JAVA = get_user_param("java", "executable")
+JAVA_PARAMS = get_user_param("java", "mem")
+JAR_PATH = get_user_path("jar", "jar")
 
 
 def coverage(log, sample, assembly_pth, assembly, cores, bam):

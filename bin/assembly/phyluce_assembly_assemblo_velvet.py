@@ -1,0 +1,259 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 10 November 2013 21:11 PST (-0800)
+"""
+
+import os
+import sys
+import glob
+import argparse
+import subprocess
+from phyluce.log import setup_logging
+from phyluce.third_party import which
+from phyluce.raw_reads import get_input_data, get_input_files
+from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
+
+#import pdb
+
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Assemble raw reads using velvet"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=CreateDir,
+        default=None,
+        help="""The directory in which to store the assembly data"""
+    )
+    parser.add_argument(
+        "--kmer",
+        type=int,
+        default=31,
+        help="""The kmer value to use"""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""The number of compute cores/threads to run with Velvet"""
+    )
+    parser.add_argument(
+        "--subfolder",
+        type=str,
+        default='',
+        help="""A subdirectory, below the level of the group, containing the reads"""
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use"""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        default=False,
+        help="""Cleanup all intermediate Trinity files""",
+    )
+    # one of these is required.  The other will be set to None.
+    input = parser.add_mutually_exclusive_group(required=True)
+    input.add_argument(
+        "--config",
+        type=is_file,
+        action=FullPaths,
+        default=None,
+        help="""A configuration file containing reads to assemble"""
+    )
+    input.add_argument(
+        "--dir",
+        type=is_dir,
+        action=FullPaths,
+        default=None,
+        help="""A directory of reads to assemble""",
+    )
+    return parser.parse_args()
+
+
+def run_velveth(velveth, kmer, reads, output, log):
+    log.info("Running velveth against data")
+    # we're going to move into the working dir so getcwd
+    start_dir = os.getcwd()
+    # make and switch to the working dir
+    name = "out_k{}".format(kmer)
+    os.chdir(output)
+    if reads.type == 'fastq' and reads.gzip == True:
+        velvet_read_flag = '-fastq.gz'
+    elif reads.type == 'fastq' and reads.gzip == False:
+        velvet_read_flag = '-fastq'
+    elif reads.type == 'fasta' and reads.gzip == True:
+        velvet_read_flag = '-fasta.gz'
+    elif reads.type == 'fasta' and reads.gzip == False:
+        velvet_read_flag = '-fasta'
+    cmd = [
+        velveth,
+        name,
+        str(kmer),
+        velvet_read_flag,
+        "-separate",
+        "-shortPaired",
+        os.path.join(reads.r1.dir, reads.r1.file),
+        os.path.join(reads.r2.dir, reads.r2.file)
+    ]
+    if reads.singleton:
+        cmd.extend(["-short", os.path.join(reads.singleton.dir, reads.singleton.file)])
+    try:
+        stdpth = 'velveth-k{}.out.log'.format(kmer)
+        errpth = 'velveth-k{}.err.log'.format(kmer)
+        with open(stdpth, 'w') as out:
+            with open(errpth, 'w') as err:
+                proc = subprocess.Popen(cmd, stdout=out, stderr=err)
+                proc.communicate()
+    except:
+        log.critical("Could not hash {}".format(reads.r1.dir))
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
+    # move back to dir where we started
+    os.chdir(start_dir)
+    return output
+
+
+def run_velvetg(velvetg, kmer, output, log):
+    log.info("Running velvetg against data")
+    # we're going to move into the working dir so getcwd
+    start_dir = os.getcwd()
+    # make and switch to the working dir
+    name = "out_k{}".format(kmer)
+    os.chdir(output)
+    # make and switch to the working dir
+    cmd = [
+        velvetg,
+        name,
+        "-cov_cutoff",
+        "auto",
+        "-exp_cov",
+        "auto",
+        "-min_contig_lgth",
+        "100"
+    ]
+    try:
+        stdpth = 'velvetg-k{}.out.log'.format(kmer)
+        errpth = 'velvetg-k{}.err.log'.format(kmer)
+        with open(stdpth, 'w') as out:
+            with open(errpth, 'w') as err:
+                proc = subprocess.Popen(cmd, stdout=out, stderr=err)
+                proc.communicate()
+    except:
+        log.critical("Could not assemble {}".format(output))
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
+    # move back to dir where we started
+    os.chdir(start_dir)
+    output = os.path.join(output, name)
+    return output
+
+
+def cleanup_velvet_assembly_folder(output, log):
+    # we want to keep coverage hist
+    keep = ['contigs.fa', 'stats.txt']
+    # remove the stuff we don't want to keep
+    for f in glob.glob(os.path.join(output, '*')):
+        if os.path.basename(f) not in keep:
+            os.remove(f)
+
+
+def get_contigs_file_from_output(output):
+    return glob.glob(os.path.join(output, "contigs.fa"))[0]
+
+
+def generate_within_dir_symlink(sample_dir, contigs_file):
+    relpth = os.path.relpath(contigs_file, sample_dir)
+    os.symlink(relpth, os.path.join(sample_dir, "contigs.fasta"))
+
+
+def generate_symlinks(contig_dir, sample, contigs_file, log):
+    log.info("Symlinking assembled contigs into {}".format(contig_dir))
+    try:
+        # get the relative path to the Trinity.fasta file
+        relpth = os.path.relpath(contigs_file, contig_dir)
+        contig_lname = os.path.join(contig_dir, sample)
+        os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
+    except:
+        log.warn("Unable to symlink {} to {}".format(contigs_file, contig_lname))
+
+
+def main():
+    # get args and options
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    # get the input data
+    log.info("Getting input filenames and creating output directories")
+    input = get_input_data(args.config, args.dir)
+    # create the output directory if it does not exist
+    if not os.path.isdir(args.output):
+        os.makedirs(args.output)
+    else:
+        pass
+    # make the symlink directory within the output directory
+    contig_dir = os.path.join(args.output, 'contigs')
+    if not os.path.isdir(contig_dir):
+        os.makedirs(contig_dir)
+    else:
+        pass
+    try:
+        velveth = which('velveth')[0]
+        velvetg = which('velvetg')[0]
+    except:
+        raise EnvironmentError("Cannot find velveth or velvetg.  Ensure they "
+                               "are installed and in your $PATH")
+    # run velvet in single-threaded mode for RAM and simplicity
+    # reasons.
+    for group in input:
+        sample, dir = group
+        # pretty print taxon status
+        text = " Processing {} ".format(sample)
+        log.info(text.center(65, "-"))
+        # make a directory for sample-specific assemblies
+        sample_dir = os.path.join(args.output, sample)
+        os.makedirs(sample_dir)
+        # determine how many files we're dealing with
+        reads = get_input_files(dir, args.subfolder, log)
+        # copy the read data over, combine singletons with read 1
+        # and run the assembly for PE data.
+        if reads.r1 and reads.r2:
+            output = run_velveth(velveth, args.kmer, reads, sample_dir, log)
+            output = run_velvetg(velvetg, args.kmer, output, log)
+        elif reads.r1 and not reads.r2 and not reads.singleton:
+            pass
+        if args.clean:
+            cleanup_velvet_assembly_folder(output, log)
+        contigs_file = get_contigs_file_from_output(output)
+        # create generic link in assembly folder for covg. computation
+        generate_within_dir_symlink(sample_dir, contigs_file)
+        # link to the standard (non-trimmed) assembly in ../contigs
+        generate_symlinks(contig_dir, sample, contigs_file, log)
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+if __name__ == '__main__':
+    main()

@@ -15,7 +15,7 @@ import glob
 import argparse
 import ConfigParser
 from phyluce import lastz
-from operator import itemgetter
+#from operator import itemgetter
 from collections import defaultdict
 import shutil
 
@@ -43,6 +43,22 @@ class CreateDir(argparse.Action):
         os.makedirs(d)
         # return the full path
         setattr(namespace, self.dest, d)
+
+
+def get_user_path(program, binary):
+    config = ConfigParser.ConfigParser()
+    config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+    # ensure program is in list
+    pth = config.get(program, binary)
+    # expand path as necessary
+    expand_pth = os.path.abspath(os.path.expanduser(os.path.expandvars(pth)))
+    return expand_pth
+
+
+def get_user_param(section, param):
+    config = ConfigParser.ConfigParser()
+    config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+    return config.get(section, param)
 
 
 def is_dir(dirname):
@@ -255,7 +271,8 @@ def get_file_extensions(ftype):
         'fasta': ('.fasta', '.fsa', '.aln', '.fa'),
         'nexus': ('.nexus', '.nex'),
         'phylip': ('.phylip', '.phy'),
-        'phylip-relaxed': ('.phylip', '.phy'),
+        'phylip-relaxed': ('.phylip', '.phy', '.phylip-relaxed'),
+        'phylip-sequential': ('.phylip', '.phy', '.phylip-sequential'),
         'clustal': ('.clustal', '.clw'),
         'emboss': ('.emboss',),
         'stockholm': ('.stockholm',)

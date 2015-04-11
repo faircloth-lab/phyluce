@@ -19,7 +19,7 @@ import subprocess
 from Bio import AlignIO
 from Bio.Alphabet import IUPAC, Gapped
 
-from phyluce.helpers import which
+from phyluce.helpers import get_user_path
 from phyluce.generic_align import GenericAlign
 
 
@@ -34,13 +34,11 @@ class Align(GenericAlign):
 
     def run_alignment(self, clean=True):
         """ muscle """
-        # dialign requires ENV variable be set for dialign_dir
-        muscle = which("muscle")
         # create results file
         fd, aln = tempfile.mkstemp(suffix='.muscle')
         os.close(fd)
         # run MUSCLE on the temp file
-        cmd = [muscle, "-in", self.input, "-out", aln]
+        cmd = [get_user_path("muscle", "muscle"), "-in", self.input, "-out", aln]
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE
