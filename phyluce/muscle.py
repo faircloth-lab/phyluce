@@ -19,7 +19,7 @@ import subprocess
 from Bio import AlignIO
 from Bio.Alphabet import IUPAC, Gapped
 
-from phyluce.user_pth import get_user_path
+from phyluce.pth import get_user_path
 from phyluce.generic_align import GenericAlign
 
 

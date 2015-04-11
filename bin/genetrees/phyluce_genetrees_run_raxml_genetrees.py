@@ -19,7 +19,8 @@ import random
 import argparse
 import subprocess
 import multiprocessing
-from phyluce.helpers import is_dir, FullPaths, CreateDir, get_user_path
+from phyluce.helpers import is_dir, FullPaths, CreateDir
+from phyluce.pth import get_user_path
 
 #import pdb
 

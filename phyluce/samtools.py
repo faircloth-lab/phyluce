@@ -14,7 +14,7 @@ Created on 26 June 2014 17:16 PDT (-0700)
 import os
 import subprocess
 
-from phyluce.user_pth import get_user_path
+from phyluce.pth import get_user_path
 
 
 def index(log, sample, sample_dir, bam):

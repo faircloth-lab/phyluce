@@ -14,7 +14,7 @@ Description:
 import os
 import subprocess
 
-from phyluce.user_pth import get_user_param, get_user_path
+from phyluce.pth import get_user_param, get_user_path
 
 import pdb
 

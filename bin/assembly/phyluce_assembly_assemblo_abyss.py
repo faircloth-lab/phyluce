@@ -22,7 +22,8 @@ from Bio.Seq import Seq
 from phyluce.log import setup_logging
 from phyluce.third_party import which
 from phyluce.raw_reads import get_input_data, get_input_files
-from phyluce.helpers import FullPaths, is_dir, is_file, get_user_path
+from phyluce.helpers import FullPaths, is_dir, is_file
+from phyluce.pth import get_user_path
 
 #import pdb
 

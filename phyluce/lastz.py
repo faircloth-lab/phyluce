@@ -25,7 +25,7 @@ import subprocess
 from collections import namedtuple
 from collections import defaultdict
 
-from phyluce.user_pth import get_user_path
+from phyluce.pth import get_user_path
 
 import pdb
 

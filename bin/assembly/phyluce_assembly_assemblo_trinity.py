@@ -17,9 +17,10 @@ import glob
 import shutil
 import argparse
 import subprocess
-from phyluce.helpers import FullPaths, is_dir, is_file, get_user_path
+from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
+from phyluce.pth import get_user_path
 
 #import pdb
 
