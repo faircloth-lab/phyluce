@@ -20,7 +20,7 @@ import pdb
 
 JAVA = get_user_param("java", "executable")
 JAVA_PARAMS = get_user_param("java", "mem")
-JAR_PATH = get_user_path("jar", "jar")
+JAR_PATH = get_user_path("java", "jar")
 
 
 def create_index_files(log, reference):

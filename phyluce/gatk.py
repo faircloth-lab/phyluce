@@ -27,7 +27,7 @@ from Bio import SeqIO
 
 JAVA = get_user_param("java", "executable")
 JAVA_PARAMS = get_user_param("java", "mem")
-JAR_PATH = get_user_path("jar", "jar")
+JAR_PATH = get_user_path("java", "jar")
 
 
 def coverage(log, sample, assembly_pth, assembly, cores, bam):
