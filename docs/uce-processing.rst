@@ -152,6 +152,8 @@ database file.  It's probably a good idea to have some knowledge of how this
 database is structured, since it's basically what makes the next few steps work.
 So, let's go over the structure and contents of this database.
 
+.. _Database:
+
 The probe.matches.sqlite database
 .................................
 
