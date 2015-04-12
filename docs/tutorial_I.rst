@@ -1598,5 +1598,7 @@ Now, we can run ExaBayes:
 Once those are finished running, we can summarize the posterior using the
 `consense` and `postProcParams` program:
 
+.. code-block:: bash
+
     consense -f ExaBayes_topologies.run1.phylip.* -n some_descriptive_name_here
     postProcParam -f ExaBayes_parameters.run1.phylip.* -n some_descriptive_name_here
