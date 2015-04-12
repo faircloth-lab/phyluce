@@ -1573,6 +1573,9 @@ config.nexus
      numgen 1e6
     end;
 
+Run ExaBayes
+^^^^^^^^^^^^
+
 Now, we can run ExaBayes:
 
 .. code-block:: bash
