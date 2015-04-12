@@ -23,6 +23,7 @@ from Bio.Alphabet import IUPAC, Gapped
 
 from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, CreateDir, is_dir, get_file_extensions
+from phyluce.pth import get_user_path
 
 #import pdb
 
@@ -120,7 +121,7 @@ def get_and_trim_alignments(params):
         if b2 < b1:
             b2 = b1
         cmd = [
-            "gblocks",
+            get_user_path("gblocks","gblocks"),
             align_file,
             "-t=DNA",
             "-b1={}".format(b1),
