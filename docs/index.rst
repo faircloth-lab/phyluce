@@ -59,7 +59,7 @@ Guide
    quality-control
    assembly
    uce-processing
-   tutorial_I
+   tutorial-one
 
 Project info
 ============
