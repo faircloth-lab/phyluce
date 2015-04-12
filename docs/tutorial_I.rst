@@ -63,8 +63,10 @@ line, you can use something like:
     -rw-r--r--. 1 bcf data 122M Apr 11 14:03 Mus_musculus_CTACAACGGC_L001_R1_001.fastq.gz
     -rw-r--r--. 1 bcf data 121M Apr 11 14:03 Mus_musculus_CTACAACGGC_L001_R2_001.fastq.gz
 
-Alternative, if you think of the filesystem as a tree-like structure, the
+Alternatively, if you think of the filesystem as a tree-like structure, the
 directory in which we are working (`uce-tutorial`) would look like:
+
+.. code-block:: bash
 
     uce-tutorial
     └── raw-fastq
@@ -77,20 +79,21 @@ directory in which we are working (`uce-tutorial`) would look like:
         ├── Mus_musculus_CTACAACGGC_L001_R1_001.fastq.gz
         └── Mus_musculus_CTACAACGGC_L001_R2_001.fastq.gz
 
+
 If you do not want to use the command line, you can download the data using the
-figshare interface or by clicking
-http://downloads.figshare.com/article/public/1284521.
+figshare interface or by clicking:
+
+http://downloads.figshare.com/article/public/1284521
 
 Count the read data
 ===================
 
 Usually, we want a count of the actual number of reads in a given sequence file
 for a given species.  As mentioned in the :ref:`UCE Processing` section, we can
-do this several ways.  We'll use tools from unix, because they are fast.
-
-The next line of code will count the lines in each R1 file (which should be
-equal to the reads in the R2 file) and divide that number by 4 to get the number
-of sequence reads.
+do this several ways.  We'll use tools from unix, because they are fast. The
+next line of code will count the lines in each R1 file (which should be equal to
+the reads in the R2 file) and divide that number by 4 to get the number of
+sequence reads.
 
 .. code-block:: bash
 
@@ -121,8 +124,8 @@ by hand.  That said, you can certainly trim your reads however you would like.
 See the illumiprocessor_ website for instructions on installing the program.
 
 To use this program, we will create a configuration file that we will use to
-inform the program about which adapters are in which R1 and R2 files.  The data
-we are trimming, here, are from TruSeq v3 libraries, but the indexes are 10
+inform the program about which adapters are in which READ1 and READ2 files.  The
+data we are trimming, here, are from TruSeq v3 libraries, but the indexes are 10
 nucleotides long.  We will set up the trimming file with these parameters, but
 please see the illumiprocessor_ documentation for other options.
 
@@ -156,7 +159,7 @@ please see the illumiprocessor_ documentation for other options.
     Gallus_gallus_TTCTCCTTCA:gallus_gallus
     Mus_musculus_CTACAACGGC:mus_musculus
 
-I create this file in a directory *above* the one holding my reads, so the
+I create this file in a directory **above** the one holding my reads, so the
 structure looks like:
 
 .. code-block:: bash
@@ -213,12 +216,12 @@ The output should look like the following:
     Running....
     2015-04-11 14:25:17,714 - illumiprocessor - INFO - =================== Completed illumiprocessor ===================
 
-Notice that the program has created a `log` file showing what it did, and that
-it has also create a new directory holding the clean data that has the name
-`clean-fastq` (what you told it to name the directory). Within that new
-directory, there are taxon-specific folder for the cleaned reads. More
-specifically, your directory structure should look similar to this (I've
-collapsed the list of raw-reads):
+Notice that the program has created a `log` file showing what it did, and it has
+also created a new directory holding the clean data that has the name `clean-
+fastq` (what you told it to name the directory). Within that new directory,
+there are taxon-specific folder for the cleaned reads. More specifically, your
+directory structure should look similar to the following (I've collapsed the
+list of raw-reads):
 
 .. code-block:: bash
 
@@ -232,7 +235,7 @@ collapsed the list of raw-reads):
     ├── illumiprocessor.log
     └── raw-fastq
 
-Within each organisms directory, there are more files and folders:
+Within each organism specific directory, there are more files and folders:
 
 .. code-block:: bash
 
@@ -265,6 +268,8 @@ Within each organisms directory, there are more files and folders:
 And, within each of those directories nested within the species-specific
 directory, there are additional files or links to files:
 
+.. code-block:: bash
+
     uce-tutorial
     ├── clean-fastq
     │   ├── alligator_mississippiensis
@@ -285,10 +290,10 @@ directory, there are additional files or links to files:
     ├── illumiprocessor.log
     └── raw-fastq
 
-I have collapsed the listing to show only. the first taxon.
+I have collapsed the listing to show only the first taxon.
 
 The `->` in the `raw-reads` directory above means there are symlinks_ to the
-files. I have removes the file paths and replaced them with `<PATH>` so that the
+files. I have removed the file paths and replaced them with `<PATH>` so that the
 figure will fit on a page.
 
 The really important information is in the `split-adapter-quality-trimmed`
@@ -296,8 +301,8 @@ directory - which now holds our reads that have had adapter-contamination and
 low-quality bases removed. Within this `split-adapter-quality-trimmed`
 directory,  the `READ1` and `READ2` files hold reads that remain in a pair (the
 reads are in the same consecutive order in each file).  The `READ-singleton`
-file holds READ1 reads OR READ2 reads that lost their "mate" or "paired-read"
-because of trimming or removal.
+file holds READ1 reads **OR** READ2 reads that lost their "mate" or "paired-
+read" because of trimming or removal.
 
 Quality control
 ---------------
@@ -341,8 +346,8 @@ works best for most purposes.  The helper programs for the other assemblers use
 the same config file, too, so you can easily experiment with all of the
 assemblers.
 
-To run an assembly, we need to create a different configuration file.  The
-assembly cofiguration file looks like the following, assuming we want to
+To run an assembly, we need to create a another configuration file.  The
+assembly configuration file looks like the following, assuming we want to
 assemble all of our data from the organisms above:
 
 .. code-block:: bash
@@ -356,6 +361,8 @@ assemble all of our data from the organisms above:
 We will save this into a file named `assembly.conf` at the top of our
 `uce-tutorial` directory:
 
+.. code-block:: bash
+
     uce-tutorial
     ├── assembly.conf
     ├── clean-fastq
@@ -365,15 +372,17 @@ We will save this into a file named `assembly.conf` at the top of our
     ├── raw-fastq
     └── trinity-assemblies
 
-If you want to change the names on the left hand side, you can do so, but the
-`PATHs` on the right hand side need to point to our "clean" UCE raw reads.  If
-you have files in multiple locations, you can use different `PATHs` on the
-right-hand side.
+If you want to change the names on the left hand side of the colon in the config
+file, you can do so, but the `PATHs` on the right hand side need to point to our
+"clean" UCE raw reads.  If you have files in multiple locations, you can use
+different `PATHs` on the right-hand side.
 
 .. attention:: Although you can easily input new PATHs in this file, the
     **structure** of the data below the PATH you use must be the same - meaning
     that the structure and naming scheme for READ1, READ2, and READ-singleton
-    must be the same.  Or, put another way, it must follow the following:
+    must be the same.  Or, put another way, it must look like the following:
+
+    .. code-block:: bash
 
         some-random-data
         ├── clean-fastq
@@ -405,11 +414,13 @@ the `assemblo_trinity.py` program:
 
 .. warning:: Note that I am using 12 physical CPU cores to do this work.  You
     need to use the number of physical cores available on *your* machine. The
-    `phyluce.conf` file also assumed you have **at least** 8 GB of RAM on your
+    `phyluce.conf` file also assumes you have **at least** 8 GB of RAM on your
     system, and it is better to have much more.  If you use more CPU cores than
     you have or you specify more RAM than you have, bad things will happen.
 
 As the assembly proceeds, you should see output similar to the following:
+
+.. code-block:: bash
 
     2015-04-11 18:22:41,128 - phyluce_assembly_assemblo_trinity - INFO - -------------------- Processing gallus_gallus ----
     2015-04-11 15:30:54,183 - phyluce_assembly_assemblo_trinity - INFO - Argument --dir: None
@@ -429,12 +440,15 @@ As the assembly proceeds, you should see output similar to the following:
     2015-04-11 16:29:20,957 - phyluce_assembly_assemblo_trinity - INFO - Symlinking assembled contigs into /scratch/bfaircloth-uce-tutorial/trinity-assemblies/contigs
     2015-04-11 16:29:20,957 - phyluce_assembly_assemblo_trinity - INFO - ----------------- Processing anolis_carolinensis ----------------
     ...[continued]...
+    2015-04-11 22:30:19,558 - phyluce_assembly_assemblo_trinity - INFO - ========== Completed phyluce_assembly_assemblo_trinity ==========
 
 .. attention:: This is not a toy tutorial - the data you downloaded contain
     roughly 100 MB for each of READ1 and READ2, which means it's going to take
     some time for these samples to assemble.
 
 One the assembly is finished, have a look at the directory structure:
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -467,16 +481,15 @@ One the assembly is finished, have a look at the directory structure:
             └── trinity.log
 
 Your species-specific assembly files are in the `trinity-assemblies` directory
-nested in species-specific directories that correspond to the name for the
-assembly you used in the `assembly.conf` file (to the left of the colon).  Each
-name is appended with `trinity` because that's what trinity_ requires.  There is
-a symlink_ within each species-specific folder so that you now the "contigs" you
-assembled are in `Trinity.fasta`.  `trinity.log` holds the log output from
-trinity_.
+nested within species-specific directories that correspond to the name you used
+in the `assembly.conf` file (to the left of the colon).  Each name is appended
+with `_trinity` because that's what trinity_ requires.  There is a symlink_
+within each species-specific folder so that you now the "contigs" you assembled
+are in `Trinity.fasta`.  `trinity.log` holds the log output from trinity_.
 
 There is also a `contigs` directory within this folder.  The `contigs` directory
-is the important one, because it contains symlinks_ to all of the
-species-specific contigs - meaning, you can treat this single folder as if it
+is the important one, because it contains symlinks_ to all of the species-
+specific contigs.  This means that you can treat this single folder as if it
 contains all of your assembled contigs.
 
 Assembly QC
@@ -485,15 +498,19 @@ Assembly QC
 We can get a sense of how well the assembly worked by running the following from
 the top of our working directory:
 
+.. code-block:: bash
+
     # run this script against all directories of reads
 
-for i in trinity-assemblies/contigs/*.fasta;
-do
-    phyluce_assembly_get_fasta_lengths.py --input $i --csv;
-done
+    for i in trinity-assemblies/contigs/*.fasta;
+    do
+        phyluce_assembly_get_fasta_lengths.py --input $i --csv;
+    done
 
 This should output something similar to the following.  I've added the header as
 a comment:
+
+.. code-block:: bash
 
     # samples,contigs,total bp,mean length,95 CI length,min length,max length,median legnth,contigs >1kb
     alligator_mississippiensis.contigs.fasta,10587,5820479,549.776046094,3.5939422934,224,11285,413.0,1182
@@ -503,10 +520,11 @@ a comment:
 
 .. admonition:: Question: Why are my numbers slightly different than your numbers?
     :class: admonition tip
+
     The process of read assembly often differs by operating system and sometimes
-    version, and some of these differences are due to libraries that underlie
-    many of the assembly programs.  Expect to see differences.  You should not
-    expect for them to be huge.
+    by OS version, and some of these differences are due to libraries that
+    underlie many of the assembly programs.  Expect to see differences.  You
+    should not expect for them to be huge.
 
 .. attention:: If you see max-contig sizes around 16KB (for vertebrates), that
     is commonly the entire or almost-entire mtDNA genome.  You do not tend to
@@ -520,8 +538,10 @@ Finding UCE loci
 ================
 
 Now that we've assembled our contigs from raw reads, it's time to find those
-contigs which are UCE loci and move aside those that are not.  And, our
-directory structure before we do this looks like so:
+contigs which are UCE loci and move aside those that are not.  The directory
+structure before we do this should look like the following:
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -532,13 +552,16 @@ directory structure before we do this looks like so:
     ├── raw-fastq
     └── trinity-assemblies
 
-We will locate the UCE loci.  First, get the probe set used for enrichment:
+Before we locate UCE loci, you need to get the probe set used for the
+enrichments:
 
 .. code-block:: bash
 
     wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/master/uce-5k-probe-set/uce-5k-probes.fasta
 
 Now, our directory structure looks like:
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -552,6 +575,8 @@ Now, our directory structure looks like:
 
 Now, run the `match_contigs_to_probes.py` program:
 
+.. code-block:: bash
+
     python ~/git/phyluce/bin/assembly/phyluce_assembly_match_contigs_to_probes.py \
         --contigs trinity-assemblies/contigs \
         --probes uce-5k-probes.fasta \
@@ -559,6 +584,8 @@ Now, run the `match_contigs_to_probes.py` program:
 
 You should see output similar to the following (also stored in
 `phyluce_assembly_assemblo_trinity.log`):
+
+.. code-block:: bash
 
     2015-04-12 12:44:58,951 - phyluce_assembly_match_contigs_to_probes - INFO - ======= Starting phyluce_assembly_match_contigs_to_probes =======
     2015-04-12 12:44:58,951 - phyluce_assembly_match_contigs_to_probes - INFO - Version: git 2a9c49d
@@ -587,12 +614,16 @@ You should see output similar to the following (also stored in
 The header info at the top tells us exactly what version of the code we are
 running and keeps track of our options.  The important output is:
 
+.. code-block:: bash
+
     alligator_mississippiensis: 4315 (40.76%) uniques of 10587 contigs, 0 dupe probe matches, 230 UCE loci removed for matching multiple contigs, 40 contigs removed for matching multiple UCE loci
     anolis_carolinensis: 703 (28.60%) uniques of 2458 contigs, 0 dupe probe matches, 138 UCE loci removed for matching multiple contigs, 2 contigs removed for matching multiple UCE loci
     gallus_gallus: 3923 (19.71%) uniques of 19905 contigs, 0 dupe probe matches, 625 UCE loci removed for matching multiple contigs, 47 contigs removed for matching multiple UCE loci
     mus_musculus: 825 (38.16%) uniques of 2162 contigs, 0 dupe probe matches, 93 UCE loci removed for matching multiple contigs, 1 contigs removed for matching multiple UCE loci
 
 Which we can break down to the following (for `alligator_mississippiensis`):
+
+.. code-block:: bash
 
     alligator_mississippiensis:
         4315 (40.76%) uniques of 10587 contigs
@@ -609,13 +640,16 @@ designed for a single UCE locus).
 
 .. admonition:: Question: Why is the count of UCE loci different by sample?
     :class: admonition tip
-    For these example data, some samples (alligator_mississippiensis and
-    gallus_gallus) were enriched for 5k UCE loci, while others (anolis_carolinensis
-    and mus_musculus) were enriched for 2.5k UCE loci.  Additionally, those 2.5k UCE
-    loci samples were not enriched very well.
+
+    For these example data, we enriched some samples (alligator_mississippiensis
+    and gallus_gallus) for 5k UCE loci, while we enriched others
+    (anolis_carolinensis and mus_musculus) for 2.5k UCE loci.  Additionally, the
+    2.5k UCE enrichments did not work very well (operator error).
 
 The directory structure now looks like the following (everything collapsed but
 the `uce-search-results directory`):
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -649,18 +683,22 @@ will then use this list to extract FASTA data for each taxon for each UCE locus.
 First, we need to decide which taxa we want in our "taxon set".  So, we create a
 configuration file like so:
 
+.. code-block:: bash
+
     [all]
     alligator_mississippiensis
     anolis_carolinensis
     gallus_gallus
     mus_musculus
 
-These names need to match the assembly names we used.  Here, we have just pull
+These names need to match the assembly names we used.  Here, we have just put
 all 4 taxa in a list that we named `all`.  However, we can adjust this list in
 many ways (see :ref:`locus-counts`).
 
 Save this file as `taxon-set.conf` at the top level of our `uce-tutorial`
 directory.  The directory should look like this, now:
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -675,8 +713,10 @@ directory.  The directory should look like this, now:
     ├── uce-5k-probes.fasta
     └── uce-search-results
 
-Now that we have this file created, to create the initial list of loci for each
-taxon, we do the following:
+Now that we have this file created, we do the following to create the initial list of loci for each
+taxon:
+
+.. code-block:: bash
 
     # create an output directory for this taxon set - this just keeps
     # things neat
@@ -692,6 +732,8 @@ taxon, we do the following:
         --output taxon-sets/all/all-taxa-incomplete.conf
 
 The output should look like the following:
+
+.. code-block:: bash
 
     2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - =========== Starting phyluce_assembly_get_match_counts ==========
     2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - Version: git 2a9c49d
@@ -719,6 +761,8 @@ The output should look like the following:
 
 And, our directory structure should now look like this (collapsing all but
 `taxon-sets`):
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -758,6 +802,8 @@ Now, we need to extract FASTA data that correspond to the loci in
 
 The output should look something like the following:
 
+.. code-block:: bash
+
     2015-04-12 12:58:40,646 - phyluce_assembly_get_fastas_from_match_counts - INFO - ===== Starting phyluce_assembly_get_fastas_from_match_counts ====
     2015-04-12 12:58:40,646 - phyluce_assembly_get_fastas_from_match_counts - INFO - Version: git a6a957a
     2015-04-12 12:58:40,646 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --contigs: /scratch/uce-tutorial/trinity-assemblies/contigs
@@ -792,6 +838,8 @@ The output should look something like the following:
 And, our directory structure should now look like this (collapsing all but
 `taxon-sets`):
 
+.. code-block:: bash
+
     uce-tutorial
     ├── assembly.conf
     ├── clean-fastq
@@ -814,7 +862,7 @@ And, our directory structure should now look like this (collapsing all but
     └── uce-search-results
 
 The extracted FASTA data are in a monolithic FASTA file (all data for all
-organisms) named all-taxa-incomplete.fasta.
+organisms) named `all-taxa-incomplete.fasta`.
 
 Exploding the monolithic FASTA file
 -----------------------------------
@@ -823,6 +871,8 @@ Lots of times we want to know individual statistics on UCE assemblies for a
 given taxon.  We can do that by exploding the monolithic fasta file into a file
 of UCE loci that we have enriched by taxon, then running stats on those exploded
 files.  To do that, run the following:
+
+.. code-block:: bash
 
     # explode the monolithic FASTA by taxon (you can also do by locus)
     phyluce_assembly_explode_get_fastas_file.py \
@@ -849,24 +899,28 @@ You have lots of options when aligning UCE loci.  You can align the loci and use
 those alignments with no trimming, you can edge-trim the alignments following
 some algorithm, and you can end+internally trim alignments following some
 algorithm. It's hard to say what is best in all situations.  When taxa are
-"closely" related (<30-50 MYA, perhaps), I think that edge-trimming alignments
+"closely" related (< 30-50 MYA, perhaps), I think that edge-trimming alignments
 is reasonable.  When the taxa you are interested in span a wider range of
-divergence times (>50 MYA), you may want to think about internal trimming.
+divergence times (> 50 MYA), you may want to think about internal trimming.
 
-How you do you edge- or internal trimming is also a decision you need to make.
-In phyluce_, we implement our edge-trimming algorithm by running the
-alignment program "as-is" (meaning withouth the `--no-trim`) option.  We do
+How you accomplish you edge- or internal trimming is also a decision you need to
+make. In phyluce_, we implement our edge-trimming algorithm by running the
+alignment program "as-is" (i.e., without the `--no-trim`) option.  We do
 internal-trimming by turning off trimming using `--no-trim`, then passing the
-resulting alignments (in FASTA format) to a parallel wrapper around GBLOCKS_.
+resulting alignments (in FASTA format) to a parallel wrapper around Gblocks_.
 
 You also have a choice of aligner - mafft_ or muscle_ (or you can externally
-align using a tool like SATé).  Generally, I would use mafft_.
+align UCE loci using a tool like SATé, as well).
+
+Generally, I would use mafft_.
 
 Edge trimming
 -------------
 
 Edge trimming your alignments is a relatively simple matter.  You can run edge
 trimming, as follows:
+
+.. code-block:: bash
 
     # make sure we are in the correct directory
     cd uce-tutorial/taxon-sets/all
@@ -885,6 +939,8 @@ trimming, as follows:
     the number of physical cores available on *your* machine.
 
 The output should look like this:
+
+.. code-block:: bash
 
     2015-04-12 13:01:31,919 - phyluce_align_seqcap_align - INFO - ============== Starting phyluce_align_seqcap_align ==============
     2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Version: git a6a957a
@@ -916,14 +972,16 @@ The output should look like this:
     2015-04-12 13:02:06,567 - phyluce_align_seqcap_align - INFO - ============== Completed phyluce_align_seqcap_align =============
 
 The `.` values that you see represent loci that were aligned and succesfully
-trimmed. Andy `X` values that you see represent loci that were aligned and
-trimmed so much that there was nothing left.
+trimmed. Any `X` values that you see represent loci that were removed
+because trimming reduced their length to effectively nothing.
 
 .. attention:: The number of potential alignments dropped here is abnormally
     large becase our **sample size is so small (n=4)**.
 
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -947,7 +1005,9 @@ branches in the tree):
 We can output summary stats for these alignments by running the following
 program:
 
-    python ~/git/phyluce/bin/align/phyluce_align_get_align_summary_data.py \
+.. code-block:: bash
+
+    phyluce_align_get_align_summary_data.py \
         --alignments mafft-nexus-edge-trimmed \
         --cores 12 \
         --log-path log
@@ -956,6 +1016,8 @@ program:
     the number of physical cores available on *your* machine.
 
 The output from the program should look like:
+
+.. code-block:: bash
 
     2015-04-12 13:40:56,410 - phyluce_align_get_align_summary_data - INFO - ========= Starting phyluce_align_get_align_summary_data =========
     2015-04-12 13:40:56,410 - phyluce_align_get_align_summary_data - INFO - Version: git a6a957a
@@ -1021,7 +1083,9 @@ Internal trimming
 
 Now, let's do the same thing, but run internal trimming on the resulting
 alignments.  We will do that by turning off trimming `--no-trim` and outputting
-FASTA `--output-format fasta`.
+FASTA formatted alignments with `--output-format fasta`.
+
+.. code-block:: bash
 
     # make sure we are in the correct directory
     cd uce-tutorial/taxon-sets/all
@@ -1038,8 +1102,8 @@ FASTA `--output-format fasta`.
         --no-trim \
         --log-path log
 
-.. attention:: The number of potential alignments dropped here is abnormally
-    large becase our **sample size is so small (n=4)**.
+.. attention:: The number of UCE loci dropped here is abnormally large becase
+    our **sample size is so small (n=4)**.
 
 .. warning:: Note that I am using 12 physical CPU cores here.  You need to use
     the number of physical cores available on *your* machine.
@@ -1047,6 +1111,8 @@ FASTA `--output-format fasta`.
 The output from the program should be the roughly the same as what we saw
 before.  The current directory structure should look like (I've collapsed a
 number of branches in the tree):
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -1068,7 +1134,9 @@ number of branches in the tree):
     ...
     └── uce-search-results
 
-Now, we are going to trim these loci using GBLOCKS_:
+Now, we are going to trim these loci using Gblocks_:
+
+.. code-block:: bash
 
     # run gblocks trimming on the alignments
     phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed.py \
@@ -1078,6 +1146,8 @@ Now, we are going to trim these loci using GBLOCKS_:
         --log log
 
 The output should look like this:
+
+.. code-block:: bash
 
     2015-04-12 13:51:52,450 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO -  Starting phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed
     2015-04-12 13:51:52,450 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Version: git a6a957a
@@ -1107,6 +1177,8 @@ trimmed so much that there was nothing left.
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
 
+.. code-block:: bash
+
     uce-tutorial
     ├── assembly.conf
     ...
@@ -1131,6 +1203,8 @@ branches in the tree):
 We can output summary stats for these alignments by running the following
 program:
 
+.. code-block:: bash
+
     python ~/git/phyluce/bin/align/phyluce_align_get_align_summary_data.py \
         --alignments mafft-nexus-internal-trimmed-gblocks \
         --cores 12 \
@@ -1140,6 +1214,8 @@ program:
     the number of physical cores available on *your* machine.
 
 The output from the program should look like:
+
+.. code-block:: bash
 
     2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - ========= Starting phyluce_align_get_align_summary_data =========
     2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - Version: git a6a957a
@@ -1196,8 +1272,9 @@ Alignment cleaning
 If you look at the alignments we currently have, you will notice that each
 alignment contains the locus name along with the taxon name.  This is not what
 we want downstream, but it does enable us to ensure the correct data went into
-each alignment.  So, we need to clean our alignments and we'll do this for the
-GBLOCKS_ trimmed alignments:
+each alignment.  So, we need to clean our alignments. For the remainder of
+this tutorial, we will work with the Gblocks_ trimmed alignments, so we will
+clean those alignments:
 
  .. code-block:: bash
 
@@ -1212,6 +1289,8 @@ GBLOCKS_ trimmed alignments:
         --log-path log
 
 The output should be similar to:
+
+.. code-block:: bash
 
     2015-04-12 14:08:19,925 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - === Starting phyluce_align_remove_locus_name_from_nexus_lines ===
     2015-04-12 14:08:19,925 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Version: git a6a957a
@@ -1230,6 +1309,8 @@ The output should be similar to:
 
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -1266,7 +1347,7 @@ study of 100 taxa, all alignments will contain 95 of these 100 taxa.
 
 .. attention:: Notice that this metric for completeness does not pay attention
     to which taxa are in which alignments - so the 75%, above, does **not** mean
-    that a given taxa will have data in 75 of 100 alignments.
+    that a given taxon will have data in 75 of 100 alignments.
 
 To create a 75% data matrix, run the following.  Notice that the integer
 following `--taxa` is the **total** number of organisms in the study.
@@ -1288,6 +1369,8 @@ following `--taxa` is the **total** number of organisms in the study.
 
 The output should look like the following:
 
+.. code-block:: bash
+
     2015-04-12 14:17:37,589 - phyluce_align_get_only_loci_with_min_taxa - INFO - ======= Starting phyluce_align_get_only_loci_with_min_taxa ======
     2015-04-12 14:17:37,589 - phyluce_align_get_only_loci_with_min_taxa - INFO - Version: git a6a957a
     2015-04-12 14:17:37,589 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean
@@ -1304,6 +1387,8 @@ The output should look like the following:
 
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
+
+.. code-block:: bash
 
     uce-tutorial
     ├── assembly.conf
@@ -1332,9 +1417,11 @@ Preparing data for RAxML and ExaML
 ==================================
 
 Now that we have our `75p` data matrix completed, we can generate input files
-for our analyses programs.  For the most part, I favor exabayes_, raxml_, and
-examl_ (and usually in that order).  Formatting our `75p` data into a phylip
-file for these programs is rather easy.  To do that, run:
+for subsequent phylogenetic analysis.  For the most part, I favor ExaBayes_,
+RAxML_, and ExaML_ (usually in that order).  Formatting our `75p` data into
+a phylip file for these programs is rather easy.  To do that, run:
+
+.. code-block:: bash
 
     # make sure we are in the correct directory
     cd uce-tutorial/taxon-sets/all
@@ -1347,6 +1434,8 @@ file for these programs is rather easy.  To do that, run:
         --log-path log
 
 The output from this program will look like:
+
+.. code-block:: bash
 
     2015-04-12 14:40:52,276 - phyluce_align_format_nexus_files_for_raxml - INFO - ====== Starting phyluce_align_format_nexus_files_for_raxml ======
     2015-04-12 14:40:52,276 - phyluce_align_format_nexus_files_for_raxml - INFO - Version: git a6a957a
@@ -1370,6 +1459,8 @@ The output from this program will look like:
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
 
+.. code-block:: bash
+
     uce-tutorial
     ├── assembly.conf
     ...
@@ -1391,16 +1482,118 @@ branches in the tree):
     ...
     └── uce-search-results
 
+Usually, I will create a separate directory to hold the alignment and
+input/output files for ExaBayes:
+
+.. code-block:: bash
+
+    cp -R mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml mafft-nexus-internal-trimmed-gblocks-clean-75p-exbayes
+
 RAxML
 -----
 
-The above data are ready to analysis in raxml_.  I usually run raxml_ in two
+The above data are ready to analysis in RAxML_.  I usually run RAxML_ in two
 pieces - first running the "best" tree search, then running the bootstrap
 replicates, and I almost always run these analyses on the HPC.
+
+.. code-block:: bash
+
+    # make sure we are in the correct directory
+    cd uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml
+
+    # get two random numbers
+    for i in 1 2; do echo $RANDOM; done
+
+    # that output the following
+    # 19877
+    # 7175
+
+    # run the search for the "best" ML tree
+    raxmlHPC-PTHREADS-SSE3 \
+        -m GTRGAMMA \
+        -N 20 \
+        -p 19877 \
+        -n best \
+        -s mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip \
+        -T 12
+
+    # analyze boostrap data sets using the autoMRE function of RAxML
+    raxmlHPC-PTHREADS-SSE3 \
+        -m GTRGAMMA \
+        -N autoMRE \
+        -p 19877 \
+        -b 7175 \
+        -n bootreps \
+        -s mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip \
+        -T 12
+
+.. warning:: Note that I am using 12 physical CPU cores here (`-T 12`).  You
+    need to use the number of physical cores available on *your* machine.
+
+Once those are finished running, we need to reconcile the "best" tree with the
+ML bootstrap replicates:
+
+.. code-block:: bash
+
+    # reconcile the "best" ML tree with the bootreps
+    raxmlHPC-SSE3 \
+        -m GTRGAMMA \
+        -f b \
+        -t RAxML_bestTree.best \
+        -z RAxML_bootstrap.bootreps
 
 ExaBayes
 --------
 
-To run data in exabayes_, you need the PHYLIP file you just created as well as
-entries in a "partition" file and a "configuration" file.  Once you have those,
-you're ready to queue them up on your machine or your local HPC.
+I have not included ExaBayes_ in the conda package for phyluce_ because it
+generally requires MPI and should really be run on an HPC or a large local
+machine.  If you would like to run it on your machine, you'll need to get it
+installed on your own.
+
+To run data in ExaBayes_, you need the PHYLIP file you just created as well as
+2 other files in order to the the program - one giving partition information and
+another giving configuration options.  Create these.
+
+aln.part
+^^^^^^^^
+
+.. code-block:: bash
+
+    DNA, p1=1-499929
+
+config.nexus
+^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    #NEXUS
+
+    begin run;
+     numruns 4
+     numgen 1e6
+    end;
+
+Now, we can run ExaBayes:
+
+.. code-block:: bash
+
+    # make sure we are in the correct directory
+    cd uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-exabayes
+
+    # get a random number
+    echo $RANDOM
+
+    # this outputs
+    5341
+
+    # ensure the files we created above are in this directory, then
+    mpirun -np 12 exabayes -f mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip -n run1 -q aln.part -s 5341 -c config.nexus -R 4
+
+.. warning:: Note that I am using 12 physical CPU cores here (`-T 12`).  You
+    need to use the number of physical cores available on *your* machine.
+
+Once those are finished running, we can summarize the posterior using the
+`consense` and `postProcParams` program:
+
+    consense -f ExaBayes_topologies.run1.phylip.* -n some_descriptive_name_here
+    postProcParam -f ExaBayes_parameters.run1.phylip.* -n some_descriptive_name_here
