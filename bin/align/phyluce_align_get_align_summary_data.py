@@ -161,7 +161,8 @@ def get_matrix_percentages(t_cnt):
     # get percentages
     stops = {}
     for i in numpy.arange(0.5, 1, 0.05):
-        stops[i] = math.floor(i * mx)
+        # add a little fudge factor to deal with floats
+        stops[i] = math.ceil((i - 0.01) * mx)
     percentages = {}
     for percent, stop in stops.iteritems():
         total = 0
