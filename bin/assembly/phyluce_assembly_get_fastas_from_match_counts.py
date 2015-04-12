@@ -142,7 +142,7 @@ def find_file(contigs, name):
 
 def get_contig_name(header):
     """parse the contig name from the header of either velvet/trinity assembled contigs"""
-    match = re.search("^(node_\d+|comp\d+_c\d+_seq\d+|c\d+_g\d+_i\d+).*", header, flags=re.I)
+    match = re.search("^(node_\d+|comp\d+_c\d+_seq\d+|c\d+_g\d+_i\d+|TR\d+).*", header, flags=re.I)
     return match.groups()[0]
 
 
