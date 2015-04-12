@@ -38,3 +38,8 @@
 .. _Illumina: http://www.illumina.com/
 .. _lastz: http://www.bx.psu.edu/~rsharris/lastz/
 .. _relational database: http://en.wikipedia.org/wiki/Relational_database
+.. _FastQC: http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+.. _sylink: http://en.wikipedia.org/wiki/Symbolic_link
+.. _raxml: http://sco.h-its.org/exelixis/web/software/raxml/index.html
+.. _exabayes: http://sco.h-its.org/exelixis/web/software/examl/index.html
+.. _examl: http://sco.h-its.org/exelixis/web/software/exabayes/index.html
