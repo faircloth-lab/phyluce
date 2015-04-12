@@ -1,8 +1,10 @@
 .. include:: global.rst
 
-*****************************************
-UCE Processing for Phylogenomics Tutorial
-*****************************************
+.. _Tutorial_I:
+
+*****************************
+Tutorial I: UCE Phylogenomics
+*****************************
 
 In the following example, we are going to process raw read data from UCE
 enrichments performed against several divergent taxa so that you can get a feel
