@@ -205,11 +205,13 @@ Below is a list of what phyluce_ currently (v1.4.x) requires for installation.
 ----------------------
 
 - abyss 1.3.7 (max kmer=96; built with boost and google-sparsehash)
+- bowtie 1.1.1
 - bedtools 2.18.1
 - bwa 0.7.7
 - bx-python 0.7.1
 - dendropy 3.12.0
 - gatk-lite 2.3.0
+- gblocks 0.91b
 - illumiprocessor 2.0.7
 - lastz 1.02.00
 - mafft 7.130
@@ -219,6 +221,7 @@ Below is a list of what phyluce_ currently (v1.4.x) requires for installation.
 - pyvcf 0.6.4
 - raxml 8.0.19
 - samtools 0.1.19
+- trinity 2.0.6
 - velvet 1.2.10 (max kmer=96)
 
 Python packages
