@@ -1,13 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
-File: interleave_reads.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 03 March 2012 14:03 PST (-0800)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description:  Given two fastq files of reads, merge those two files
-into a single "shuffled" or "interleaved" file of reads.
-
+Created on 03 March 2012 14:03 PST (-0800)
 """
 
 import sys
