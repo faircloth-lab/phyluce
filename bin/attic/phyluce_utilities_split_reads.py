@@ -1,17 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
-File: split_reads.py
-Author: Brant Faircloth
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 01 March 2012 22:03 PST (-0800)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-Description:  Split an interleaved fastq file into component read1
-and read 2 parts.
-
-Usage:
-
-    python split_reads.py interleaved.fastq.gz r1.fastq.gz r2.fastq.gz
-
+Created on 01 March 2012 22:03 PST (-0800)
 """
 
 import sys
@@ -20,9 +17,21 @@ from seqtools.sequence import fastq
 
 def get_args():
     parser = argparse.ArgumentParser(description='Split an interleaved, paired-end fastq file into two files')
-    parser.add_argument('input', help='The input fastq file')
-    parser.add_argument('read1', help='The output read1 fastq file name')
-    parser.add_argument('read2', help='The output read2 fastq file name')
+    parser.add_argument(
+        '--input',
+        required=True,
+        help='The input fastq file'
+    )
+    parser.add_argument(
+        '--read1',
+        required=True,
+        help='The output read1 fastq file name'
+    )
+    parser.add_argument(
+        '--read2',
+        required=True,
+        help='The output read2 fastq file name'
+    )
     args = parser.parse_args()
     return args
 

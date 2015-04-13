@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 19 September 2012 13:09 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -24,21 +24,27 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Program description""")
     parser.add_argument(
-            "indir",
+            "--indir",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The directory containing the links to rename"""
         )
     parser.add_argument(
-            "oldpath",
+            "--oldpath",
+            required=True,
+            type=str,
             help="""The text you want to replace in the oldpath (include '/')"""
         )
     parser.add_argument(
-            "newpath",
+            "--newpath",
+            required=True,
+            type=str,
             help="""The text you want to use as a replacement in the newpath (include '/')"""
         )
     parser.add_argument(
-            "outdir",
+            "--outdir",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The output directory to hold updated symlinks"""
