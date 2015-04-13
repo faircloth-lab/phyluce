@@ -13,19 +13,35 @@ import sys
 import argparse
 from operator import itemgetter
 
+from phyluce.helpers import is_file
+
 import pdb
 
 def get_args():
     parser = argparse.ArgumentParser(description='Match UCE probes to assembled contigs and store the data')
-    parser.add_argument('uce', help='The UCE BED file', type=argparse.FileType('rU'))
-    parser.add_argument('snp', help='The SNP intersection BED file', type=argparse.FileType('rU'))
-    parser.add_argument('--output', help = 'The output file',
-        type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument(
+        '--uce',
+        required=True,
+        help='The UCE BED file',
+        type=argparse.FileType('rU')
+    )
+    parser.add_argument(
+        '--snp',
+        required=True,
+        help='The SNP intersection BED file',
+        type=argparse.FileType('rU')
+    )
+    parser.add_argument(
+        '--output',
+        help = 'The output file',
+        type=argparse.FileType('w'),
+        default=sys.stdout
+    )
     return parser.parse_args()
-    
+
 def get_intersect(a, b):
     return max(0, min(a[1], b[1]) - max(a[0], b[0]))
-    
+
 def fix_ints(line, splitchar = '\t'):
     lsplit = line.strip('\n').split(splitchar)
     return [lsplit[0], int(lsplit[1]), int(lsplit[2]), lsplit[3]]

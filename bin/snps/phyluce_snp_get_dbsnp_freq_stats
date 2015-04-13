@@ -14,19 +14,39 @@ import sys
 import copy
 import numpy
 import argparse
-from phyluce.helpers import get_dupes, get_xml_data
+from phyluce.helpers import get_dupes, get_xml_data, is_file
 
-import pdb
+#import pdb
 
 def get_args():
     parser = argparse.ArgumentParser(description='Get the average contig length, by species, within a combined fasta')
-    parser.add_argument('dbsnp', help='CSV input from dbSNP giving SNP positions within UCE')
-    parser.add_argument('xml', help='The XML file holiding locus data from dbSNP')
-    parser.add_argument('--output', help = 'The output file',
-        type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('--output2', help = 'The output file',
-        type=argparse.FileType('w'))
-    parser.add_argument('--dupefile', help='The path to a lastz file of lastz-against-self results')
+    parser.add_argument(
+        '--dbsnp',
+        required=True,
+        type=is_file,
+        help='CSV input from dbSNP giving SNP positions within UCE'
+    )
+    parser.add_argument(
+        '--xml',
+        required=True,
+        type=is_file,
+        help='The XML file holiding locus data from dbSNP'
+    )
+    parser.add_argument(
+        '--output',
+        help = 'The output file',
+        type=argparse.FileType('w'),
+        default=sys.stdout
+    )
+    parser.add_argument(
+        '--output2',
+        help = 'The output file',
+        type=argparse.FileType('w')
+    )
+    parser.add_argument(
+        '--dupefile',
+        help='The path to a lastz file of lastz-against-self results'
+    )
     return parser.parse_args()
 
 def main():
@@ -43,7 +63,7 @@ def main():
     all_snps = get_xml_data(args.xml)
     # find the middle
     overall_middle = int(round(mx/2, 0))
-    # list to hold results 
+    # list to hold results
     l = numpy.zeros(mx + 1)
     positions = copy.deepcopy(l)
     # create a dict to hold the results by position in longest array
@@ -70,8 +90,8 @@ def main():
                     d[uce][overall_middle + rel_snp_pos] = all_snps[snp.strip('rs')].freq_freq
                 if args.output2 and not snpe - snps > 1 and (snp not in used) and (uce not in dupes):
                     args.output2.write("{},{},{},{},{},{},{},{},{}\n".format(
-                        uce, chromo, start, end, snp, snps, 
-                        snpe, all_snps[snp.strip('rs')].val_1000G, 
+                        uce, chromo, start, end, snp, snps,
+                        snpe, all_snps[snp.strip('rs')].val_1000G,
                         all_snps[snp.strip('rs')].freq_freq))
                 used.add(snp)
     stack = numpy.array([d[uce] for uce in d.keys()])

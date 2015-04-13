@@ -11,18 +11,31 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 
 import os
 import sys
-import numpy
 import argparse
-from phyluce.helpers import get_dupes, get_xml_data
+from phyluce.helpers import get_dupes, get_xml_data, is_file
 
-import pdb
+#import pdb
 
 def get_args():
     parser = argparse.ArgumentParser(description='Get the average contig length, by species, within a combined fasta')
-    parser.add_argument('dbsnp', help='CSV input from dbSNP giving SNP positions within UCE', type=argparse.FileType('rU'))
-    parser.add_argument('xml', help='The XML file holiding locus data from dbSNP')
-    parser.add_argument('--output', help = 'The output file',
-        type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument(
+        '--dbsnp',
+        required=True,
+        type=argparse.FileType('rU'),
+        help='CSV input from dbSNP giving SNP positions within UCE'
+    )
+    parser.add_argument(
+        '--xml',
+        required=True,
+        type=is_file,
+        help='The XML file holiding locus data from dbSNP'
+    )
+    parser.add_argument(
+        '--output',
+        help = 'The output file',
+        type=argparse.FileType('w'),
+        default=sys.stdout
+    )
     parser.add_argument('--dupefile', help='The path to a lastz file of lastz-against-self results')
     return parser.parse_args()
 
@@ -56,16 +69,16 @@ def main():
                 else:
                     freq = float(all_snps[snp.strip('rs')].freq_freq)
                 args.output.write("{0},{1},{2},{3}\n".format(
-                    snp, 
+                    snp,
                     rel_snp_pos,
-                    freq, 
+                    freq,
                     thousandg
                     )
                 )
                 # make sure we skip any duplicates
                 used.add(snp)
                 #pdb.set_trace()
-        
+
     # check to see if UCE is in dupes
 
 if __name__ == '__main__':
