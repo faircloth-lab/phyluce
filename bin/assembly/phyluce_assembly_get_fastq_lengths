@@ -27,7 +27,8 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Get summary (length) data from fastq""")
     parser.add_argument(
-            "input",
+            "--input",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The directory of fastq files to summarize"""

@@ -17,7 +17,7 @@ import gzip
 import numpy
 import argparse
 from itertools import groupby
-from phyluce.helpers import FullPaths
+from phyluce.helpers import FullPaths, is_dir
 
 #import pdb
 
@@ -29,6 +29,7 @@ def get_args():
     parser.add_argument(
             "--input",
             required=True,
+            type=is_dir,
             action=FullPaths,
             help="""The directory of fastq files to summarize"""
         )
