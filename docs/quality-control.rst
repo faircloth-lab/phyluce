@@ -91,7 +91,7 @@ enter the directory containing the read data and run:
 
 .. code-block:: bash
 
-    for i in *_R1_*; do get_fastq_lengths.py $i --csv; done
+    for i in *_R1_*; do get_fastq_lengths.py --input $i --csv; done
 
 
 Adapter- and quality-trimming

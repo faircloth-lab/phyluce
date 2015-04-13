@@ -322,7 +322,7 @@ sample:
 
     for i in *;
     do
-        phyluce_assembly_get_fastq_lengths.py $i/split-adapter-quality-trimmed/ --csv;
+        phyluce_assembly_get_fastq_lengths.py --input $i/split-adapter-quality-trimmed/ --csv;
     done
 
 The output you see should look like this:
