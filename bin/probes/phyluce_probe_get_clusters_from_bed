@@ -18,9 +18,9 @@ import json
 import argparse
 from collections import Counter, defaultdict
 from bx.intervals.cluster import ClusterTree
-from phyluce.helpers import FullPaths
+from phyluce.helpers import FullPaths, CreateDir, is_dir
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -28,13 +28,16 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Program description""")
     parser.add_argument(
-            "bed",
+            "--bed",
+            required=True,
+            type=is_dir,
             action=FullPaths,
             help="""The BED directory you want to search for clusters"""
         )
     parser.add_argument(
-            "outdir",
-            action=FullPaths,
+            "--outdir",
+            required=True,
+            action=CreateDir,
             help="""The output directory to store results"""
         )
     parser.add_argument(

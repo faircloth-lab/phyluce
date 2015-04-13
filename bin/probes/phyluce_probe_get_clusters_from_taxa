@@ -7,7 +7,7 @@ Author: Brant Faircloth
 Created by Brant Faircloth on 19 July 2012 18:07 PDT (-0700)
 Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
 
-Description: 
+Description:
 
 """
 
@@ -18,9 +18,9 @@ import sqlite3
 import argparse
 import itertools
 from collections import defaultdict, Counter
-from phyluce.helpers import FullPaths
+from phyluce.helpers import FullPaths, is_dir, is_file
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -28,12 +28,16 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Program description""")
     parser.add_argument(
-            "clusters",
+            "--clusters",
+            required=True,
+            type=is_dir,
             action=FullPaths,
             help="""The directory containing cluster files"""
         )
     parser.add_argument(
-            "db",
+            "--db",
+            required=True,
+            type=is_file,
             action=FullPaths,
             help="""The database to update"""
         )

@@ -25,7 +25,7 @@ from Bio.SeqRecord import SeqRecord
 
 from bx.seq import twobit
 from phyluce import lastz
-from phyluce.helpers import FullPaths, is_dir, is_file
+from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 
 
 import pdb
@@ -35,20 +35,23 @@ def get_args():
     parser = argparse.ArgumentParser(
         description="""Given a LASTZ input directory, find matches, add flank, and return a FASTA file of sequences""")
     parser.add_argument(
-        "conf",
+        "--conf",
+        required=True,
         action=FullPaths,
         type=is_file,
         help="""Path to the configuration file"""
     )
     parser.add_argument(
-        "lastz",
+        "--lastz",
+        required=True,
         action=FullPaths,
         type=is_dir,
         help="""Path to the directory containing LASTZ results"""
     )
     parser.add_argument(
-        "output",
-        action=FullPaths,
+        "--output",
+        required=True,
+        action=CreateDir,
         help="""Path to the output directory for storing FASTA files"""
     )
     parser.add_argument(

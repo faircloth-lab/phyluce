@@ -18,10 +18,10 @@ import glob
 import logging
 import argparse
 from collections import defaultdict
-from phyluce.helpers import FullPaths, is_dir
+from phyluce.helpers import FullPaths, is_dir, CreateDir
 from phyluce import lastz
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -29,15 +29,17 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""get_locus_bed_from_lastz""")
     parser.add_argument(
-            "input",
+            "--input",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The input directory containing lastz files"""
         )
     parser.add_argument(
-            "output",
+            "--output",
+            required=True,
             type=is_dir,
-            action=FullPaths,
+            action=CreateDir,
             help="""The output directory to hold BED-formatted files""",
         )
     return parser.parse_args()

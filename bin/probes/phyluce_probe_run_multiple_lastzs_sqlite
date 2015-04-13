@@ -32,18 +32,21 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Align a set of probes against genome sequence(s) in scaffolds or chromosomes""")
     parser.add_argument(
-            "db",
+            "--db",
+            required=True,
             type=str,
             help="""The database in which to store results (also use --append if adding results to an existing database)"""
         )
     parser.add_argument(
-            "output",
+            "--output",
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The directory in which to store the LASTZ files"""
         )
     parser.add_argument(
-            "probefile",
+            "--probefile",
+            required=True,
             type=is_file,
             action=FullPaths,
             help="""The probe file to align against the sequences"""
