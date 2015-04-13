@@ -9,11 +9,11 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 """
 
 import argparse
-from phyluce.helpers import get_dupes
+from phyluce.helpers import get_dupes, is_file
 
 def get_args():
     parser = argparse.ArgumentParser(description='Screen a lastz file of self-to-self matches for dupes')
-    parser.add_argument('lastz', help='The lastz input')
+    parser.add_argument('--lastz', required=True, type=is_file, help='The lastz input')
     return parser.parse_args()
 
 def main():
