@@ -30,21 +30,24 @@ def get_args():
             description="""Count indels in alignments, relative to (but excluding) the outgroup"""
         )
     parser.add_argument(
-            'input',
+            '--alignments',
+            required=True,
             type=is_dir,
             action=FullPaths,
             help="""The directory containing the alignment files"""
         )
     parser.add_argument(
-            'outgroup',
-            type=str,
-            help="""The outgroup taxon"""
-        )
-    parser.add_argument(
             '--output',
+            required=True,
             type=str,
             default='output',
             help="""The output filename (without extension - code will add .sqlite)"""
+        )
+    parser.add_argument(
+            '--outgroup',
+            required=True,
+            type=str,
+            help="""The outgroup taxon"""
         )
     parser.add_argument(
             "--input-format",

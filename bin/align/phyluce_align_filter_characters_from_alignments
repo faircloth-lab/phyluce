@@ -24,7 +24,7 @@ from Bio.Alphabet import generic_dna
 from Bio.SeqRecord import SeqRecord
 from phyluce.helpers import FullPaths, is_dir, get_file_extensions
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -32,7 +32,7 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""For a given folder of alignments, replace masked bases and/or insertion characters and convert to FASTA sequence files""")
     parser.add_argument(
-            "--input",
+            "--alignments",
             required=True,
             action=FullPaths,
             type=is_dir,

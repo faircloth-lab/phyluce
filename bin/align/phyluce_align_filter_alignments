@@ -14,7 +14,7 @@ import glob
 import shutil
 import argparse
 from Bio import AlignIO
-from phyluce.helpers import is_dir, FullPaths, CreateDirs, get_file_extensions
+from phyluce.helpers import is_dir, FullPaths, CreateDir, get_file_extensions
 from phyluce.log import setup_logging
 
 #import pdb
@@ -26,14 +26,16 @@ def get_args():
         )
     parser.add_argument(
             '--alignments',
+            required=True,
             type=is_dir,
             action=FullPaths,
             help='The directory containing the alignment files'
         )
     parser.add_argument(
             "--output",
+            required=True,
             type=is_dir,
-            action=CreateDirs,
+            action=CreateDir,
             help="""The directory to write alignments meeting criteria."""
         )
     parser.add_argument(

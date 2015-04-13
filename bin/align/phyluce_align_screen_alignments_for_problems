@@ -31,12 +31,14 @@ def get_args():
     )
     parser.add_argument(
         '--alignments',
+        required=True,
         type=is_dir,
         action=FullPaths,
         help="""The directory containing alignments to be screened."""
     )
     parser.add_argument(
         '--output',
+        required=True,
         action=CreateDir,
         help="""The directory in which to store the resulting alignments."""
     )
