@@ -186,6 +186,8 @@ def main():
             bam = bam_se
         if not bam:
             raise IOError("There is no BAM file.  Check bwa log files for problems.")
+        # mark duplicates
+        bam = picard.mark_duplicates(log, sample, assembly_pth, bam, "all")
         samtools.index(log, sample, assembly_pth, bam)
         coverage = gatk.coverage(log, sample, assembly_pth, assembly, args.cores, bam)
         overall_contigs = gatk.get_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
