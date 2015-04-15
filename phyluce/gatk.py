@@ -199,6 +199,7 @@ def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, velv
     pbc = os.path.join(
         assembly_pth,
         '{}-UNTRIMMED-per-base-coverage.txt.gz'.format(sample)
+    )
     #pcc = os.path.join(
     #    assembly_pth,
     #    '{}-TRIMMED-per-contig-coverage.txt'.format(sample)
