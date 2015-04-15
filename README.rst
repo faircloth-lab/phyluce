@@ -7,7 +7,7 @@ for analyzing data collected from ultraconserved elements in organismal genomes.
 The package now includes a number of tools spanning:
 
 - the assembly of raw read data to contigs
-- the separation of UCE loci from assembled contigs
+- the identification of UCE contigs
 - parallel alignment generation, alignment trimming, and alignment data summary
   methods in preparation for analysis
 - alignment and SNP calling using UCE or other types of raw-read data.
@@ -24,7 +24,7 @@ additional information on using phyluce_
 Installing
 ----------
 
-We **strongly** suggest installating phyluce_ using anaconda_/miniconda_ and the
+We **strongly** suggest installaing phyluce_ using anaconda_/miniconda_ and the
 conda_ package manager for python_.  We build and test phyluce_ dependencies and
 function on the following platforms.
 
