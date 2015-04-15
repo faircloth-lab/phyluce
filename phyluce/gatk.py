@@ -206,79 +206,45 @@ def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, velv
     overall_length = []
     overall_count = 0
     overall_contigs = {}
-    # -coverage file gets renamed below
-    pbc = os.path.join(
-        assembly_pth,
-        '{}-UNTRIMMED-per-base-coverage.txt'.format(sample)
-    )
     upcc = os.path.join(
         assembly_pth,
         '{}-UNTRIMMED-per-contig-coverage.txt'.format(sample)
     )
     with open(coverage, 'rU') as infile:
-        with gzip.open(pbc, 'w') as per_base_cov:
-            #with open(pcc, 'w') as per_contig_cov:
-                with open(upcc, 'w') as unt_per_contig_cov:
-                    # read header line
-                    gatk_header = infile.readline()
-                    # write headers to outfiles
-                    unt_per_contig_cov.write("name\tbeginning-length\tbeginning-mean-cov\n")
-                    per_base_cov.write(gatk_header)
-                    for line in infile:
-                        ls = line.split()
-                        search = regex.search(ls[0])
-                        match_name, pos = search.groups()
-                        if previous_match is None or match_name == previous_match:
-                            # hold onto current match_name
-                            previous_match = match_name
-                            # compute metrics on current position
-                            #contig_data[int(pos)] = line
-                            contig_depth.append(int(ls[1]))
-                        elif match_name != previous_match:
-                            metadata = compute_coverage_metrics(contig_depth, trim=False)
-                            unt_per_contig_cov.write("{}\t{}\t{}\n".format(
-                                    previous_match,
-                                    metadata["beginning-length"],
-                                    metadata["beginning-mean-cov"]
-                                ))
-                            #for pos, line in contig_data.iteritems():
-                            #    per_base_cov.write(line)
-                            overall_contigs[previous_match] = metadata
-                            overall_count += 1
-                            overall_coverage.append(metadata["beginning-mean-cov"])
-                            overall_length.append(metadata["beginning-length"])
-                            #if metadata["ending-mean-cov"] >= 5.0:
-                            #    per_contig_cov.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                            #        previous_match,
-                            #        metadata["beginning-length"],
-                            #        metadata["beginning-mean-cov"],
-                            #        metadata["trim-start"],
-                            #        metadata["trim-end"],
-                            #        metadata["ending-length"],
-                            #        metadata["ending-mean-cov"]
-                            #    ))
-                            #    for pos, line in contig_data.iteritems():
-                            #        if pos-1 >= metadata["trim-start"] and pos-1 < metadata["trim-end"]:
-                            #            per_base_cov.write(line)
-                            #    overall_contigs[previous_match] = metadata
-                            #    overall_count += 1
-                            #    overall_coverage.append(metadata["ending-mean-cov"])
-                            #    overall_length.append(metadata["ending-length"])
-                            # reset previous match to current
-                            previous_match = match_name
-                            # reset containers
-                            contig_depth = []
-                            contig_data = OrderedDict()
-                            # compute metrics on current first position
-                            contig_data[int(pos)] = line
-                            contig_depth.append(int(ls[1]))
-    # rename coverage file to `pbc`
-    with open(coverage, 'rb') as orig_file:
-        gzip_name = "{}.gz".format(coverage)
-        with gzip.open(gzip_name, 'wb') as zipped_file:
-            zipped_file.writelines(orig_file)
-    # remove original coverage file
-    os.remove(coverage)
+        with open(upcc, 'w') as unt_per_contig_cov:
+            # read header line
+            gatk_header = infile.readline()
+            # write headers to outfiles
+            unt_per_contig_cov.write("name\tbeginning-length\tbeginning-mean-cov\n")
+            for line in infile:
+                ls = line.split()
+                search = regex.search(ls[0])
+                match_name, pos = search.groups()
+                if previous_match is None or match_name == previous_match:
+                    # hold onto current match_name
+                    previous_match = match_name
+                    # compute metrics on current position
+                    #contig_data[int(pos)] = line
+                    contig_depth.append(int(ls[1]))
+                elif match_name != previous_match:
+                    metadata = compute_coverage_metrics(contig_depth, trim=False)
+                    unt_per_contig_cov.write("{}\t{}\t{}\n".format(
+                            previous_match,
+                            metadata["beginning-length"],
+                            metadata["beginning-mean-cov"]
+                        ))
+                    overall_contigs[previous_match] = metadata
+                    overall_count += 1
+                    overall_coverage.append(metadata["beginning-mean-cov"])
+                    overall_length.append(metadata["beginning-length"])
+                    # reset previous match to current
+                    previous_match = match_name
+                    # reset containers
+                    contig_depth = []
+                    contig_data = OrderedDict()
+                    # compute metrics on current first position
+                    contig_data[int(pos)] = line
+                    contig_depth.append(int(ls[1]))
     log.info("\t{} contigs, mean coverage = {:.1f}, mean length = {:.1f}".format(
         overall_count,
         numpy.mean(overall_coverage),

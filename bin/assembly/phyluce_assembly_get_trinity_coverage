@@ -200,7 +200,6 @@ def main():
             symlink_trimmed_contigs(log, sample, contig_dir, trimmed_fasta_path)
         else:
             overall_contigs = gatk.get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
-        pdb.set_trace()
         gatk.remove_coverage_files(log, assembly_pth, coverage)
     # end
     text = " Completed {} ".format(my_name)
