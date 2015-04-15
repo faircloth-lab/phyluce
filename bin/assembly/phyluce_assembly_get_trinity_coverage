@@ -194,11 +194,14 @@ def main():
         bam = picard.mark_duplicates(log, sample, assembly_pth, bam, "all")
         samtools.index(log, sample, assembly_pth, bam)
         coverage = gatk.coverage(log, sample, assembly_pth, assembly, args.cores, bam)
-        overall_contigs = gatk.get_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
-        gatk.remove_coverage_files(log, assembly_pth, coverage)
         if args.trim:
+            overall_contigs = gatk.get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
             trimmed_fasta_path = gatk.filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, overall_contigs)
             symlink_trimmed_contigs(log, sample, contig_dir, trimmed_fasta_path)
+        else:
+            overall_contigs = gatk.get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
+        pdb.set_trace()
+        gatk.remove_coverage_files(log, assembly_pth, coverage)
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
