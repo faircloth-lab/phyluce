@@ -62,10 +62,12 @@ def coverage(log, sample, assembly_pth, assembly, cores, bam):
     return os.path.join(assembly_pth, "{}-coverage".format(sample))
 
 
-def compute_coverage_metrics(contig_depth):
+def compute_coverage_metrics(contig_depth, trim=False):
     metadata = {
         "beginning-length":None,
         "beginning-mean-cov": None,
+        "contig-start": None,
+        "contig-end": None,
         "trim-start":None,
         "trim-end":None,
         "ending-length":None,
@@ -74,25 +76,33 @@ def compute_coverage_metrics(contig_depth):
     depth_array = numpy.array(contig_depth)
     metadata["beginning-length"] = len(depth_array)
     metadata["beginning-mean-cov"] = numpy.round(numpy.mean(depth_array), 2)
-    # find where coverage is >= 3
-    min_cov = depth_array >= 3
-    # get positions at edges where True
-    true_positions = numpy.where(min_cov==True)
-    try:
-        metadata["trim-start"] = true_positions[0][0]
-        metadata["trim-end"] = true_positions[0][-1] + 1
-        good = depth_array[metadata["trim-start"]:metadata["trim-end"]]
-    except IndexError as err:
-        if err.message == 'index out of bounds':
-            good = None
+    metadata["contig-start"] = 0
+    metadata["contig-end"] = len(depth_array)
+    if trim:
+        # find where coverage is >= 3
+        min_cov = depth_array >= 3
+        # get positions at edges where True
+        true_positions = numpy.where(min_cov==True)
+        try:
+            metadata["trim-start"] = true_positions[0][0]
+            metadata["trim-end"] = true_positions[0][-1] + 1
+            good = depth_array[metadata["trim-start"]:metadata["trim-end"]]
+        except IndexError as err:
+            if err.message == 'index out of bounds':
+                good = None
+            else:
+                raise err
+        if good is not None:
+            metadata["ending-length"] = len(good)
+            metadata["ending-mean-cov"] = numpy.round(numpy.mean(good), 2)
         else:
-            raise err
-    if good is not None:
-        metadata["ending-length"] = len(good)
-        metadata["ending-mean-cov"] = numpy.round(numpy.mean(good), 2)
+            metadata["ending-length"] = None
+            metadata["ending-mean-cov"] = None
     else:
-        metadata["ending-length"] = None
-        metadata["ending-mean-cov"] = None
+        metadata["trim-start"] = None
+        metadata["trim-end"] = None
+        metadata["ending-length"] = len(depth_array)
+        metadata["ending-mean-cov"] = numpy.round(numpy.mean(depth_array), 2)
     return metadata
 
 
@@ -143,7 +153,7 @@ def get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, velvet
                             contig_data[int(pos)] = line
                             contig_depth.append(int(ls[1]))
                         elif match_name != previous_match:
-                            metadata = compute_coverage_metrics(contig_depth)
+                            metadata = compute_coverage_metrics(contig_depth, trim=True)
                             unt_per_contig_cov.write("{}\t{}\t{}\n".format(
                                     previous_match,
                                     metadata["beginning-length"],
@@ -196,14 +206,11 @@ def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, velv
     overall_length = []
     overall_count = 0
     overall_contigs = {}
+    # -coverage file gets renamed below
     pbc = os.path.join(
         assembly_pth,
-        '{}-UNTRIMMED-per-base-coverage.txt.gz'.format(sample)
+        '{}-UNTRIMMED-per-base-coverage.txt'.format(sample)
     )
-    #pcc = os.path.join(
-    #    assembly_pth,
-    #    '{}-TRIMMED-per-contig-coverage.txt'.format(sample)
-    #)
     upcc = os.path.join(
         assembly_pth,
         '{}-UNTRIMMED-per-contig-coverage.txt'.format(sample)
@@ -215,7 +222,6 @@ def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, velv
                     # read header line
                     gatk_header = infile.readline()
                     # write headers to outfiles
-                    #per_contig_cov.write("name\tbeginning-length\tbeginning-mean-cov\ttrim-start\ttrim-end\tend-length\tend-mean-cov\n")
                     unt_per_contig_cov.write("name\tbeginning-length\tbeginning-mean-cov\n")
                     per_base_cov.write(gatk_header)
                     for line in infile:
@@ -226,17 +232,17 @@ def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, velv
                             # hold onto current match_name
                             previous_match = match_name
                             # compute metrics on current position
-                            contig_data[int(pos)] = line
+                            #contig_data[int(pos)] = line
                             contig_depth.append(int(ls[1]))
                         elif match_name != previous_match:
-                            metadata = compute_coverage_metrics(contig_depth)
+                            metadata = compute_coverage_metrics(contig_depth, trim=False)
                             unt_per_contig_cov.write("{}\t{}\t{}\n".format(
                                     previous_match,
                                     metadata["beginning-length"],
                                     metadata["beginning-mean-cov"]
                                 ))
-                            for pos, line in contig_data.iteritems():
-                                per_base_cov.write(line)
+                            #for pos, line in contig_data.iteritems():
+                            #    per_base_cov.write(line)
                             overall_contigs[previous_match] = metadata
                             overall_count += 1
                             overall_coverage.append(metadata["beginning-mean-cov"])
@@ -266,6 +272,13 @@ def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, velv
                             # compute metrics on current first position
                             contig_data[int(pos)] = line
                             contig_depth.append(int(ls[1]))
+    # rename coverage file to `pbc`
+    with open(coverage, 'rb') as orig_file:
+        gzip_name = "{}.gz".format(coverage)
+        with gzip.open(gzip_name, 'wb') as zipped_file:
+            zipped_file.writelines(orig_file)
+    # remove original coverage file
+    os.remove(coverage)
     log.info("\t{} contigs, mean coverage = {:.1f}, mean length = {:.1f}".format(
         overall_count,
         numpy.mean(overall_coverage),
