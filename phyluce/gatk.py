@@ -195,9 +195,9 @@ def get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, velvet
 def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, velvet):
     log.info("Screening contigs for coverage")
     if not velvet:
-        regex = re.compile("(comp\d+_c\d+_seq\d+).*:(\d+)")
+        regex = re.compile("({}).*:(\d+)".format(get_user_param("headers", "trinity")))
     else:
-        regex = re.compile("(NODE_\d+_length_\d+_cov_\d+.*):(\d+)")
+        regex = re.compile("({}.*):(\d+)".format(get_user_param("headers", "velvet")))
     # setup starting values
     previous_match = None
     contig_depth = []
