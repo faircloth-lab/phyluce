@@ -104,7 +104,7 @@ def cleanup_trinity_assembly_folder(log, pth):
     log.info("Removing extraneous Trinity files")
     files = glob.glob(os.path.join(pth, '*'))
     for file in files:
-        if not os.path.basename(file) in ("Trinity.fasta", "trinity.log"):
+        if not os.path.basename(file) in ("Trinity.fasta", "trinity.log", "contigs.fasta"):
             if os.path.isfile(file):
                 os.remove(file)
             elif os.path.isdir(file):
@@ -150,8 +150,6 @@ def main():
         assembly = os.path.join(assembly_pth, "contigs.fasta")
         if not os.path.exists(assembly):
             raise IOError("Assembly for {} does not appear to exist.".format(sample))
-        if args.clean:
-            cleanup_trinity_assembly_folder(log, assembly_pth)
         # determine the types of raw read data that we have
         fastq = get_input_files(reads, args.subfolder, log)
         # create the bwa index
