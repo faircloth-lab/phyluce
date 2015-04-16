@@ -322,7 +322,7 @@ sample:
 
     for i in *;
     do
-        phyluce_assembly_get_fastq_lengths.py --input $i/split-adapter-quality-trimmed/ --csv;
+        phyluce_assembly_get_fastq_lengths --input $i/split-adapter-quality-trimmed/ --csv;
     done
 
 The output you see should look like this:
@@ -398,7 +398,7 @@ different `PATHs` on the right-hand side.
                     └── anolis_carolinensis-READ-singleton.fastq.gz
 
 Now that we have that file created, copy it to our working directory, and run
-the `assemblo_trinity.py` program:
+the `phyluce_assembly_assemblo_trinity` program:
 
 .. code-block:: bash
 
@@ -406,7 +406,7 @@ the `assemblo_trinity.py` program:
     cd uce-tutorial
 
     # run the assembly
-    phyluce_assembly_assemblo_trinity.py \
+    phyluce_assembly_assemblo_trinity \
         --conf assembly.conf \
         --output trinity-assemblies \
         --clean \
@@ -504,7 +504,7 @@ the top of our working directory:
 
     for i in trinity-assemblies/contigs/*.fasta;
     do
-        phyluce_assembly_get_fasta_lengths.py --input $i --csv;
+        phyluce_assembly_get_fasta_lengths --input $i --csv;
     done
 
 This should output something similar to the following.  I've added the header as
@@ -577,7 +577,7 @@ Now, run the `match_contigs_to_probes.py` program:
 
 .. code-block:: bash
 
-    python ~/git/phyluce/bin/assembly/phyluce_assembly_match_contigs_to_probes.py \
+    phyluce_assembly_match_contigs_to_probes \
         --contigs trinity-assemblies/contigs \
         --probes uce-5k-probes.fasta \
         --output uce-search-results
@@ -724,7 +724,7 @@ taxon:
     mkdir -p taxon-sets/all
 
     # create the data matrix configuration file
-    phyluce_assembly_get_match_counts.py \
+    phyluce_assembly_get_match_counts \
         --locus-db uce-search-results/probe.matches.sqlite \
         --taxon-list-config taxon-set.conf \
         --taxon-group 'all' \
@@ -792,7 +792,7 @@ Now, we need to extract FASTA data that correspond to the loci in
     mkdir log
 
     # get FASTA data for taxa in our taxon set
-    phyluce_assembly_get_fastas_from_match_counts.py \
+    phyluce_assembly_get_fastas_from_match_counts \
         --contigs ../../trinity-assemblies/contigs \
         --locus-db ../../uce-search-results/probe.matches.sqlite \
         --match-count-output all-taxa-incomplete.conf \
@@ -875,7 +875,7 @@ files.  To do that, run the following:
 .. code-block:: bash
 
     # explode the monolithic FASTA by taxon (you can also do by locus)
-    phyluce_assembly_explode_get_fastas_file.py \
+    phyluce_assembly_explode_get_fastas_file \
         --input all-taxa-incomplete.fasta \
         --output-dir exploded-fastas \
         --by-taxon
@@ -883,7 +883,7 @@ files.  To do that, run the following:
     # get summary stats on the FASTAS
     for i in exploded-fastas/*.fasta;
     do
-        phyluce_assembly_get_fasta_lengths.py --input $i --csv;
+        phyluce_assembly_get_fasta_lengths --input $i --csv;
     done
 
     # samples,contigs,total bp,mean length,95 CI length,min length,max length,median legnth,contigs >1kb
@@ -926,7 +926,7 @@ trimming, as follows:
     cd uce-tutorial/taxon-sets/all
 
     # align the data
-    phyluce_align_seqcap_align.py \
+    phyluce_align_seqcap_align \
         --fasta all-taxa-incomplete.fasta \
         --output mafft-nexus-edge-trimmed \
         --taxa 4 \
@@ -1007,7 +1007,7 @@ program:
 
 .. code-block:: bash
 
-    phyluce_align_get_align_summary_data.py \
+    phyluce_align_get_align_summary_data \
         --alignments mafft-nexus-edge-trimmed \
         --cores 12 \
         --log-path log
@@ -1091,7 +1091,7 @@ FASTA formatted alignments with `--output-format fasta`.
     cd uce-tutorial/taxon-sets/all
 
     # align the data - turn off trimming and output FASTA
-    phyluce_align_seqcap_align.py \
+    phyluce_align_seqcap_align \
         --fasta all-taxa-incomplete.fasta \
         --output mafft-nexus-internal-trimmed \
         --taxa 4 \
@@ -1139,7 +1139,7 @@ Now, we are going to trim these loci using Gblocks_:
 .. code-block:: bash
 
     # run gblocks trimming on the alignments
-    phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed.py \
+    phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed \
         --alignments mafft-nexus-internal-trimmed \
         --output mafft-nexus-internal-trimmed-gblocks \
         --cores 12 \
@@ -1205,7 +1205,7 @@ program:
 
 .. code-block:: bash
 
-    python ~/git/phyluce/bin/align/phyluce_align_get_align_summary_data.py \
+    phyluce_align_get_align_summary_data \
         --alignments mafft-nexus-internal-trimmed-gblocks \
         --cores 12 \
         --log-path log
@@ -1282,7 +1282,7 @@ clean those alignments:
     cd uce-tutorial/taxon-sets/all
 
     # align the data - turn off trimming and output FASTA
-    phyluce_align_remove_locus_name_from_nexus_lines.py \
+    phyluce_align_remove_locus_name_from_nexus_lines \
         --alignments mafft-nexus-internal-trimmed-gblocks \
         --output mafft-nexus-internal-trimmed-gblocks-clean \
         --cores 12 \
@@ -1359,7 +1359,7 @@ following `--taxa` is the **total** number of organisms in the study.
 
     # the integer following --taxa is the number of TOTAL taxa
     # and I use "75p" to denote the 75% complete matrix
-    phyluce_align_get_only_loci_with_min_taxa.py \
+    phyluce_align_get_only_loci_with_min_taxa \
         --alignments mafft-nexus-internal-trimmed-gblocks-clean \
         --taxa 4 \
         --percent 0.75 \
@@ -1427,7 +1427,7 @@ a phylip file for these programs is rather easy.  To do that, run:
     cd uce-tutorial/taxon-sets/all
 
     # build the concatenated data matrix
-    phyluce_align_format_nexus_files_for_raxml.py \
+    phyluce_align_format_nexus_files_for_raxml \
         --alignments mafft-nexus-internal-trimmed-gblocks-clean-75p \
         --output mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml \
         --charsets \

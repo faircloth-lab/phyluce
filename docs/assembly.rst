@@ -113,7 +113,7 @@ velvet
     # make a directory for log files
     mkdir log
     # run the assembly
-    python phyluce_assembly_assemblo_velvet.py \
+    python phyluce_assembly_assemblo_velvet \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --kmer 35 \
@@ -146,7 +146,7 @@ ABySS
     # make a directory for log files
     mkdir log
     # run the assembly
-    python phyluce_assembly_assemblo_abyss.py \
+    python phyluce_assembly_assemblo_abyss \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --kmer 35 \
@@ -195,7 +195,7 @@ Trinity
     # make a directory for log files
     mkdir log
     # run the assembly
-    python phyluce_assembly_assemblo_trinity.py \
+    python phyluce_assembly_assemblo_trinity \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --subfolder split-adapter-quality-trimmed \
@@ -204,7 +204,7 @@ Trinity
         --log-path log
 
 
-.. admonition:: Question: Why do I not use the `--kmer` flag with assemblo_trinity.py?
+.. admonition:: Question: Why do I not use the `--kmer` flag with phyluce_assembly_assemblo_trinity?
     :class: admonition tip
 
     Trinity assembles using a "static" or "program-defined" (i.e., not user-
