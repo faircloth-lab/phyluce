@@ -4,14 +4,22 @@
 import glob
 from distutils.core import setup
 
-align = ["{}".format(i) for i in glob.glob("bin/align/*.py")]
-assembly = ["{}".format(i) for i in glob.glob("bin/assembly/*.py")]
-genetrees = ["{}".format(i) for i in glob.glob("bin/genetrees/*.py")]
+align = ["{}".format(i) for i in glob.glob("bin/align/*")]
+assembly = ["{}".format(i) for i in glob.glob("bin/assembly/*")]
+genetrees = ["{}".format(i) for i in glob.glob("bin/genetrees/*")]
+ncbi = ["{}".format(i) for i in glob.glob("bin/ncbi/*")]
+probes = ["{}".format(i) for i in glob.glob("bin/probes/*")]
+snps = ["{}".format(i) for i in glob.glob("bin/snps/*")]
+utilities = ["{}".format(i) for i in glob.glob("bin/utilities/*")]
 
 scrpt = []
 scrpt.extend(align)
 scrpt.extend(assembly)
 scrpt.extend(genetrees)
+scrpt.extend(ncbi)
+scrpt.extend(probes)
+scrpt.extend(snps)
+scrpt.extend(utilities)
 
 setup(
     name='phyluce',
