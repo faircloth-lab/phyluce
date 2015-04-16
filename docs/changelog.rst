@@ -4,8 +4,8 @@
 Changelog
 =========
 
-v1.5
-----
+v1.5 (April 2015)
+-----------------
 
 * added configuration file system for binary dependencies
 * moved many older scripts to attic
