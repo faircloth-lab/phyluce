@@ -294,7 +294,9 @@ The structure of the conda repository that we use looks like the following::
 
     $CONDA/ (<= can be main CONDA or CONDA env)
         bin/
-            Binaries we build.
+            Binaries we build
+        config/
+            Holds a default configuration file for phyluce
         docs/
             Pertinent documentation, if any.
         include/
@@ -309,6 +311,83 @@ The structure of the conda repository that we use looks like the following::
             Additional support files
         test/
             Test data required by some programs.
+
+
+$PATH configuration
+===================
+
+As of v1.5, phyluce_ uses a configuration file to keep track of paths to relvant
+binaries, as well as some configuration information.  This file is located
+at `$CONDA/config/phyluce.conf`.  Although you can edit this file directly, you
+can also create a user-specific configuration file at `~/phyluce.conf`, which
+will override the default values for different paths.  So, if you need to use a
+slightly different binary or you want to experiment with new binaries (e.g. for
+assembly), then you can change the paths in this file rather than deal with
+hard-coded paths.
+
+.. attention:: You do NOT **need** to to anything with this file - $PATHs should
+    automatically resolve.
+
+.. warning:: Changing the `$PATHs` in the config file can break things pretty
+    substantially, so please use with caution (and edit the copy at
+    `~/phyluce.conf`) rather than the default copy.
+
+The format of the config file as of v1.5 looks like the following:
+
+.. code-block:: bash
+
+    [abyss]
+    abyss:$CONDA/bin/ABYSS
+    abyss-pe:$CONDA/bin/abyss-pe
+
+    [bowtie]
+    bowtie:$CONDA/bin/bowtie
+
+    [bwa]
+    bwa:$CONDA/bin/bwa
+
+    [gblocks]
+    gblocks:$CONDA/bin/gblocks
+
+    [java]
+    executable:java
+    mem:-Xmx8g
+    jar:$CONDA/jar
+    gatk:GenomeAnalysisTKLite.jar
+
+    [lastz]
+    lastz:$CONDA/bin/lastz
+
+    [mafft]
+    mafft:$CONDA/bin/mafft
+
+    [muscle]
+    muscle:$CONDA/bin/muscle
+
+    [raxml]
+    raxmlHPC-SSE3:$CONDA/bin/raxmlHPC-SSE3
+    raxmlHPC-PTHREADS-SSE3:$CONDA/bin/raxmlHPC-PTHREADS-SSE3
+
+    [samtools]
+    samtools:$CONDA/bin/samtools
+
+    [trinity]
+    trinity:$CONDA/bin/Trinity
+    max_memory:8G
+    kmer_coverage:2
+
+    [velvet]
+    velvetg:$CONDA/bin/velvetg
+    velveth:$CONDA/bin/velveth
+
+    #----------------
+    #    Advanced
+    #----------------
+
+    [headers]
+    trinity:comp\d+_c\d+_seq\d+|c\d+_g\d+_i\d+|TR\d+\|c\d+_g\d+_i\d+
+    velvet:node_\d+
+
 
 Other useful tools
 ==================
