@@ -22,8 +22,12 @@ def get_user_path(program, binary):
     config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
     # ensure program is in list
     pth = config.get(program, binary)
-    # expand path as necessary
-    expand_pth = os.path.abspath(os.path.expanduser(os.path.expandvars(pth)))
+    # expand path as necessary - replace CONDA variable placeholder
+    # with sys.prefix, otherwise default to normal path expansion
+    if pth.startswith("$CONDA"):
+        expand_pth = pth.replace("$CONDA", sys.prefix)
+    else:
+        expand_pth = os.path.abspath(os.path.expanduser(os.path.expandvars(pth)))
     return expand_pth
 
 
