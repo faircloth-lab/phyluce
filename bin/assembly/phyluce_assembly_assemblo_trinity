@@ -17,6 +17,7 @@ import glob
 import shutil
 import argparse
 import subprocess
+import ConfigParser
 from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
@@ -126,23 +127,42 @@ def combine_read_data(reads, log):
 
 def run_trinity_pe(trinity, reads, cores, min_kmer, log):
     log.info("Running Trinity.pl for PE data")
-    cmd = [
-        trinity,
-        "--seqType",
-        "fq",
-        "--min_kmer_cov",
-        get_user_param("trinity", "kmer_coverage"),
-        "--max_memory",
-        get_user_param("trinity", "max_memory"),
-        "--left",
-        os.path.join(reads.r1.dir, reads.r1.file),
-        "--right",
-        os.path.join(reads.r2.dir, reads.r2.file),
-        "--CPU",
-        str(cores),
-        "--output",
-        reads.r1.dir
-    ]
+    # deal within trinity versions that don't accept --max_memory
+    try:
+        get_user_param("trinity", "max_memory")
+        cmd = [
+            trinity,
+            "--seqType",
+            "fq",
+            "--min_kmer_cov",
+            get_user_param("trinity", "kmer_coverage"),
+            "--max_memory",
+            get_user_param("trinity", "max_memory"),
+            "--left",
+            os.path.join(reads.r1.dir, reads.r1.file),
+            "--right",
+            os.path.join(reads.r2.dir, reads.r2.file),
+            "--CPU",
+            str(cores),
+            "--output",
+            reads.r1.dir
+        ]
+    except ConfigParser.NoOptionError:
+        cmd = [
+            trinity,
+            "--seqType",
+            "fq",
+            "--min_kmer_cov",
+            get_user_param("trinity", "kmer_coverage"),
+            "--left",
+            os.path.join(reads.r1.dir, reads.r1.file),
+            "--right",
+            os.path.join(reads.r2.dir, reads.r2.file),
+            "--CPU",
+            str(cores),
+            "--output",
+            reads.r1.dir
+        ]
     try:
         with open(os.path.join(reads.r1.dir, 'trinity.log'), 'w') as outf:
             proc = subprocess.Popen(cmd, stdout=outf)
@@ -172,21 +192,38 @@ def run_trinity_pe(trinity, reads, cores, min_kmer, log):
 
 def run_trinity_se(trinity, reads, cores, min_kmer, log):
     log.info("Running Trinity.pl for SE data")
-    cmd = [
-        trinity,
-        "--seqType",
-        "fq",
-        "--min_kmer_cov",
-        get_user_param("trinity", "kmer_coverage"),
-        "--max_memory",
-        get_user_param("trinity", "max_memory"),
-        "--single",
-        os.path.join(reads.r1.dir, reads.r1.file),
-        "--CPU",
-        str(cores),
-        "--output",
-        reads.r1.dir
-    ]
+    # deal within trinity versions that don't accept --max_memory
+    try:
+        get_user_param("trinity", "max_memory")
+        cmd = [
+            trinity,
+            "--seqType",
+            "fq",
+            "--min_kmer_cov",
+            get_user_param("trinity", "kmer_coverage"),
+            "--max_memory",
+            get_user_param("trinity", "max_memory"),
+            "--single",
+            os.path.join(reads.r1.dir, reads.r1.file),
+            "--CPU",
+            str(cores),
+            "--output",
+            reads.r1.dir
+        ]
+    except ConfigParser.NoOptionError:
+        cmd = [
+            trinity,
+            "--seqType",
+            "fq",
+            "--min_kmer_cov",
+            get_user_param("trinity", "kmer_coverage"),
+            "--single",
+            os.path.join(reads.r1.dir, reads.r1.file),
+            "--CPU",
+            str(cores),
+            "--output",
+            reads.r1.dir
+        ]
     try:
         with open(os.path.join(reads.r1.dir, 'trinity.log'), 'w') as outf:
             proc = subprocess.Popen(cmd, stdout=outf)
