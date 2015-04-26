@@ -319,11 +319,11 @@ $PATH configuration
 As of v1.5, phyluce_ uses a configuration file to keep track of paths to relvant
 binaries, as well as some configuration information.  This file is located at
 `$CONDA/config/phyluce.conf`.  Although you can edit this file directly, you can
-also create a user-specific configuration file at `~/.phyluce.conf` (not the
-preceding dot), which will override the default values for different paths.  So,
-if you need to use a slightly different binary or you want to experiment with
-new binaries (e.g. for assembly), then you can change the paths in this file
-rather than deal with hard-coded paths.
+also create a user-specific configuration file at `~/.phyluce.conf` (**note the
+preceding dot**), which will override the default values for different paths.
+So, if you need to use a slightly different binary or you want to experiment
+with new binaries (e.g. for assembly), then you can change the paths in this
+file rather than deal with hard-coded paths.
 
 .. attention:: You do NOT **need** to to anything with this file - $PATHs should
     automatically resolve.
