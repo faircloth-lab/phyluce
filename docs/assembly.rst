@@ -113,7 +113,7 @@ velvet
     # make a directory for log files
     mkdir log
     # run the assembly
-    python phyluce_assembly_assemblo_velvet \
+    phyluce_assembly_assemblo_velvet \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --kmer 35 \
@@ -146,7 +146,7 @@ ABySS
     # make a directory for log files
     mkdir log
     # run the assembly
-    python phyluce_assembly_assemblo_abyss \
+    phyluce_assembly_assemblo_abyss \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --kmer 35 \
@@ -195,7 +195,7 @@ Trinity
     # make a directory for log files
     mkdir log
     # run the assembly
-    python phyluce_assembly_assemblo_trinity \
+    phyluce_assembly_assemblo_trinity \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --subfolder split-adapter-quality-trimmed \
