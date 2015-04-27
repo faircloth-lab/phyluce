@@ -91,6 +91,7 @@ CentOS 6.5.x linux
 
 You can install the JRE with the following `yum` command::
 
+    su -c "yum update"
     su -c "yum install java-1.7.0-openjdk"
 
 Ubuntu 14.04 linux
@@ -98,6 +99,7 @@ Ubuntu 14.04 linux
 
 You can install the JRE with the following `apt-get` command::
 
+    sudo apt-get update
     sudo apt-get install openjdk-7-jre
 
 
