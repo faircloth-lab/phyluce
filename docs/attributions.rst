@@ -17,14 +17,15 @@ Wrote the code
 * `Brant Faircloth <http://faircloth-lab.org/>`_ (brant **at** faircloth-lab
   **dot** org)
 
+.. _Contributors:
+
 Contributed to the code
 =======================
 
 * `Nick Crawford <http://www.ngcrawford.com/>`_ (ngcrawford **at** gmail
   **dot** com)
 * `Mike Harvey <http://www.mharvey.org/>`_ (mharve9 **at** lsu **dot** edu)
-* `Carl Oliveros
-<http://naturalhistory.ku.edu/ornithology/people/carl-oliveros>`_ (carl **at** ku **dot** edu) ..  _Contributors:
+* `Carl Oliveros <http://naturalhistory.ku.edu/ornithology/people/carl-oliveros>`_ (carl **at** ku **dot** edu) ..
 
 Developed the UCE approach
 ==========================
