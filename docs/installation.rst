@@ -131,12 +131,13 @@ http://docs.continuum.io/anaconda/install.html
 miniconda
 ^^^^^^^^^
 
-Find the correct `miniconda-3.4.2` file for your platform from
-http://repo.continuum.io/miniconda/ and download that file. When that has
-completed, run::
+Find the correct `miniconda-x.x.x` file for your platform from
+http://repo.continuum.io/miniconda/ and download that file.  Be sure you **do
+not** get one of the packages that has a name starting with `miniconda3-`. When
+that has completed, run one of the following::
 
-    bash Miniconda-3.4.2-Linux-x86_64.sh  [linux]
-    bash Miniconda-3.4.2-MacOSX-x86_64.sh [osx]
+    bash Miniconda-x.x.x-Linux-x86_64.sh  [linux]
+    bash Miniconda-x.x.x-MacOSX-x86_64.sh [osx]
 
 .. note:: Once you have installed Miniconda, we will refer to it as **anaconda**
    throughout the remainder of this documentation.
@@ -151,9 +152,12 @@ location for anaconda_ or miniconda_ are added to your $PATH (this occurs
 automatically on the $BASH shell), run the following::
 
     $ python -V
-    Python 2.7.6 :: Anaconda 1.8.0 (x86_64)
 
-Notice that the output shows we're using the "Anaconda 1.8.0" version of
+The output should look similar to (`x` will be replaced by a version)::
+
+    Python 2.7.x :: Anaconda x.x.x (x86_64)
+
+Notice that the output shows we're using the `Anaconda x.x.x` version of
 Python_. If you do not see the expected output (or something similar), then you
 likely need to edit your $PATH variable to add anaconda_ or miniconda_.
 
