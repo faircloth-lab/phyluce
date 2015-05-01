@@ -1,6 +1,6 @@
 .. include:: global.rst
 
-.. _Tutorial_I:
+.. _Tutorial I:
 
 *****************************
 Tutorial I: UCE Phylogenomics

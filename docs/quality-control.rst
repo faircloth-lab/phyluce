@@ -87,11 +87,14 @@ Get read counts using phyluce_
 ------------------------------
 
 There is a bit of code in phyluce that lets you count reads.  To use it, you
-enter the directory containing the read data and run:
+pass the code the directory containing reads you want to summarize and run:
 
 .. code-block:: bash
 
-    for i in *_R1_*; do get_fastq_lengths.py --input $i --csv; done
+    phyluce_assembly_get_fastq_lengths --input /directory/containing/reads/ --csv; done
+
+You can run this across many directories of reads as described in
+:ref:`Tutorial I`.
 
 
 Adapter- and quality-trimming
