@@ -17,9 +17,9 @@ package is structured.
 Most of the assembly process is automated using code within phyluce_,
 specifically the following 3 scripts:
 
-- `phyluce_assembly_assemblo_abyss.py`
-- `phyluce_assembly_assemblo_trinity.py`
-- `phyluce_assembly_assemblo_velvet.py`
+- `phyluce_assembly_assemblo_abyss`
+- `phyluce_assembly_assemblo_trinity`
+- `phyluce_assembly_assemblo_velvet`
 
 The code of each of the above programs **always** expects your input directories
 to have the following structure (from the :ref:`Quality Control` section)::
@@ -155,12 +155,12 @@ ABySS
         --clean \
         --log-path log
 
-.. attention:: Following assembly, `assemblo_abyss.py` modifies the assemblies
-    by replacing degenerate base codes with standard nucleotide encodings.  We
-    do this because lastz_, which we use to match contigs to targeted UCE loci,
-    is not compatible with degenerate IUPAC codes.
+.. attention:: Following assembly, `phyluce_assembly_assemblo_abyss` modifies
+    the assemblies by replacing degenerate base codes with standard nucleotide
+    encodings.  We do this because lastz_, which we use to match contigs to
+    targeted UCE loci, is not compatible with degenerate IUPAC codes.
 
-    The assemblo_abyss.py code makes these substitutions for every site having a
+    The phyluce_assembly_assemblo_abyss code makes these substitutions for every site having a
     degenerate code by selecting the appropriate nucleotide encoding randomly.
     The code also renames the ABySS assemblies using the velvet_ naming
     convention.  The modified contigs are them symlinked into
