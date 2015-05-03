@@ -1082,7 +1082,7 @@ strict phylip format:
 
 .. code-block:: bash
 
-    python cloudforest/cloudforest_mpi \
+    python cloudforest/cloudforest_mpi.py \
         /path/to/strict/phylip/alignments/ \
         /path/to/store/cloudforest/output/ \
         genetrees \

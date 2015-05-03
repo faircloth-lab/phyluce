@@ -573,7 +573,7 @@ Now, our directory structure looks like:
     ├── trinity-assemblies
     └── uce-5k-probes.fasta
 
-Now, run the `match_contigs_to_probes.py` program:
+Now, run the `phyluce_assembly_match_contigs_to_probes` program:
 
 .. code-block:: bash
 
