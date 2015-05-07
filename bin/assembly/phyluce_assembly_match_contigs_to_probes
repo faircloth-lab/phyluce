@@ -337,7 +337,7 @@ def main():
         dupefile.close()
     log.info("{}".format("-" * 65))
     log.info("The LASTZ alignments are in {}".format(args.output))
-    log.info("The UCE match database is in {}".format(os.path.join(args.output, "probes.matches.sqlite")))
+    log.info("The UCE match database is in {}".format(os.path.join(args.output, "probe.matches.sqlite")))
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 

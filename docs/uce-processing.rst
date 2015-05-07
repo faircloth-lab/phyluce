@@ -113,10 +113,10 @@ When you run this code, you should see output similar to::
     2014-04-24 14:38:19,134 - match_contigs_to_probes - INFO - -----------------------------------------------------------------
     2014-04-24 14:38:25,713 - match_contigs_to_probes - INFO - genus_species1: 1031 (70.14%) uniques of 1470 contigs, 0 dupe probe matches, 48 UCE probes matching multiple contigs, 117 contigs matching multiple UCE probes
     2014-04-24 14:38:32,846 - match_contigs_to_probes - INFO - genus_species2: 420 (68.52%) uniques of 613 contigs, 0 dupe probe matches, 30 UCE probes matching multiple contigs, 19 contigs matching multiple UCE probes
-    2014-04-24 14:38:39,184 - match_contigs_to_probes - INFO -genus_species3: 1071 (63.15%) uniques of 1696 contigs, 0 dupe probe matches, 69 UCE probes matching multiple contigs, 101 contigs matching multiple UCE probes
+    2014-04-24 14:38:39,184 - match_contigs_to_probes - INFO - genus_species3: 1071 (63.15%) uniques of 1696 contigs, 0 dupe probe matches, 69 UCE probes matching multiple contigs, 101 contigs matching multiple UCE probes
     2014-04-24 14:49:59,654 - match_contigs_to_probes - INFO - -----------------------------------------------------------------
     2014-04-24 14:49:59,654 - match_contigs_to_probes - INFO - The LASTZ alignments are in /path/to/uce/output/
-    2014-04-24 14:49:59,654 - match_contigs_to_probes - INFO - The UCE match database is in /path/to/uce/output/probes.matches.sqlite
+    2014-04-24 14:49:59,654 - match_contigs_to_probes - INFO - The UCE match database is in /path/to/uce/output/probe.matches.sqlite
     2014-04-24 14:49:59,655 - match_contigs_to_probes - INFO - =============== Completed match_contigs_to_probes ===============
 
 .. note:: The ``*.log`` files for each operation are always printed to the
@@ -369,7 +369,7 @@ matrix configuration file from this taxon-configuration file, run:
 
     # create the data matrix configuration file
     phyluce_assembly_get_match_counts \
-        --locus-db /path/to/uce/output/probes.matches.sqlite \
+        --locus-db /path/to/uce/output/probe.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset1' \
         --output /path/to/uce/taxon-set1/dataset1.conf
@@ -462,7 +462,7 @@ easily generate an incomplete dataset using the following:
 
     # create the data matrix configuration file
     phyluce_assembly_get_match_counts \
-        --locus-db /path/to/uce/output/probes.matches.sqlite \
+        --locus-db /path/to/uce/output/probe.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset1' \
         --output /path/to/uce/taxon-set1/dataset1.conf \
@@ -507,7 +507,7 @@ section to output the data matrix configuration files:
 
     # create the data matrix configuration file
     phyluce_assembly_get_match_counts \
-        --locus-db /path/to/uce/output/probes.matches.sqlite \
+        --locus-db /path/to/uce/output/probe.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset2' \
         --output /path/to/uce/taxon-set2/dataset2.conf
@@ -556,7 +556,7 @@ both **your** ``--locus-db`` and the ``--extend-locus-db``.  For example:
 
     # create the data matrix configuration file
     phyluce_assembly_get_match_counts \
-        --locus-db /path/to/uce/output/probes.matches.sqlite \
+        --locus-db /path/to/uce/output/probe.matches.sqlite \
         --taxon-list-config datasets.conf \
         --taxon-group 'dataset3' \
         --extend-locus-db /path/to/some/other/probe.matches.sqlite \
@@ -593,7 +593,7 @@ configuration file, run:
 
     phyluce_assembly_get_fastas_from_match_counts \
         --contigs /path/to/assembly/contigs/ \
-        --locus-db /path/to/uce/output/probes.matches.sqlite \
+        --locus-db /path/to/uce/output/probe.matches.sqlite \
         --match-count-output /path/to/uce/taxon-set1/dataset1.conf \
         --output /path/to/uce/taxon-set1/dataset1.fasta
 
@@ -608,7 +608,7 @@ data matrix configuration file, run:
 
     phyluce_assembly_get_fastas_from_match_counts \
         --contigs /path/to/assembly/contigs/ \
-        --locus-db /path/to/uce/output/probes.matches.sqlite \
+        --locus-db /path/to/uce/output/probe.matches.sqlite \
         --match-count-output /path/to/uce/taxon-set/dataset1.conf \
         --incomplete-matrix /path/to/uce/taxon-set1/dataset1.incomplete \
         --output /path/to/uce/taxon-set1/dataset1.fasta
@@ -631,7 +631,7 @@ that includes exeternal data sources, run:
 
     phyluce_assembly_get_fastas_from_match_counts \
         --contigs /path/to/assembly/contigs/ \
-        --locus-db /path/to/uce/output/probes.matches.sqlite \
+        --locus-db /path/to/uce/output/probe.matches.sqlite \
         --match-count-output /path/to/uce/taxon-set1/dataset1.conf \
         --incomplete-matrix /path/to/uce/taxon-set1/dataset1.incomplete \
         --extend-locus-db /path/to/some/other/probe.matches.sqlite \

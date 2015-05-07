@@ -608,7 +608,7 @@ You should see output similar to the following (also stored in
     2015-04-12 12:45:36,604 - phyluce_assembly_match_contigs_to_probes - INFO - mus_musculus: 825 (38.16%) uniques of 2162 contigs, 0 dupe probe matches, 93 UCE loci removed for matching multiple contigs, 1 contigs removed for matching multiple UCE loci
     2015-04-12 12:45:36,604 - phyluce_assembly_match_contigs_to_probes - INFO - -----------------------------------------------------------------
     2015-04-12 12:45:36,605 - phyluce_assembly_match_contigs_to_probes - INFO - The LASTZ alignments are in /scratch/uce-tutorial/uce-search-results
-    2015-04-12 12:45:36,605 - phyluce_assembly_match_contigs_to_probes - INFO - The UCE match database is in /scratch/uce-tutorial/uce-search-results/probes.matches.sqlite
+    2015-04-12 12:45:36,605 - phyluce_assembly_match_contigs_to_probes - INFO - The UCE match database is in /scratch/uce-tutorial/uce-search-results/probe.matches.sqlite
     2015-04-12 12:45:36,605 - phyluce_assembly_match_contigs_to_probes - INFO - ======= Completed phyluce_assembly_match_contigs_to_probes ======
 
 The header info at the top tells us exactly what version of the code we are
