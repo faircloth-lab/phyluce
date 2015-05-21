@@ -179,7 +179,8 @@ def calculate_hs_metrics(log, sample, sample_dir, reference, bam, target, bait):
         "O={}".format(hs_metrics_file),
         "REFERENCE_SEQUENCE={}".format(reference),
         "TARGET_INTERVALS={}".format(target),
-        "BAIT_INTERVALS={}".format(bait)
+        "BAIT_INTERVALS={}".format(bait),
+        "VALIDATION_STRINGENCY=LENIENT"
     ]
     picard_hs_out_fname = os.path.join(sample_dir, '{}.picard-hs-metrics-out.log'.format(sample))
     with open(picard_hs_out_fname, 'w') as picard_out:
