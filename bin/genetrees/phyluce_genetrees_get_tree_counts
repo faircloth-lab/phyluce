@@ -1,0 +1,131 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 18 February 2015 20:33 CST (-0600)
+"""
+
+import os
+import sys
+import glob
+import argparse
+from collections import Counter, defaultdict
+from phyluce.helpers import is_file, is_dir, FullPaths
+import dendropy
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Root some genetrees"""
+    )
+    parser.add_argument(
+        "--trees",
+        required=True,
+        action=FullPaths,
+        type=is_dir,
+        help="""Tree file"""
+    )
+    parser.add_argument(
+        "--locus-support-output",
+        required=True,
+        action=FullPaths,
+        help="""The output file in which to store trees and their associated loci (config format)"""
+    )
+    parser.add_argument(
+        "--schema",
+        choices=["nexus", "newick", "nexml", "fasta", "phylip"],
+        default="newick",
+        help="""The scheme of the input data"""
+    )
+    parser.add_argument(
+        "--root",
+        required=True,
+        type=str,
+        help="""The taxon on which to root trees"""
+    )
+    return parser.parse_args()
+
+
+def strip_branch_lengths(tree):
+    for nd in tree:
+        nd.edge.length = None
+    return tree
+
+
+def main():
+    args = get_args()
+    # reading trees
+    directories = glob.glob("{}/*".format(args.trees))
+    trees = []
+    print "creating tree objects"
+    for d in directories:
+        if os.path.isdir(d):
+            tree = dendropy.Tree.get_from_stream(open(os.path.join(d, "RAxML_bestTree.best"), 'rU'), schema=args.schema, preserve_underscores=True)
+            tree.gene_name = os.path.basename(d)
+            trees.append(tree)
+    print "creating treelist"
+    treelist = dendropy.TreeList(trees)
+    sys.stdout.write("Running")
+    treecounts = Counter()
+    treeloci = defaultdict(list)
+    for cnt, tree in enumerate(treelist):
+        if cnt % 100 == 0:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+        if cnt == 0:
+            root = tree.find_node_with_taxon_label(args.root)
+            tree.reroot_at_edge(root.edge, update_splits=True)
+            #pdb.set_trace()
+            tree = strip_branch_lengths(tree)
+            treecounts.update([tree])
+            treeloci[tree].append(tree.gene_name)
+        else:
+            for k, v in treecounts.iteritems():
+                root = tree.find_node_with_taxon_label(args.root)
+                tree.reroot_at_edge(root.edge, update_splits=True)
+                tree = strip_branch_lengths(tree)
+                if tree.symmetric_difference(k) == 0:
+                    treecounts.update([k])
+                    treeloci[k].append(tree.gene_name)
+                    in_dict = True
+                    break
+                else:
+                    in_dict = False
+            if in_dict is False:
+                treecounts.update([tree])
+                treeloci[tree].append(tree.gene_name)
+    # flush stdout
+    print ""
+    # sort and print out the counts of loci and various trees supported by a
+    # set of counts
+    treetuple = sorted(treecounts.items(),key=lambda x: x[1], reverse=True)
+    for rooted_tree, count in treetuple:
+        print "{0}\t{1}".format(count, rooted_tree.as_string('newick').strip())
+    # sort and print out the and various trees supported by a
+    # set of counts in configuration file format
+    locituple = sorted(treeloci.items(),key=lambda x: len(x[1]), reverse=True)
+    with open(args.locus_support_output, 'w') as outfile2:
+        for cnt, data in enumerate(locituple):
+            rooted_tree, loci = data
+            outfile2.write("# {}\n# {}\n[{}th most numerous]\n{}\n\n".format(
+                rooted_tree.as_string('newick').strip(),
+                len(loci),
+                cnt + 1,
+                "\n".join(loci)
+            ))
+
+
+
+
+
+if __name__ == '__main__':
+    main()
