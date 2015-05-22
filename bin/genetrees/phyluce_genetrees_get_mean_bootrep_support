@@ -75,6 +75,7 @@ def main():
     sections = config.sections()
     # iterate over sections
     with open('outfile.csv', 'w') as outfile:
+        outfile.write("set,mean bootrep support\n")
         for section in sections:
             section_trees = {}
             section_support_values = []
