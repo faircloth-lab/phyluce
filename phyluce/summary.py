@@ -14,6 +14,7 @@ import math
 import numpy
 from Bio import AlignIO
 from collections import Counter
+from phyluce import sites
 
 
 class AlignMeta:
@@ -24,6 +25,9 @@ class AlignMeta:
         self.gaps = None
         self.characters = None
         self.nucleotides = None
+        self.sum_informative_sites = None
+        self.sum_differences = None
+        self.sum_counted_sites = None
 
 
 def get_characters(aln, nucleotides):
@@ -50,6 +54,7 @@ def get_stats(work):
             meta.nucleotides.update({k:v})
     meta.gaps = meta.characters["-"]
     meta.missing = meta.characters["?"]
+    meta.sum_informative_sites, meta.sum_differences, meta.sum_counted_sites = sites.compute_informative_sites(aln)
     return meta
 
 
@@ -60,6 +65,16 @@ def get_lengths(summary):
     ci  = 1.96 * (numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths)))
     min = numpy.min(lengths)
     max = numpy.max(lengths)
+    return total, mean, ci, min, max
+
+
+def get_sites(summary):
+    sites = numpy.array([aln.sum_informative_sites for aln in summary])
+    total = numpy.sum(sites)
+    mean = numpy.mean(sites)
+    ci  = 1.96 * (numpy.std(sites, ddof=1) / numpy.sqrt(len(sites)))
+    min = numpy.min(sites)
+    max = numpy.max(sites)
     return total, mean, ci, min, max
 
 
@@ -124,6 +139,18 @@ def log_length_summary(log, loci, a_vars):
     log.info("[Alignments] 95% CI:\t{:.2f}".format(a_ci))
     log.info("[Alignments] min:\t{}".format(a_min))
     log.info("[Alignments] max:\t{:,}".format(a_max))
+
+
+def log_sites_summary(log, loci, s_vars):
+    s_total, s_mean, s_ci, s_min, s_max = s_vars
+    text = " Informative Sites summary "
+    log.info(text.center(65, "-"))
+    log.info("[Sites] loci:\t{:,}".format(loci))
+    log.info("[Sites] total:\t{:,}".format(s_total))
+    log.info("[Sites] mean:\t{:.2f}".format(s_mean))
+    log.info("[Sites] 95% CI:\t{:.2f}".format(s_ci))
+    log.info("[Sites] min:\t{}".format(s_min))
+    log.info("[Sites] max:\t{:,}".format(s_max))
 
 
 def log_taxa_summary(log, t_vars):

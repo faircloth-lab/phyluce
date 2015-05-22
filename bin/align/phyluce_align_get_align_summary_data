@@ -76,7 +76,6 @@ def get_args():
     return parser.parse_args()
 
 
-
 def main():
     args = get_args()
     # setup logging
@@ -94,6 +93,9 @@ def main():
     # alignments
     a_vars = summary.get_lengths(summary_data)
     summary.log_length_summary(log, len(summary_data), a_vars)
+    # sites
+    s_vars = summary.get_sites(summary_data)
+    summary.log_sites_summary(log, len(summary_data), s_vars)
     # taxa
     t_vars = summary.get_taxa(summary_data)
     summary.log_taxa_summary(log, t_vars)
