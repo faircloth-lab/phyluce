@@ -859,6 +859,25 @@ This will produce output that looks similar to::
     composition at varying levels of completeness in the ``Data matrix completeness
     summary`` section.
 
+Locus name removal
+^^^^^^^^^^^^^^^^^^
+
+For historical reasons, and also for users to ensure that the sequence data
+aligned together are from the same loci, each sequence line in the alignment
+file output by ``seqcap_align_2`` contains the ``genus_species1`` designator,
+but the ``genus_species1`` designator is also prepended with the locus name
+(e.g. ``uce-1005_genus_species1``).  We need to remove these if we plan to
+concatenate the loci (:ref:`raxml-concat`).  More generally, it is a good idea
+to remove locus names from sequence lines before running any analyses. To do
+this, run:
+
+ .. code-block:: bash
+
+    phyluce_align_remove_locus_name_from_nexus_lines \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
+        --output /path/to/uce/taxon-set1/mafft-nexus-clean/ \
+        --cores 12
+
 .. _finalize-matrix:
 
 Finalize matrix completeness
@@ -873,7 +892,7 @@ following, while inputting the set of alignments just generated using:
 
     # the integer following --taxa is the number of TOTAL taxa
     phyluce_align_get_only_loci_with_min_taxa \
-        --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus-clean/ \
         --taxa 34 \
         --percent 0.75 \
         --output /path/to/uce/taxon-set1/mafft-nexus-min-25-taxa/ \
