@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 22 May 2015 14:01 CDT (-0500)
+"""
+
+import os
+import sys
+import copy
+import argparse
+import ConfigParser
+import multiprocessing
+
+from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file, get_alignment_files
+from phyluce.log import setup_logging
+from phyluce import summary
+
+import pdb
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Program description"""
+    )
+    parser.add_argument(
+        "--config",
+        required=True,
+        action=FullPaths,
+        type=is_file,
+        help="""The gene tree configuration file"""
+    )
+    parser.add_argument(
+        '--alignments',
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="Alignment files to process"
+    )
+    parser.add_argument(
+        "--input-format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The input alignment format.""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.optionxform = str
+    config.readfp(open(args.config))
+    files = get_alignment_files(log, args.alignments, args.input_format)
+    sections = config.sections()
+    # iterate over sections
+    name_hash = {}
+    for section in sections:
+        for locus in config.items(section):
+            name_hash[locus] = section
+    work = [[file, args.input_format] for file in files]
+    log.info("Computing locus statistics using {} cores".format(args.cores))
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
+        summary_data = pool.map(summary.get_stats, work)
+    else:
+        summary_data = map(summary.get_stats, work)
+    for aln in summary_data:
+        pdb.set_trace()
+
+
+
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+
+if __name__ == '__main__':
+    main()
