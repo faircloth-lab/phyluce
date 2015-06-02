@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 18 February 2015 20:33 CST (-0600)
+"""
+
+import os
+import sys
+import glob
+import numpy
+import argparse
+import ConfigParser
+from collections import Counter, defaultdict
+from phyluce.helpers import is_file, is_dir, FullPaths
+import dendropy
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Root some genetrees"""
+    )
+    parser.add_argument(
+        "--trees",
+        required=True,
+        action=FullPaths,
+        type=is_dir,
+        help="""Tree file"""
+    )
+    parser.add_argument(
+        "--config",
+        required=True,
+        action=FullPaths,
+        type=is_file,
+        help="""config file"""
+    )
+    parser.add_argument(
+        "--schema",
+        choices=["nexus", "newick", "nexml", "fasta", "phylip"],
+        default="newick",
+        help="""The scheme of the input data"""
+    )
+    parser.add_argument(
+        "--root",
+        required=True,
+        type=str,
+        help="""The taxon on which to root trees"""
+    )
+    return parser.parse_args()
+
+
+def strip_branch_lengths(tree):
+    for nd in tree:
+        nd.edge.length = None
+    return tree
+
+
+def main():
+    args = get_args()
+    # reading trees
+    trees = []
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.optionxform = str
+    config.readfp(open(args.config))
+    # get config sections
+    sections = config.sections()
+    # iterate over sections
+    with open('outfile.csv', 'w') as outfile:
+        outfile.write("set,mean bootrep support\n")
+        for section in sections:
+            section_trees = {}
+            section_support_values = []
+            for locus in config.items(section):
+                tree = dendropy.Tree.get_from_stream(open(os.path.join(args.trees, locus[0], "RAxML_bipartitions.FINAL"), 'rU'), schema=args.schema, preserve_underscores=True)
+                tree.gene_name = os.path.basename(locus[0])
+                trees.append(tree)
+                support = numpy.array([int(node.label) for node in tree if node.label is not None])
+                section_trees[tree.gene_name] = support
+                # add mean for tree to list for section
+                section_support_values.append(numpy.mean(support))
+            section_support_values = numpy.array(section_support_values)
+            mean = numpy.mean(section_support_values)
+            # we'll hit `Degrees of freedom <= 0 for slice warning because of sample size
+            if len(section_support_values) > 1:
+                ci  = 1.96 * (numpy.std(section_support_values, ddof=1) / numpy.sqrt(len(section_support_values)))
+            else:
+                ci = numpy.nan
+            print "{},{},{},{}".format(section, len(section_support_values), mean, ci)
+            for value in section_support_values:
+                outfile.write("{},{}\n".format(section, value))
+
+
+if __name__ == '__main__':
+    main()
+
+# data = read.csv('outfile.csv', header=FALSE)
+# data$V1 = factor(data$V1, levels=c("1th most numerous", "2th most numerous", "3th most numerous", "4th most numerous", "5th most numerous", "6th most numerous", "7th most numerous", "8th most numerous", "9th most numerous", "10th most numerous", "11th most numerous", "12th most numerous", "13th most numerous", "14th most numerous", "15th most numerous", "16th most numerous", "17th most numerous", "18th most numerous", "19th most numerous"))
+# ggplot(data, aes(factor(V1), V2)) + geom_jitter(aes(alpha=0.7)) + geom_boxplot(aes(alpha=0.7)) + theme(axis.text.x = element_text(angle = 70, hjust = 1)) + theme(legend.position="none")
