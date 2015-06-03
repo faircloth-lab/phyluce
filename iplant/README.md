@@ -39,7 +39,7 @@
         antigen bundle zsh-users/zsh-history-substring-search
 
         # Load the theme.
-        antigen theme robbyrussell
+        antigen theme steeef
 
         # Tell antigen that you're done.
         antigen apply
