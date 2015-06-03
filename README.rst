@@ -1,6 +1,10 @@
 phyluce: software for UCE (and general) phylogenomics
 -----------------------------------------------------
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/faircloth-lab/phyluce
+   :target: https://gitter.im/faircloth-lab/phyluce?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 phyluce_ (phy-**loo**-chee) is a software package that was initially developed
 for analyzing data collected from ultraconserved elements in organismal genomes.
 
