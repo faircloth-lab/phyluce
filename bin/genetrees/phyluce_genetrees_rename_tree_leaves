@@ -103,12 +103,13 @@ def main():
         for leaf in tree.leaf_nodes():
             if leaf.taxon.label in new_labels:
                 pass
-            try:
-                new_label = names[leaf.taxon.label]
-            except:
-                new_label = names[leaf.taxon.label.replace(' ', '_')]
-            new_labels.append(new_label)
-            leaf.taxon.label = new_label
+            else:
+                try:
+                    new_label = names[leaf.taxon.label]
+                except:
+                    new_label = names[leaf.taxon.label.replace(' ', '_')]
+                new_labels.append(new_label)
+                leaf.taxon.label = new_label
         # reroot
         if args.reroot:
             reroot_node = tree.find_node_with_taxon_label(args.reroot)
