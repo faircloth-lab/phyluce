@@ -73,7 +73,35 @@ def get_args():
         help="""Process alignments in parallel using --cores for alignment. """ +
         """This is the number of PHYSICAL CPUs."""
     )
+    parser.add_argument(
+        "--output-stats",
+        dest="output",
+        default=None,
+        help="""Output a CSV-formatted file of stats, by locus""",
+    )
     return parser.parse_args()
+
+
+def write_summary_info(log, summary_data, output):
+    text = " Output Stats "
+    log.info(text.center(65, "-"))
+    log.info("Writing locus info to {}".format(output))
+    with open(output, 'w') as outfile:
+        outfile.write("aln,length,sites,differences,characters,gc content,gaps,a count, c count, g count, t count\n")
+        for aln in summary_data:
+            outfile.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(
+                aln.name,
+                aln.length,
+                aln.sum_informative_sites,
+                aln.sum_differences,
+                aln.sum_counted_sites,
+                round(float(sum([aln.characters["G"], aln.characters["C"]])) / sum([count for char,count in aln.characters.iteritems() if char != '-']) * 100, 2),
+                aln.characters["-"],
+                aln.characters["A"],
+                aln.characters["C"],
+                aln.characters["G"],
+                aln.characters["T"]
+            ))
 
 
 def main():
@@ -114,6 +142,8 @@ def main():
     # character dist
     summary.log_character_dist(log, all_bases)
     # end
+    if args.output:
+        write_summary_info(log, summary_data, args.output)
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 

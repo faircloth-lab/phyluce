@@ -10,6 +10,7 @@ LICENSE.txt for more information.
 Created on 22 May 2015 14:56 CDT (-0500)
 """
 
+import os
 import math
 import numpy
 from Bio import AlignIO
@@ -45,6 +46,7 @@ def get_stats(work):
     aln = AlignIO.read(file, format)
     nucleotides = set(["A", "C", "G", "T"])
     meta = AlignMeta()
+    meta.name = os.path.basename(file)
     meta.length = aln.get_alignment_length()
     meta.taxa = len(aln)
     meta.characters, meta.percent_missing = get_characters(aln, nucleotides)
