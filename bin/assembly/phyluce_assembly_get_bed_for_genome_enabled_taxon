@@ -1,0 +1,145 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 22 May 2015 08:39 CDT (-0500)
+"""
+
+
+import os
+import re
+import sqlite3
+import argparse
+from collections import defaultdict
+
+from phyluce import lastz
+from phyluce.helpers import is_dir, is_file, CreateDir, FullPaths
+from phyluce.log import setup_logging
+
+#import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Get a BED file for the given taxon using the probe.matches.sqlite database, the lastz file, and a taxon name"""
+    )
+    parser.add_argument(
+        "--locus-db",
+        required=True,
+        type=is_file,
+        help="""The probe.matches.sqlite database"""
+    )
+    parser.add_argument(
+        "--lastz-file",
+        required=True,
+        type=is_file,
+        help="""The lastz file to use"""
+    )
+    parser.add_argument(
+        "--taxon-name",
+        required=True,
+        type=str,
+        help="""The taxon name to search for in probe.matches.sqlite"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        help="""The output BED file to create"""
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--regex",
+        type=str,
+        default="^(uce-\d+)(?:_p\d+.*)",
+        help="""A regular expression to apply to the probe names for replacement [default='^(uce-\d+)(?:_p\d+.*)'].""",
+    )
+    return parser.parse_args()
+
+
+def remove_duplicates_from(c, organism, matches):
+    if not organism.endswith('*'):
+        st = "SELECT uce, {0} FROM match_map WHERE uce in ({1})"
+        query = st.format(organism, ','.join(["'{0}'".format(i) for i in matches]))
+    else:
+        st = "SELECT uce, {0} FROM extended.match_map WHERE uce in ({1})"
+        query = st.format(organism.rstrip('*'), ','.join(["'{0}'".format(i) for i in matches]))
+    c.execute(query)
+    data = c.fetchall()
+    m = defaultdict(list)
+    for d in data:
+        node = d[1].split('(')[0]
+        m[node].append(d[0])
+    single_matches = [v[0] for k, v in m.iteritems() if len(v) <= 1]
+    return single_matches
+
+
+def get_all_matches_by_organism(c, organisms):
+    organismal_matches = {}
+    for organism in organisms:
+        if not organism.endswith('*'):
+            c.execute("SELECT uce FROM matches WHERE {0} = 1".format(organism))
+        else:
+            c.execute("SELECT uce FROM extended.matches WHERE {0} = 1".format(organism.rstrip('*')))
+        matches = set([uce[0] for uce in c.fetchall()])
+        # we've removed dupe UCE matches, but we need to remove
+        # dupe node matches (i,e. we've removed dupe target matches
+        # and we also need to remove dupe query matches - they pop up as
+        # data change, so it's a constant battle)
+        matches = remove_duplicates_from(c, organism, matches)
+        organismal_matches[organism] = matches
+    return organismal_matches
+
+
+def new_get_probe_name(header, regex):
+    match = re.search(regex, header)
+    return match.groups()[0]
+
+
+def main():
+    args = get_args()
+    # get a list of the loci for the taxon for which we want BED files
+    # setup logging
+    log, my_name = setup_logging(args)
+    # connect to the database
+    conn = sqlite3.connect(args.locus_db)
+    c = conn.cursor()
+    loci = get_all_matches_by_organism(c, [args.taxon_name])
+    loci_dict = {locus: set() for locus in loci[args.taxon_name]}
+    for match in lastz.Reader(args.lastz_file):
+        target_name = new_get_probe_name(match.name2, args.regex)
+        if target_name in loci_dict.keys():
+            header_dict = dict([tuple(i.split(":")) for i in match.name1.split("|")[1:]])
+            loci_dict[header_dict['uce']].update(["{}:{}".format(header_dict['contig'], header_dict['match'])])
+    with open(args.output, 'w') as outfile:
+        outfile.write('''track name="uce-v-{0}" description="UCE probe matches to {0}" visibility=2 itemRgb="On"\n'''.format(args.taxon_name))
+        for locus, location in loci_dict.iteritems():
+            for element in list(location):
+                scaffold, pos = element.split(":")
+                start, end = [int(i) for i in pos.split('-')]
+                outfile.write("{0}\t{1}\t{2}\t{3}\t1000\t+\t{1}\t{2}\t100,149,237\n".format(scaffold, start, end, locus))
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+
+if __name__ == '__main__':
+    main()
