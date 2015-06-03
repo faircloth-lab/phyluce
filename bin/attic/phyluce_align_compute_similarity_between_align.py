@@ -72,7 +72,7 @@ def get_args():
 
 
 def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex'))
+    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nex*'))
 
 
 def get_aln_starts(aln):
@@ -115,16 +115,23 @@ def get_sequence_divergence(aln, forw=None, rev=None):
     aln = get_aln_starts(aln)
     if forw and rev:
         aln = trim_with_regex(aln, forw, rev)
-    diff_gaps = [0]
-    diff_no_gaps = [0]
+    diff_gaps = []
+    diff_no_gaps = []
+    len_included_bases = []
     for column in xrange(aln.get_alignment_length()):
-        bases = set(aln[:, column])
-        if len(bases) > 1:
-            diff_gaps.append(1)
-        bases.discard('-')
-        if len(bases) > 1:
-            diff_no_gaps.append(1)
-    return aln, sum(diff_gaps), sum(diff_no_gaps)
+        #pdb.set_trace()
+        bases = set([base.upper() for base in aln[:, column]])
+        if '?' in bases or 'N' in bases or 'X' in bases:
+            pass
+        else:
+            len_included_bases.append(1)
+            if len(bases) > 1:
+                diff_gaps.append(1)
+            bases.discard('-')
+            if len(bases) > 1:
+                diff_no_gaps.append(1)
+    #pdb.set_trace()
+    return aln, sum(len_included_bases), sum(diff_gaps), sum(diff_no_gaps)
 
 
 def get_pairwise_distance(aln):
@@ -147,9 +154,9 @@ def worker(work):
     sys.stdout.write('.')
     sys.stdout.flush()
     aln = AlignIO.read(f, 'nexus')
-    aln, div, divnogap = get_sequence_divergence(aln, forw, rev)
+    aln, len_included_bases, div, divnogap = get_sequence_divergence(aln, forw, rev)
     diverge[locus] = [
-            aln.get_alignment_length(),
+            len_included_bases,
             div,
             divnogap
         ]
