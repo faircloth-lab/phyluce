@@ -19,7 +19,7 @@ import argparse
 import ConfigParser
 from phyluce.helpers import is_dir, FullPaths, is_file, CreateDir
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -69,7 +69,8 @@ def get_args():
 
 def main():
     args = get_args()
-    conf = ConfigParser.ConfigParser()
+    conf = ConfigParser.RawConfigParser(allow_no_value=True)
+    #conf = ConfigParser.ConfigParser()
     conf.read(args.conf)
     if not args.sections:
         args.sections = conf.sections()
@@ -78,10 +79,11 @@ def main():
     for section in args.sections:
         temp_items.extend([i[0] for i in conf.items(section)])
     items = set(temp_items)
+    #pdb.set_trace()
     for src in glob.glob(os.path.join(args.input, '*.{}*'.format(args.extension))):
         basename = os.path.basename(src)
         if not args.opposite:
-            if os.path.splitext(basename)[0] in items:
+            if basename in items:
                 shutil.copyfile(src, os.path.join(args.output, basename))
             else:
                 pass
