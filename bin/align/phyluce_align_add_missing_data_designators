@@ -65,6 +65,12 @@ def get_args():
         type=int
     )
     parser.add_argument(
+        '--missing-character',
+        help="The character to use for missing data",
+        type=str,
+        default="?",
+    )
+    parser.add_argument(
         '--verbatim',
         action="store_true",
         default=False,
@@ -131,7 +137,7 @@ def record_formatter(seq, name):
     )
 
 
-def add_gaps_to_align(aln, organisms, check_missing, missing, verbatim=False, min_taxa=3):
+def add_gaps_to_align(aln, organisms, check_missing, missing, verbatim=False, min_taxa=3, missing_character="?"):
     local_organisms = copy.deepcopy(organisms)
     if len(aln) < min_taxa:
         new_align = None
@@ -157,7 +163,7 @@ def add_gaps_to_align(aln, organisms, check_missing, missing, verbatim=False, mi
                     assert loc in missing[org], "Locus missing"
                 except:
                     assert loc in missing['{}*'.format(org)], "Locus missing"
-            missing_string = '?' * overall_length
+            missing_string = missing_character * overall_length
             new_align.append(record_formatter(missing_string, org))
     return new_align
 
@@ -171,9 +177,9 @@ def get_missing_loci_from_conf_file(config):
 
 
 def add_designators(work):
-    file, input_format, organisms, check_missing, missing, verbatim, min_taxa, output, output_format = work
+    file, input_format, organisms, check_missing, missing, verbatim, min_taxa, output, output_format, missing_character = work
     aln = AlignIO.read(file, input_format)
-    new_align = add_gaps_to_align(aln, organisms, check_missing, missing, verbatim, min_taxa)
+    new_align = add_gaps_to_align(aln, organisms, check_missing, missing, verbatim, min_taxa, missing_character)
     if new_align is not None:
         outf = os.path.join(output, os.path.basename(file))
         AlignIO.write(new_align, open(outf, 'w'), output_format)
@@ -212,7 +218,8 @@ def main():
             args.verbatim,
             args.min_taxa,
             args.output,
-            args.output_format
+            args.output_format,
+            args.missing_character
         ] for file in files
     ]
     log.info("Adding missing data designators using {} cores".format(args.cores))
