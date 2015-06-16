@@ -79,6 +79,12 @@ def get_args():
         help="""Process alignments in parallel using --cores for alignment. """ +
         """This is the number of PHYSICAL CPUs."""
     )
+    parser.add_argument(
+        "--binary",
+        action="store_true",
+        default=False,
+        help="""Output alignments in binary encoding (A or G) = 1 and (C or T) = 0""",
+    )
     return parser.parse_args()
 
 
@@ -111,7 +117,10 @@ def main():
     log, my_name = setup_logging(args)
     files = get_alignment_files(log, args.alignments, args.input_format)
     # make translation table
-    translation_table = string.maketrans('AGCTagct', 'RRYYrryy')
+    if not args.binary:
+        translation_table = string.maketrans('AGCTagct', 'RRYYrryy')
+    else:
+        translation_table = string.maketrans('AGCTagct', '11001100')
     work = [(args, f, args.input_format, args.output_format, translation_table) for f in files]
     sys.stdout.write("Running")
     sys.stdout.flush()
