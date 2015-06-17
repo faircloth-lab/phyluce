@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 17 June 2015 13:50 CDT (-0500)
+"""
+
+
+import os
+import sys
+import csv
+import argparse
+import multiprocessing
+from collections import defaultdict, OrderedDict
+from functools import partial
+
+from Bio import AlignIO
+from Bio.Alphabet import IUPAC, Gapped
+from Bio.Align import MultipleSeqAlignment
+
+from phyluce.helpers import is_dir, is_file, FullPaths, CreateDir, get_alignment_files
+from phyluce.log import setup_logging
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Given an input cluster CSV file, partition the input alignments by their cluster in the CSV file"""
+    )
+    parser.add_argument(
+        '--alignments',
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The directory containing the alignment files"""
+    )
+    parser.add_argument(
+        '--cluster-csv',
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The cluster CSV file"""
+    )
+    parser.add_argument(
+        '--output',
+        required=True,
+        action=CreateDir,
+        help='An output directory to hold the converted alignments.'
+    )
+    parser.add_argument(
+        "--input-format",
+        dest="input_format",
+        choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'phylip-sequential', 'clustal', 'emboss', 'stockholm'],
+        default='nexus',
+        help="""The input alignment format"""
+    )
+    parser.add_argument(
+        "--output-format",
+        dest="output_format",
+        choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'phylip-sequential', 'clustal', 'emboss', 'stockholm'],
+        default='nexus',
+        help="""The input alignment format"""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""The number of cores to use.""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    return parser.parse_args()
+
+
+def build_alignment_by_locus(work):
+    file, cluster_dict, cluster_set, input_format = work
+    # create new alignments equal to # clusters in cluster set
+    new_aligns = {cluster:MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?")) for cluster in cluster_set}
+    locus_name = os.path.splitext(os.path.basename(file))[0]
+    alignment = AlignIO.read(open(file, 'rU'), input_format)
+    for pos in xrange(alignment.get_alignment_length()):
+        column = alignment[:, pos:pos+1]
+        cluster = cluster_dict[locus_name][pos]
+        # the new_align[cluster] will be empty before we add a column
+        # and to concatenate alignments we need some entries
+        if new_aligns[cluster].get_alignment_length() == 0:
+            new_aligns[cluster] = column
+        else:
+            new_aligns[cluster] += column
+    sys.stdout.write(".")
+    sys.stdout.flush()
+    return locus_name, new_aligns
+
+
+def reformat_partitioned_alignments(work):
+    cluster, data = work
+    new_align = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
+    for locus_name, alignment in data:
+        # we must sort each alignment to ensure labels are in order before
+        # combining because labels may be out of order across alignments
+        alignment.sort()
+        if new_align.get_alignment_length() == 0:
+            new_align = alignment
+        else:
+            new_align += alignment
+    sys.stdout.write(".")
+    sys.stdout.flush()
+    return cluster, new_align
+
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    # find all alignments
+    log.info("Getting alignments...")
+    files = get_alignment_files(log, args.alignments, args.input_format)
+    # nested defaultdict with lambda is not pickleable and can't be passed to
+    # multiprocessing.  use partial() function instead.
+    cluster_dict = defaultdict(partial(defaultdict, OrderedDict))
+    cluster_set = set([])
+    cluster_mins_and_maxes = defaultdict(list)
+    log.info("Reading CSV...")
+    with open(args.cluster_csv, 'rb') as infile:
+        has_header = csv.Sniffer().has_header(infile.read(1024))
+        infile.seek(0)
+        csvreader = csv.reader(infile, delimiter=',', quotechar='"')
+        for cnt, row in enumerate(csvreader):
+            if cnt == 0 and has_header:
+                pass
+            else:
+                line, locus, pos, parsimony, cluster = row
+                cluster_dict[locus][int(pos)] = cluster
+                cluster_mins_and_maxes[cluster].append(int(parsimony))
+                cluster_set.add(cluster)
+    log.info("Re-partitioning loci by cluster...")
+    work1 = [(f, cluster_dict, cluster_set, args.input_format) for f in files]
+    if args.cores > 1 and args.cores >= multiprocessing.cpu_count():
+        raise IOError("You have specificed more cores than you have available")
+    elif args.cores > 1 and args.cores <= multiprocessing.cpu_count():
+        pool = multiprocessing.Pool(args.cores)
+        results = pool.map(build_alignment_by_locus, work1)
+    else:
+        results = map(build_alignment_by_locus, work1)
+    print ""
+    alignments_by_cluster = {cluster:[] for cluster in cluster_set}
+    log.info("Re-grouping partitioned alignments by cluster...")
+    for locus, sets in results:
+        for cluster, alignment in sets.iteritems():
+            alignments_by_cluster[cluster].append((locus, alignment))
+    # convert dict to tuple
+    work2 = alignments_by_cluster.items()
+    if args.cores > 1:
+        partitioned_alignments = pool.map(reformat_partitioned_alignments, work2)
+    else:
+        partitioned_alignments = map(reformat_partitioned_alignments, work2)
+    print ""
+    log.info("Writing output alignments to {}...".format(args.output))
+    for cluster, alignment in partitioned_alignments:
+        outf_pth = os.path.join(args.output, "cluster-{}_site-count-{}-to-{}.{}".format(
+            cluster,
+            min(cluster_mins_and_maxes[cluster]),
+            max(cluster_mins_and_maxes[cluster]),
+            args.output_format
+        ))
+        with open(outf_pth, 'w') as outf:
+            AlignIO.write(alignment, outf, args.output_format)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+
+
+if __name__ == '__main__':
+    main()
