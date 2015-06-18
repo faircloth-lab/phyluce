@@ -107,6 +107,13 @@ def build_alignment_by_locus(work):
             new_aligns[cluster] = column
         else:
             new_aligns[cluster] += column
+    # we need to remove any empty alignments for a given cluster
+    empty_align = []
+    for cluster, new_alignment in new_aligns.iteritems():
+        if new_alignment.get_alignment_length() == 0:
+            empty_align.append(cluster)
+    for empty in empty_align:
+        del new_aligns[empty]
     sys.stdout.write(".")
     sys.stdout.flush()
     return locus_name, new_aligns
