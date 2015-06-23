@@ -263,13 +263,6 @@ def setup_logging(level):
 
 def main():
     args = get_args()
-    # make the output directory
-    try:
-        os.makedirs(args.output)
-    except OSError:
-        answer = raw_input("Output directory exists.  Overwrite [Y/n]? ")
-        if answer != 'Y':
-            sys.exit()
     # setup logger
     log = setup_logging(args.verbosity)
     log.info("=================== Starting Phyluce: Slice Sequence ===================")
