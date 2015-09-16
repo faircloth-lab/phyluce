@@ -13,13 +13,15 @@ import re
 import sys
 import glob
 import argparse
+import shutil
 import ConfigParser
-from phyluce import lastz
 #from operator import itemgetter
 from collections import defaultdict
-import shutil
 
-import pdb
+from phyluce import lastz
+from phyluce.pth import get_all_user_params
+
+#import pdb
 
 class FullPaths(argparse.Action):
     """Expand user- and relative-paths"""
@@ -285,3 +287,6 @@ def write_alignments_to_outdir(log, outdir, alignments, format):
                 outf.write(aln.trimmed.format(format))
         else:
             log.warn("DROPPED {0} from output".format(locus))
+
+def get_contig_header_string():
+    return "|".join(get_all_user_params("headers"))

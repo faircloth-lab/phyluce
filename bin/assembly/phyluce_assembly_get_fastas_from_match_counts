@@ -17,7 +17,7 @@ from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from phyluce.helpers import FullPaths, is_dir, is_file, get_names_from_config
+from phyluce.helpers import FullPaths, is_dir, is_file, get_names_from_config, get_contig_header_string
 from phyluce.pth import get_user_param
 from phyluce.log import setup_logging
 
@@ -109,10 +109,7 @@ def get_nodes_for_uces(c, organism, uces, extend=False, notstrict=False):
     missing = []
     for node in rows:
         if node[0] is not None:
-            contig_header_string = "{}|{}".format(
-                get_user_param("headers", "velvet"),
-                get_user_param("headers", "trinity")
-            )
+            contig_header_string = get_contig_header_string()
             match = re.search('^({})\(([+-])\)'.format(contig_header_string), node[0], flags=re.I)
             node_dict[match.groups()[0]] = (node[1], match.groups()[1])
         elif notstrict:
@@ -147,10 +144,7 @@ def find_file(contigs, name):
 
 def get_contig_name(header):
     """parse the contig name from the header of either velvet/trinity assembled contigs"""
-    contig_header_string = "{}|{}".format(
-        get_user_param("headers", "velvet"),
-        get_user_param("headers", "trinity")
-    )
+    contig_header_string = get_contig_header_string()
     match = re.search("^({}).*".format(contig_header_string), header, flags=re.I)
     return match.groups()[0]
 

@@ -15,6 +15,8 @@ import os
 import sys
 import ConfigParser
 
+#import pdb
+
 def get_user_path(program, binary, package_only=False):
     config = ConfigParser.ConfigParser()
     # make case sensitive
@@ -40,3 +42,11 @@ def get_user_param(section, param):
     config.optionxform = str
     config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
     return config.get(section, param)
+
+
+def get_all_user_params(section):
+    config = ConfigParser.ConfigParser()
+    # make case sensitive
+    config.optionxform = str
+    config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+    return [item[1] for item in config.items(section)]

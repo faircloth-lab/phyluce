@@ -16,7 +16,7 @@ import copy
 import sqlite3
 import argparse
 from phyluce import lastz
-from phyluce.helpers import is_dir, is_file, FullPaths
+from phyluce.helpers import is_dir, is_file, FullPaths, get_contig_header_string
 from phyluce.pth import get_user_param
 from phyluce.log import setup_logging
 from collections import defaultdict
@@ -224,10 +224,7 @@ def pretty_log_output(log, critter, matches, contigs, pd, mc, uce_dupe_uces):
 
 def get_contig_name(header):
     """parse the contig name from the header of either velvet/trinity assembled contigs"""
-    contig_header_string = "{}|{}".format(
-        get_user_param("headers", "velvet"),
-        get_user_param("headers", "trinity")
-    )
+    contig_header_string = get_contig_header_string()
     match = re.search("^({}).*".format(contig_header_string), header, flags=re.I)
     return match.groups()[0]
 

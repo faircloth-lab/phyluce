@@ -86,10 +86,10 @@ def get_args():
         help="""Use bwa-mem instead of standard bwa""",
     )
     parser.add_argument(
-        "--velvet",
-        action="store_true",
-        default=False,
-        help="""Compute coverage across velvet/abYss contigs instead of Trinity contigs""",
+        "--assembler",
+        choices=["velvet", "abyss", "trinity", "idba"],
+        default="trinity",
+        help="""Program used to asemble raw reads""",
     )
     parser.add_argument(
         "--trim",
@@ -195,11 +195,11 @@ def main():
         samtools.index(log, sample, assembly_pth, bam)
         coverage = gatk.coverage(log, sample, assembly_pth, assembly, args.cores, bam)
         if args.trim:
-            overall_contigs = gatk.get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
+            overall_contigs = gatk.get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, args.assembler)
             trimmed_fasta_path = gatk.filter_screened_contigs_from_assembly(log, sample, assembly_pth, assembly, overall_contigs)
             symlink_trimmed_contigs(log, sample, contig_dir, trimmed_fasta_path)
         else:
-            overall_contigs = gatk.get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, args.velvet)
+            overall_contigs = gatk.get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, args.assembler)
         gatk.remove_coverage_files(log, assembly_pth, coverage)
     # end
     text = " Completed {} ".format(my_name)
