@@ -172,6 +172,10 @@ last line::
 where ``$HOME/path/to/conda/bin`` is the location of anaconda/miniconda on your
 system (usually ``$HOME/anaconda/bin`` or ``$HOME/miniconda/bin``).
 
+.. warning:: If you have previously set your ``$PYTHONPATH`` elsewhere in your
+   configuration, it may cause problems with your anaconda_ or miniconda_
+   installation of phyluce_.  The solution is to remove the offending library
+   (-ies) from your ``$PYTHONPATH``.
 
 Add the faircloth-lab repository to conda
 -----------------------------------------
