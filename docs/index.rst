@@ -78,4 +78,5 @@ Supporting documents
 
 .. toctree::
    :maxdepth: 2
+
    list-of-programs
