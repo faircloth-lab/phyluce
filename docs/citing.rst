@@ -10,16 +10,10 @@ If you use the `phyluce`_ code in any form, please cite the following manuscript
 (which is "in review"):
 
 .. [BCF2015] Faircloth BC. 2015. PHYLUCE is a software package for the analysis
-   of conserved genomic loci.  bioRxiv.
-   doi:`10.1101/027904 <http://dx.doi.org/10.1101/027904>`_.
+   of conserved genomic loci.  Bioinformatics.
+   doi:`10.1093/bioinformatics/btv646 <10.1093/bioinformatics/btv646>`_.
 
-You can also directly cite the `phyluce`_ repository using:
-
-.. [BCF2014] Faircloth BC. 2015. phyluce: phylogenetic estimation from
-   ultraconserved elements.
-   doi:`10.6079/J9PHYL <http://doi.org/10.6079/J9PHYL>`_.
-
-Finally, if you are processing UCE data that you have collected by targeted
+If you are processing UCE data that you have collected by targeted
 enrichment using our probes/protocols, please cite the following
 manuscripts, which describes the first use of the general approach:
 
