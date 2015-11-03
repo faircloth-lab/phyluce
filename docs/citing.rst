@@ -11,7 +11,7 @@ If you use the `phyluce`_ code in any form, please cite the following manuscript
 
 .. [BCF2015] Faircloth BC. 2015. PHYLUCE is a software package for the analysis
    of conserved genomic loci.  Bioinformatics.
-   doi:`10.1093/bioinformatics/btv646 <10.1093/bioinformatics/btv646>`_.
+   doi:`10.1093/bioinformatics/btv646 <http://doi.org/10.1093/bioinformatics/btv646>`_.
 
 If you are processing UCE data that you have collected by targeted
 enrichment using our probes/protocols, please cite the following
