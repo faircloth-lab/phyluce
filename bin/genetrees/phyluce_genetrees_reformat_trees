@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 04 November 2015 11:34 CST (-0600)
+"""
+
+import os
+import glob
+import dendropy
+import argparse
+import ConfigParser
+from phyluce.helpers import is_dir, FullPaths, CreateDir
+
+import pdb
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Rename the leaves of an input tree""")
+    parser.add_argument(
+            "--input",
+            required=True,
+            type=is_dir,
+            action=FullPaths,
+            help="""The input trees directory"""
+        )
+    parser.add_argument(
+            "--output",
+            required=True,
+            action=CreateDir,
+            help="""The output trees directory"""
+        )
+    parser.add_argument(
+            "--input-format",
+            dest='input_format',
+            choices=['nexus', 'newick', 'fasta', 'phylip'],
+            default='newick',
+            help="""The tree file format"""
+        )
+    parser.add_argument(
+            "--output-format",
+            dest='output_format',
+            choices=['nexus', 'newick', 'fasta', 'phylip'],
+            default='newick',
+            help="""The tree file format"""
+        )
+    parser.add_argument(
+            "--do-not-preserve-spaces",
+            type=str,
+            default=False,
+            help="""Do not retain spaces in output names""",
+        )
+    return parser.parse_args()
+
+
+def get_tree_file_extensions(ftype):
+    ext = {
+        'nexus': ('.nexus', '.nex', '.tre'),
+        'newick':('.tre', '.newick'),
+        'phylip':('.tre', '.phy', '.phylip'),
+        'fasta':('.fasta')
+    }
+    return ext[ftype]
+
+
+def get_tree_files(input_dir, input_format):
+    #log.info("Getting tree files")
+    alignments = []
+    for ftype in get_tree_file_extensions(input_format):
+        alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
+    return alignments
+
+def main():
+    args = get_args()
+    treefile = get_tree_files(args.input, args.input_format)
+    for trees in treefile:
+        try:
+            trs = dendropy.TreeList(stream=open(trees), schema=args.input_format)
+        except ValueError as e:
+            if e.message == "No trees in data source":
+                print "Missing tree data for {}".format(trees)
+
+        for tr in trs:
+            tr.write_to_path(os.path.join(args.output, os.path.basename(trees)), args.output_format)
+
+
+
+if __name__ == '__main__':
+    main()
