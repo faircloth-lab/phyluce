@@ -48,13 +48,13 @@ def get_args():
     )
     parser.add_argument(
         "--input-format",
-        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        choices=["fasta", "nexus", "phylip", "phylip-relaxed", "clustal", "emboss", "stockholm"],
         default="nexus",
         help="""The input alignment format.""",
     )
     parser.add_argument(
         "--output-format",
-        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        choices=["fasta", "nexus", "phylip", "phylip-relaxed", "clustal", "emboss", "stockholm"],
         default="nexus",
         help="""The output alignment format.""",
     )
@@ -118,9 +118,9 @@ def main():
     files = get_alignment_files(log, args.alignments, args.input_format)
     # make translation table
     if not args.binary:
-        translation_table = string.maketrans('AGCTagct', 'RRYYrryy')
+        translation_table = string.maketrans('AGRCTYSWKMBDHVagrctyswkmbdhv', 'RRRYYY????????rrryyy????????')
     else:
-        translation_table = string.maketrans('AGCTagct', '11001100')
+        translation_table = string.maketrans('AGRCTYSWKMBDHVNagrctyswkmbdhvn', '111000?????????111000?????????')
     work = [(args, f, args.input_format, args.output_format, translation_table) for f in files]
     sys.stdout.write("Running")
     sys.stdout.flush()
