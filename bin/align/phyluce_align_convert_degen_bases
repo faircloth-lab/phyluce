@@ -1,0 +1,128 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: screen_alignments_for_problems.py
+Author: Brant Faircloth
+
+Created by Brant Faircloth on 07 March 2012 15:03 PST (-0800)
+Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+
+Description:
+
+"""
+
+import os
+import re
+import glob
+import shutil
+import argparse
+import multiprocessing
+from string import maketrans
+from Bio import AlignIO
+from Bio.Seq import Seq
+from phyluce.helpers import is_dir, FullPaths, CreateDir, get_file_extensions, get_alignment_files
+from phyluce.log import setup_logging
+
+import pdb
+
+
+def get_args():
+    parser = argparse.ArgumentParser(
+        description="""Screen a given set of alignments for problematic nucleotides""",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '--alignments',
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The directory containing alignments to be screened."""
+    )
+    parser.add_argument(
+        '--output',
+        required=True,
+        action=CreateDir,
+        help="""The directory in which to store the resulting alignments."""
+    )
+    parser.add_argument(
+        "--input-format",
+        choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
+        default='nexus',
+        help="""The input alignment format""",
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
+        default='nexus',
+        help="""The output alignment format""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""Process alignments in parallel using --cores for alignment. """ +
+        """This is the number of PHYSICAL CPUs."""
+    )
+    return parser.parse_args()
+
+
+def translate_bases(translation_table, aln):
+    for seq in aln:
+        #for i in ["A","C","G","T","R","Y","S","W","K","M","B","D","H","V"]:
+        #    print "count {}".format(i), str(seq.seq).count(i)
+        seq.seq = Seq(str(seq.seq).translate(translation_table))
+    return aln
+
+
+
+def screen_files(work):
+    file, translation_table, input_format, output, output_format= work
+    aln = AlignIO.read(file, input_format)
+    name = os.path.basename(file)
+    aln = translate_bases(translation_table, aln)
+    with open(os.path.join(output, name), "w") as output_file:
+        AlignIO.write([aln], output_file, output_format)
+
+
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    #text = " Starting {} ".format(my_name)
+    #log.info(text.center(65, "="))
+    # find all alignments
+    files = get_alignment_files(log, args.alignments, args.input_format)
+    # compile our regexes once
+    translation_table = maketrans('BDHVbdhv', 'NNNNNNNN')
+    work = [[file, translation_table, args.input_format, args.output, args.output_format] for file in files]
+    log.info("Replacing problematic bases".format(args.cores))
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
+        results = pool.map(screen_files, work)
+        pool.close()
+    else:
+        results = map(screen_files, work)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+
+
+if __name__ == '__main__':
+    main()
