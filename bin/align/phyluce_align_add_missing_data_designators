@@ -181,7 +181,8 @@ def add_designators(work):
     aln = AlignIO.read(file, input_format)
     new_align = add_gaps_to_align(aln, organisms, check_missing, missing, verbatim, min_taxa, missing_character)
     if new_align is not None:
-        outf = os.path.join(output, os.path.basename(file))
+        # from carl o.
+        outf = os.path.join(output, os.path.splitext(os.path.basename(file))[0] + "." + output_format)
         AlignIO.write(new_align, open(outf, 'w'), output_format)
         return None
     else:
