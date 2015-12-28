@@ -18,6 +18,7 @@ import ConfigParser
 
 from phyluce import bwa
 from phyluce import picard
+from phyluce import samtools
 
 from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
@@ -183,6 +184,7 @@ def main():
             bam = bam_se
         if not bam:
             raise IOError("There is no BAM file.  Check bwa log files for problems.")
+        samtools.index(log, sample, sample_dir, bam)
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
