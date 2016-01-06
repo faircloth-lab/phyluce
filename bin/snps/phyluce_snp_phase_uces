@@ -163,17 +163,17 @@ def clean_fastas(log, fastas, output_dir, conservative=True):
                     if record.id in balanced_contigs:
                         # clean/rename header
                         if fasta.endswith(".0.clean.fasta"):
-                            record.id = "{0}_0 |{0}_phased".format(record.id)
+                            record.id = "{0}_0 |{1}_phased".format(record.id, record.id.split("_")[0])
                         elif fasta.endswith(".1.clean.fasta"):
-                            record.id = "{0}_1 |{0}_phased".format(record.id)
+                            record.id = "{0}_1 |{1}_phased".format(record.id, record.id.split("_")[0])
                         elif fasta.endswith(".unphased.fasta"):
-                            record.id = "{0} |{0}_hom".format(record.id)
+                            record.id = "{0} |{1}_hom".format(record.id, record.id.split("_")[0])
                         record.name = ""
                         record.description = ""
                         outfile.write(record.format("fasta"))
                     else:
                         if fasta.endswith(".unphased.clean.fasta"):
-                            record.id = "{0} |{0}_hom".format(record.id)
+                            record.id = "{0} |{1}_hom".format(record.id, record.id.split("_")[0])
                             record.name = ""
                             record.description = ""
                             outfile.write(record.format("fasta"))
