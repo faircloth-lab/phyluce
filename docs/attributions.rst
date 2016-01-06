@@ -11,21 +11,20 @@ including creating the laboratory methods to collect the data and the
 computational methods to analyze the data. Below, we have identified a list of
 approximately which people/groups did what.
 
-Wrote the code
-==============
+Maintainer/Author
+=================
 
-* `Brant Faircloth <http://faircloth-lab.org/>`_ (brant **at** faircloth-lab
-  **dot** org)
+* `Brant Faircloth <http://faircloth-lab.org/>`_ (brant **at** faircloth-lab **dot** org)
 
 .. _Contributors:
 
 Contributed to the code
 =======================
 
-* `Nick Crawford <http://www.ngcrawford.com/>`_ (ngcrawford **at** gmail
-  **dot** com)
+* `Nick Crawford <http://www.ngcrawford.com/>`_ (ngcrawford **at** gmail **dot** com)
 * `Mike Harvey <http://www.mharvey.org/>`_ (mharve9 **at** lsu **dot** edu)
-* `Carl Oliveros <http://naturalhistory.ku.edu/ornithology/people/carl-oliveros>`_ (carl **at** ku **dot** edu) ..
+* `Carl Oliveros <http://naturalhistory.ku.edu/ornithology/people/carl-oliveros>`_ (carl **at** ku **dot** edu)
+* `Tobias Hofmann <http://www.antonelli-lab.net/people.php>`_ (tobiashofmann **at** gmx **dot** net)
 
 Developed the UCE approach
 ==========================
