@@ -56,7 +56,6 @@ def get_args():
         "--output",
         required=True,
         action=CreateDir,
-        action=FullPaths,
         default=None,
         help="""The directory in which to store the SNPs files"""
     )
@@ -195,27 +194,29 @@ def clean_fastas(log, fastas, output_dir, conservative=True):
     return balanced_fastas_dir, balanced_fastas_links
 
 
-def join_files(log, balanced_fastas_dir, f1, f2):
-    log.info("Merging FASTA files for allele_0 and allele_1")
-    fa=SeqIO.parse(open(f1), "fasta")
-    fb=SeqIO.parse(open(f2), "fasta")
+def join_files(log, balanced_fastas_dir, to_join):
+    text = " Merging alleles from all loci"
+    log.info(text.center(65, "-"))
     outfile_name = os.path.join(balanced_fastas_dir, "joined_allele_sequences_all_samples.fasta")
-    # this joins alleles one-after-the-other (interleaved) versus
-    # tobi's original code that just appened the .1. alleles following the .0.
-    # alelles
-    # NOTE: tobi's old code just cat-ed allele 1 after allele 0.
-    cnt = 0
     with open(outfile_name, "w") as outfile:
-        for allele_0, allele_1 in izip(fa, fb):
-            try:
-                cnt += 1
-                assert allele_0.description.split("|")[1] == allele_1.description.split("|")[1]
-                outfile.write(allele_0.format("fasta"))
-                outfile.write(allele_1.format("fasta"))
-            except:
-                raise IOError("Allele files appear to be unbalanced.")
-                sys.exit()
-    log.info("Wrote allele_0 and allele_1 for {} loci".format(cnt))
+        for f1, f2 in to_join:
+            fa=SeqIO.parse(open(f1), "fasta")
+            fb=SeqIO.parse(open(f2), "fasta")
+            # this joins alleles one-after-the-other (interleaved) versus
+            # tobi's original code that just appened the .1. alleles following the .0.
+            # alelles
+            # NOTE: tobi's old code just cat-ed allele 1 after allele 0.
+            cnt = 0
+            for allele_0, allele_1 in izip(fa, fb):
+                try:
+                    cnt += 1
+                    assert allele_0.description.split("|")[1] == allele_1.description.split("|")[1]
+                    outfile.write(allele_0.format("fasta"))
+                    outfile.write(allele_1.format("fasta"))
+                except:
+                    raise IOError("Allele files appear to be unbalanced.")
+                    sys.exit()
+            log.info("Wrote {} loci for {}".format(cnt, os.path.basename(f1).split('.')[0]))
 
 
 def get_input_data(log, conf, bams, output):
@@ -258,6 +259,7 @@ def main():
     # get the input data
     log.info("Getting input filenames and creating output directories")
     references_bams = get_input_data(log, conf, args.bams, args.output)
+    to_join = []
     for individual, data in references_bams.iteritems():
         text = " Processing {} ".format(individual)
         log.info(text.center(65, "-"))
@@ -271,8 +273,12 @@ def main():
                 allele_0 = fasta
             elif fasta.endswith("1.clean.balanced.fasta"):
                 allele_1 = fasta
-        # interleave those puppies
-        join_files(log, balanced_fastas_dir, allele_0, allele_1)
+        to_join.append((allele_0, allele_1))
+    # interleave those puppies
+    join_files(log, balanced_fastas_dir, to_join)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == '__main__':
