@@ -274,9 +274,9 @@ else:
 	print "\nThe missing data option is activated. The final SNP alignment will contain missing sites (\'?\')\n\n"
 #%%% Workflow %%%
 #get all fasta files in working directory
-pdb.set_trace()
 os.chdir(work_dir)
 fasta_files = [x for x in os.listdir(os.getcwd()) if ".fasta" in x and "snp.fasta" not in x]
+#pdb.set_trace()
 final_dict = {}
 list_of_genes=[]
 for fasta in fasta_files[:]:
