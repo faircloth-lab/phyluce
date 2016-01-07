@@ -219,9 +219,16 @@ def main():
             count = 0
             log.info("There are {} UCE loci for {}".format(len(node_dict), organism))
             log.info("Parsing and renaming contigs for {}".format(organism))
+            node_dict_set = set(node_dict.keys())
+            nodes_written_set = set()
             for seq in SeqIO.parse(open(reads, 'rU'), 'fasta'):
+                # break out of loop if we've already written everything we need
+                # to.  this should help to keep us from iteration over thousands
+                # of sequences if we do not need to.
+                if nodes_written_set == node_dict_set:
+                    break
                 name = get_contig_name(seq.id).lower()
-                if name in node_dict.keys():
+                if name in node_dict_set:
                     seq.id = "{0}_{1} |{0}".format(node_dict[name][0], organism.rstrip('*'))
                     seq.name = ''
                     seq.description = ''
@@ -237,6 +244,7 @@ def main():
                     seq, count = replace_and_remove_bases(regex, seq, count)
                     uce_fasta_out.write(seq.format('fasta'))
                     written.append(str(node_dict[name][0]))
+                    nodes_written_set.add(name)
                 else:
                     pass
             if count > 0:
