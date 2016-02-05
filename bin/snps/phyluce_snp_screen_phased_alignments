@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2016 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 05 February 2016 11:25 CST (-0600)
+"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2016 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 05 February 2016 11:25 CST (-0600)
+"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2016 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 05 February 2016 10:16 CST (-0600)
+"""
+
+import os
+import glob
+import argparse
+import multiprocessing
+from Bio import AlignIO
+from Bio.Alphabet import IUPAC, Gapped
+from Bio.Align import MultipleSeqAlignment
+
+from phyluce import sites
+from phyluce.helpers import is_dir, FullPaths, CreateDir, get_alignment_files
+from phyluce.log import setup_logging
+
+import pdb
+
+
+def get_args():
+    """Screen a folder of phased alignments for variation"""
+    parser = argparse.ArgumentParser(
+        description="""Program description"""
+    )
+    parser.add_argument(
+        '--alignments',
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The directory containing the alignment files"""
+    )
+    parser.add_argument(
+        '--output',
+        required=True,
+        action=CreateDir,
+        help="The directory in which to store the output files"
+    )
+    parser.add_argument(
+        "--input-format",
+        dest="input_format",
+        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
+        default='nexus',
+        help="""The input alignment format""",
+    )
+    parser.add_argument(
+        "--output-format",
+        dest="output_format",
+        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
+        default='nexus',
+        help="""The input alignment format""",
+    )
+    parser.add_argument(
+        "--include-missing",
+        action="store_true",
+        default=False,
+        help="""Include sites within missing/ambiguous information (-, ?, N, X)""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    return parser.parse_args()
+
+
+def concatenate_alignments(align, align_slice):
+    if align.get_alignment_length() == 0:
+        align = align_slice
+    else:
+        align += align_slice
+    return align
+
+
+def worker(work):
+    args, aln = work
+    align = AlignIO.read(aln, args.input_format)
+    new_align = MultipleSeqAlignment([], Gapped(IUPAC.ambiguous_dna, "-?"))
+    for idx in xrange(align.get_alignment_length()):
+        # slice the aln column and uppercase everything
+        col = align[:, idx].upper()
+        # remove ambiguous characters from the slice
+        # to determine if variable
+        reduced = col.translate(None, "-NX?")
+        # check for variation
+        if len(reduced) > 1 and len(set(reduced)) > 1:
+            align_slice = align[:, idx:idx + 1]
+            # append variable slices to new alignment object
+            if len(reduced) == len(align):
+                new_align = concatenate_alignments(new_align, align_slice)
+            elif args.include_missing:
+                new_align = concatenate_alignments(new_align, align_slice)
+            else:
+                pass
+        else:
+            pass
+    if new_align.get_alignment_length() >= 1:
+        outf = os.path.join(args.output, os.path.basename(aln))
+        AlignIO.write(new_align, open(outf, 'w'), args.output_format)
+    #pdb.set_trace()
+
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    # find all alignments
+    files = get_alignment_files(log, args.alignments, args.input_format)
+    work = [(args, f) for f in files]
+    map(worker, work)
+
+if __name__ == '__main__':
+    main()
