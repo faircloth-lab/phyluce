@@ -136,14 +136,22 @@ def worker(work):
         else:
             # output all sites
             new_align = concatenate_alignments(new_align, snp_list)
-        out_pth = os.path.join(args.output, fname)
-        with open(out_pth, 'w') as outf:
-            AlignIO.write(new_align, outf, args.output_format)
         sys.stdout.write('.')
         sys.stdout.flush()
-        return out_pth
+        return fname, new_align
     else:
-        pass
+        return fname, None
+
+
+def write_new_alignments(log, args, results):
+    log.info("Writing alignments...")
+    for fname, new_align in results:
+        if new_align is not None:
+            out_pth = os.path.join(args.output, fname)
+            with open(out_pth, 'w') as outf:
+                AlignIO.write(new_align, outf, args.output_format)
+        else:
+            pass
 
 
 def main():
@@ -154,8 +162,8 @@ def main():
     files = get_alignment_files(log, args.alignments, args.input_format)
     work = [(args, f) for f in files]
     log.info("Creating phased, SNP-only alignments using {} cores".format(
-        args.cores)
-    )
+        args.cores
+    ))
     sys.stdout.write('Processing')
     sys.stdout.flush()
     if args.cores <= 1:
@@ -163,8 +171,10 @@ def main():
     elif args.cores > 1:
         pool = multiprocessing.Pool(args.cores)
         results = pool.map(worker, work)
-    # end
     print ""
+    # write results
+    write_new_alignments(log, args, results)
+    # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
