@@ -245,7 +245,7 @@ def main():
     db_name = "{0}.sqlite".format(args.output)
     conn, c = create_differences_database(db_name)
     # iterate through all the files to determine the longest alignment
-    work = [(args, f) for f in get_files(args.input, args.input_format)]
+    work = [(args, f) for f in get_files(args.alignments, args.input_format)]
     sys.stdout.write("Running")
     if args.cores > 1:
         pool = multiprocessing.Pool(args.cores)
