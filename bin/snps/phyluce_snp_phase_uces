@@ -237,6 +237,10 @@ def get_input_data(log, conf, bams, output):
             assert os.path.isfile(bam)
             all_bams.append((sample[0], bam),)
         except:
+            bam = os.path.join(bams, sample[0], "{}-CL-RG-MD.bam".format(sample[0]))
+            assert os.path.isfile(bam)
+            all_bams.append((sample[0], bam),)
+        finally:
             raise IOError("{} is not a file".format(sample[1]))
     both = [dict(references), dict(all_bams)]
     references_bams = {}
