@@ -92,7 +92,7 @@ def worker(work):
     new_align = MultipleSeqAlignment([], generic_dna)
     for align in AlignIO.parse(f, in_type):
         for seq in list(align):
-            fname = os.path.splitext(os.path.basename(f))[0]
+            fname = os.path.splitext(os.path.basename(f))[0].strip("_phased")
             new_seq_name = re.sub("^(_R_)*{}_*".format(fname), "", seq.name)
             all_taxa.append(new_seq_name)
             seq.id = new_seq_name

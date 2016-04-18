@@ -101,7 +101,7 @@ def phase_bam(log, sample, reference, bam, output_dir):
     make_cons_unphased = samtools.call(log, sample, phasing_out_dir, reference, bam, "unphased")
     # convert to fasta
     fasta_cons_0 = seqtk.fq_to_fa(log, sample, phasing_out_dir, make_cons_0, "0")
-    fasta_cons_1= seqtk.fq_to_fa(log, sample, phasing_out_dir, make_cons_1, "1")
+    fasta_cons_1 = seqtk.fq_to_fa(log, sample, phasing_out_dir, make_cons_1, "1")
     fasta_cons_unphased = seqtk.fq_to_fa(log, sample, phasing_out_dir, make_cons_unphased, "unphased")
     # TODO: if we want to cleanup, add here
     return fasta_cons_0, fasta_cons_1, fasta_cons_unphased
