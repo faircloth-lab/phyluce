@@ -164,12 +164,12 @@ def main():
             for seq in AlignIO.read(f, args.input_format):
                 # get species name
                 sample = seq.id
-                species = organisms[sample].capitalize()
-                partial = species.split(' ')[0].lower()[:3]
                 # skip taxa in exclude list
                 if sample in taxon_excludes:
                     pass
                 else:
+                    species = organisms[sample].capitalize()
+                    partial = species.split(' ')[0].lower()[:3]
                     # process fsa file record
                     new_id = get_new_identifier(sample, species, uce, partial, counter, metadata, vouchers[sample], biosamples[sample])
                     new_seq = str(seq.seq).replace('-', '').replace('?', '').upper()
