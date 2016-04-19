@@ -165,7 +165,7 @@ def main():
                 # get species name
                 sample = seq.id
                 # skip taxa in exclude list
-                if sample in taxon_excludes:
+                if sample in taxon_excludes or sample.lower() in taxon_excludes:
                     pass
                 else:
                     species = organisms[sample].capitalize()
