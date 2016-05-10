@@ -128,7 +128,7 @@ def main():
                     if args.include_locus:
                         record = SeqRecord(
                             Seq(seq, generic_dna),
-                            id="{0}_{1} | {0}".format(locus, taxon.id),
+                            id="{0}_{1} |{0}".format(locus, taxon.id),
                             name="",
                             description=""
                         )
