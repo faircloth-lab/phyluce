@@ -233,15 +233,15 @@ def get_input_data(log, conf, bams, output):
     all_bams = []
     for sample in individuals:
         try:
-            bam = os.path.join(bams, sample[0], "{}-CL-RG-MD-M.bam".format(sample[0]))
-            assert os.path.isfile(bam)
+            bam_name = "{}-CL-RG-MD-M.bam".format(sample[0])
+            bam = os.path.join(bams, sample[0], bam_name)
+            assert os.path.isfile(bam), "BAM {} not found".format(bam_name)
             all_bams.append((sample[0], bam),)
-        except:
-            bam = os.path.join(bams, sample[0], "{}-CL-RG-MD.bam".format(sample[0]))
-            assert os.path.isfile(bam)
+        except AssertionError:
+            bam_name = "{}-CL-RG-MD.bam".format(sample[0])
+            bam = os.path.join(bams, sample[0], bam_name)
+            assert os.path.isfile(bam), "BAM {} not found".format(bam_name)
             all_bams.append((sample[0], bam),)
-        finally:
-            raise IOError("{} is not a file".format(sample[1]))
     both = [dict(references), dict(all_bams)]
     references_bams = {}
     for k in both[0].iterkeys():
