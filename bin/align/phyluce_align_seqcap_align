@@ -195,7 +195,7 @@ def get_fasta_dict(log, args):
     loci = defaultdict(list)
     with open(args.fasta, "rU") as infile:
         for record in SeqIO.parse(infile, "fasta"):
-            locus = record.description.split("|")[1]
+            locus = record.description.split("|")[1].rstrip("_phased")
             loci = build_locus_dict(log, loci, locus, record, args.ambiguous)
     # workon a copy so we can iterate and delete
     snapshot = copy.deepcopy(loci)
