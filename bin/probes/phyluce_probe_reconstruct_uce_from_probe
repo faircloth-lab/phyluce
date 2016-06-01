@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2016 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 27 April 2016 14:24 CDT (-0500)
+"""
+
+import os
+import argparse
+from StringIO import StringIO
+from collections import defaultdict
+
+from Bio import SeqIO
+from Bio import AlignIO
+from Bio.Align import AlignInfo
+from Bio.SeqRecord import SeqRecord
+from Bio.Align.Applications import MuscleCommandline
+
+from phyluce.log import setup_logging
+from phyluce.helpers import is_file, is_dir, FullPaths
+
+#import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""From a UCE probe set, reconstruct the UCE sequence used for design"""
+    )
+    parser.add_argument(
+        "--input",
+        required=True,
+        action=FullPaths,
+        type=is_file,
+        help="""The input probe set"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=FullPaths,
+        help="""The output FASTA file"""
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    return parser.parse_args()
+
+
+def get_sequences(infile):
+    d = defaultdict(list)
+    for record in SeqIO.parse(open(infile), "fasta"):
+        locus = record.id.split("_")[0]
+        d[locus].append(record)
+    return d
+
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    sequences_dict = get_sequences(args.input)
+    log.info("There are {} loci in {}".format(
+        len(sequences_dict),
+        os.path.basename(args.input)
+        )
+    )
+    count = 0
+    with open(args.output, 'w') as outfile:
+        for locus, records in sequences_dict.iteritems():
+            handle = StringIO()
+            SeqIO.write(records, handle, "fasta")
+            data = handle.getvalue()
+            muscle_cline = MuscleCommandline(clwstrict=True)
+            stdout, stderr = muscle_cline(stdin=data)
+            align = AlignIO.read(StringIO(stdout), "clustal")
+            consensus = AlignInfo.SummaryInfo(align).dumb_consensus()
+            consensus_record = SeqRecord(consensus, id=locus, name="", description="")
+            outfile.write(consensus_record.format('fasta'))
+            count += 1
+    log.info("Wrote {} sequences to {}".format(
+        count,
+        os.path.basename(args.output)
+        ))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+
+if __name__ == '__main__':
+    main()
