@@ -61,6 +61,7 @@ Guide
    uce-processing
    tutorial-one
    tutorial-three
+   tutorial-four
 
 Project info
 ============

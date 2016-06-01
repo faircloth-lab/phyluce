@@ -6,11 +6,10 @@
 Citing
 ******
 
-If you use the `phyluce`_ code in any form, please cite the following manuscript
-(which is "in review"):
+If you use the `phyluce`_ code in any form, please cite the following manuscript:
 
-.. [BCF2015] Faircloth BC. 2015. PHYLUCE is a software package for the analysis
-   of conserved genomic loci.  Bioinformatics.
+.. [BCF2015] Faircloth BC. 2016. PHYLUCE is a software package for the analysis
+   of conserved genomic loci.  Bioinformatics 32:786-788.
    doi:`10.1093/bioinformatics/btv646 <http://doi.org/10.1093/bioinformatics/btv646>`_.
 
 If you are processing UCE data that you have collected by targeted
@@ -21,6 +20,9 @@ manuscripts, which describes the first use of the general approach:
    Glenn TC. 2012. Ultraconserved elements anchor thousands of genetic markers
    spanning multiple evolutionary timescales. Systematic Biology 61: 717–726.
    doi:`10.1093/sysbio/SYS004 <http://doi.org/10.1093/sysbio/SYS004>`_.
+
+Then, if you are working in groups other than tetrapods, please cite the
+appropriate manuscript for the organisms you are working on.
 
 ..  _References:
 
