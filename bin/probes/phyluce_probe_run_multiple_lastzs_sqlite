@@ -40,7 +40,6 @@ def get_args():
     parser.add_argument(
             "--output",
             required=True,
-            type=is_dir,
             action=CreateDir,
             help="""The directory in which to store the LASTZ files"""
         )
