@@ -60,6 +60,7 @@ Guide
    assembly
    uce-processing
    tutorial-one
+   tutorial-three
 
 Project info
 ============

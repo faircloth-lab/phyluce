@@ -337,6 +337,8 @@ The output you see should look like this:
 
 Now, we're ready to assemble our reads.
 
+.. _tutorial-assembly:
+
 Assemble the data
 =================
 
@@ -671,6 +673,8 @@ the `uce-search-results directory`):
 The search we just ran created lastz_ search result files for each taxon, and
 stored summary results of these searches in the `probe.matches.sqlite` database
 (see :ref:`Database` for more information on this database and its structure).
+
+.. _tutorial-uce-extraction:
 
 Extracting UCE loci
 ===================

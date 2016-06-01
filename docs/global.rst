@@ -47,3 +47,7 @@
 .. _mafft: http://mafft.cbrc.jp/alignment/software/
 .. _muscle: http://www.drive5.com/muscle/
 .. _gblocks: http://molevol.cmima.csic.es/castresana/Gblocks.html
+.. _UCSC Genome Browser: https://genome.ucsc.edu/
+.. _UCSC Genome Browser Downloads: https://genome.ucsc.edu/downloads
+.. _Kent Source Archive: http://hgdownload.soe.ucsc.edu/admin/exe/
+.. _NCBI: http://www.ncbi.nlm.nih.gov/

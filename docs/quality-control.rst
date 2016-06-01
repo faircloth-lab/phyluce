@@ -3,7 +3,7 @@
 .. _Quality Control:
 
 ***************
-Quality control
+Quality Control
 ***************
 
 When you receive your data from the sequencer, typically they are already
