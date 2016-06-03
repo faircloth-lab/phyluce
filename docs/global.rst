@@ -51,3 +51,9 @@
 .. _UCSC Genome Browser Downloads: https://genome.ucsc.edu/downloads
 .. _Kent Source Archive: http://hgdownload.soe.ucsc.edu/admin/exe/
 .. _NCBI: http://www.ncbi.nlm.nih.gov/
+.. _stampy: http://www.well.ox.ac.uk/project-stampy
+.. _samtools: http://www.htslib.org/
+.. _BED: https://genome.ucsc.edu/FAQ/FAQformat.html#format1
+.. _bedtools: http://bedtools.readthedocs.io/en/latest/
+.. _BAM: https://samtools.github.io/hts-specs/SAMv1.pdf
+.. _SAM: https://samtools.github.io/hts-specs/SAMv1.pdf
