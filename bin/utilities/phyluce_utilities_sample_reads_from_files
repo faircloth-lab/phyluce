@@ -41,23 +41,23 @@ def get_args():
 
 def run_seqtk(frac, total_reads, rand, fastq, reads, output, output_dir):
     if output == 0:
-        out_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R1_001.fastq.gz".format(
+        out_fname = os.path.join(output_dir, "{}_{:.0f}_{}r_L001_R1_001.fastq.gz".format(
             os.path.basename(output_dir),
             frac * 100,
             total_reads
         ))
-        err_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R1_001.seqtk-err.txt".format(
+        err_fname = os.path.join(output_dir, "{}_{:.0f}_{}r_L001_R1_001.seqtk-err.txt".format(
             os.path.basename(output_dir),
             frac * 100,
             total_reads
         ))
     elif output == 1:
-        out_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R2_001.fastq.gz".format(
+        out_fname = os.path.join(output_dir, "{}_{:.0f}_{}r_L001_R2_001.fastq.gz".format(
             os.path.basename(output_dir),
             frac * 100,
             total_reads
         ))
-        err_fname = os.path.join(output_dir, "{}%{:.0f}_{}r_L001_R2_001.seqtk-err.txt".format(
+        err_fname = os.path.join(output_dir, "{}_{:.0f}_{}r_L001_R2_001.seqtk-err.txt".format(
             os.path.basename(output_dir),
             frac * 100,
             total_reads
@@ -74,8 +74,8 @@ def run_seqtk(frac, total_reads, rand, fastq, reads, output, output_dir):
             ]
             proc1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=err)
             proc2 = subprocess.Popen('gzip', stdin=proc1.stdout, stdout=out)
-            proc2.wait()
-            proc1.wait()
+            proc1.stdout.close()
+            proc2.communicate()
 
 
 def sample_reads_with_seqtk(frac, total_reads, reads, to_get, output_dir):
