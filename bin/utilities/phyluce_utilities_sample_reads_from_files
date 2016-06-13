@@ -72,10 +72,11 @@ def run_seqtk(frac, total_reads, rand, fastq, reads, output, output_dir):
                 fastq,
                 str(reads)
             ]
-            proc1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=err)
-            proc2 = subprocess.Popen('gzip', stdin=proc1.stdout, stdout=out)
-            proc1.stdout.close()
-            proc2.communicate()
+            proc1 = subprocess.Popen(cmd, stdout=out, stderr=err)
+            #proc2 = subprocess.Popen('gzip', stdin=proc1.stdout, stdout=out)
+            #proc1.stdout.close()
+            #proc2.communicate()
+            proc1.communicate()
 
 
 def sample_reads_with_seqtk(frac, total_reads, reads, to_get, output_dir):
