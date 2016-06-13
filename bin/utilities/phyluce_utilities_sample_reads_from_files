@@ -103,7 +103,7 @@ def main():
     to_get = {}
     for frac in uce_frac:
         to_get['uce'] = int(frac * total_reads)
-        with gzip.open(reads['mtdna'][0]) as infile:
+        with open(reads['mtdna'][0]) as infile:
             for i, l in enumerate(infile):
                 pass
             mtdna_reads = (i + 1) / 4
