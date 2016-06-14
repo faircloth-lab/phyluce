@@ -76,7 +76,10 @@ def main():
     log, my_name = setup_logging(args)
     assembly_directories = glob.glob(os.path.join(args.path_to_clean, '*'))
     for directory in assembly_directories:
-        cleanup_trinity_assembly_folder(directory, log)
+        if os.path.basename(directory) == 'contigs':
+            pass
+        else:
+            cleanup_trinity_assembly_folder(directory, log)
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
