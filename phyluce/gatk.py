@@ -122,7 +122,7 @@ def get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, assemb
     contig_data = OrderedDict()
     overall_coverage = []
     overall_length = []
-    overall_count = 0
+    overall_count = 1
     overall_contigs = {}
     pbc = os.path.join(
         assembly_pth,
@@ -212,7 +212,7 @@ def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, asse
     contig_data = OrderedDict()
     overall_coverage = []
     overall_length = []
-    overall_count = 0
+    overall_count = 1
     overall_contigs = {}
     upcc = os.path.join(
         assembly_pth,
