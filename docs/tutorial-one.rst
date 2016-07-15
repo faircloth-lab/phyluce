@@ -34,7 +34,7 @@ line, you can use something like:
     cd uce-tutorial
 
     # download the data into a file names fastq.zip
-    wget -O fastq.zip http://downloads.figshare.com/article/public/1284521
+    wget -O fastq.zip https://ndownloader.figshare.com/articles/1284521/versions/1
 
     # make a directory to hold the data
     mkdir raw-fastq
