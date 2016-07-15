@@ -212,6 +212,8 @@ file.
 
 Now, our directory structure looks like:
 
+.. code-block:: bash
+
     uce-genome
     ├── allMis2
     │   ├── allMis2.2bit
@@ -325,6 +327,8 @@ allMis2:/home/bcf/tmp/uce-genome/allMis2/allMis2.2bit
 
 With that file created as `genomes.conf`, our directory structure looks like:
 
+.. code-block:: bash
+
     uce-genome
     ├── allMis2
     │   ├── allMis2.2bit
@@ -365,6 +369,8 @@ You should see output similar to:
     2016-06-01 16:02:37,230 - Phyluce - INFO - allMis2: 4830 uces, 7 dupes, 4823 non-dupes, 2 orient drop, 3 length drop, 4818 written
 
 And, your directory structure should look like:
+
+.. code-block:: bash
 
     uce-genome
     ├── allMis2
