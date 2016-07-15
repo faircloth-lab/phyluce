@@ -301,7 +301,7 @@ from low-coverage, genome scans or you can use reads simulated from particular
 genomes.  In this tutorial, we're going to use this latter approach and simulate
 reads (without sequencing error) from the genomes that we will align to the base
 genome. To accomplish this, we'll use `art
-<http://www.niehs.nih.gov/research/resources/software/biostatistics/art/>`,
+<http://www.niehs.nih.gov/research/resources/software/biostatistics/art/>`_,
 which is a robust read simulator that is reasonably flexible.
 
 Because we're using simulated reads to locate UCE loci, we want to turn off the
@@ -414,8 +414,8 @@ Read alignment to the base genome
 ==================================
 
 .. attention:: You do not neccessarily need to run this step as part of the
-    tutorial - you can simply download the prepared, BAM files from
-    `figshare <https://ndownloader.figshare.com/files/5513489>`_.
+    tutorial - you can simply download the prepared, `BAM files from
+    figshare <https://ndownloader.figshare.com/files/5513489>`_.
 
     Because we also provide the BAM files created below, you can choose to just
     start with the BAM files in the :ref:`uce-identification` section.
@@ -513,8 +513,8 @@ Align reads to the base genome
 ------------------------------
 
 .. attention:: You do not neccessarily need to run this step as part of the
-    tutorial - you can simply download the prepared, BAM files from
-    `figshare <https://ndownloader.figshare.com/files/5513489>`_.
+    tutorial - you can simply download the prepared, `BAM files from
+    figshare <https://ndownloader.figshare.com/files/5513489>`_.
 
     Because we also provide the BAM files created below, you can choose to just
     start with the BAM files in the :ref:`uce-identification` section.
@@ -610,7 +610,7 @@ reduced BAM files to this directory.
 
 .. warning:: The script, as-written, removes the BAM files containing both
     mapped and unmapped reads.  If you don't want to do this, remove the `rm
-    $critter` line.
+    $critter/$critter-to-triCas1.bam;` line.
 
 .. code-block:: bash
 
@@ -658,7 +658,7 @@ Now, your directory structure should look something like:
         ├── lepDec1-pe100-reads
         └── ontTau1-pe100-reads
 
-These `*-MAPPING.bam` files are available from `figshare
+These `*-MAPPING.bam files are available from figshare
 <https://ndownloader.figshare.com/files/5513489>`_.
 
 What it all means
@@ -679,12 +679,12 @@ exemplar taxa - not simply a single exemplar and the base taxon.
 Conserved locus identification
 ==============================
 
-You can download the alignment data generated in the steps above from figshare
+You can download the `alignment data generated in the steps above from figshare
 <https://ndownloader.figshare.com/files/5513489>`_ for use in subsequent steps,
 rather than generating them youself (thus, saving you time).
 
 .. attention:: If you are starting the tutorial at this position after
-    downloading the `*-MAPPING.bam` files from figshare
+    downloading the `*-MAPPING.bam files from figshare
     <https://ndownloader.figshare.com/files/5513489>`_, then you will need to
     create a directory to work in named `uce-coleoptera` and then place all of
     the `*-MAPPING.bam` files in a subdirectory of `uce-coleoptera` names
@@ -1951,6 +1951,8 @@ probe set, and extract all of the "good" loci to a monolithic FASTA (see
 
 Now, extract the FASTA information for each locus into a monolithic FASTA file:
 
+.. code-block:: python
+
     phyluce_assembly_get_fastas_from_match_counts \
         --contigs ../../coleoptera-genome-fasta \
         --locus-db ../../in-silico-lastz/probe.matches.sqlite \
@@ -2147,6 +2149,8 @@ Setup the PHYLIP-formatted files for raxml:
         --log-path log --charsets
 
 Now, run raxml against this phylip file
+
+.. code-block:: python
 
      raxmlHPC-PTHREADS-SSE3 -m GTRGAMMA -N 20 -p 772374015 -n BEST -s mafft-gblocks-70p.phylip -o menmol1 -T 10
      raxml/raxmlHPC-PTHREADS-SSE3 -m GTRGAMMA -N autoMRE -p 772374015 -b 444353738 -n bootrep -s mafft-gblocks-70p.phylip -o menmol1 -T 10
