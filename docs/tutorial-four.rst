@@ -29,28 +29,19 @@ directory in the steps below:
 
     uce-coleoptera
 
+.. _data-download:
 
 Data download and preparation
 =============================
 
-Download prepared data
-----------------------
-
-You can download the read data generated in the steps below from
-`figshare <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>` for use in subsequent steps,
-rather than generating them youself (thus, saving you time).
-
-Because we also provide BAM files using the sequence data provided above (and
-generated below), you can also choose to just start with the BAM files in the
-:ref:`uce-read-alignment` section.
-
-
-Download the genomes [optional]
+Download the genomes
 -------------------------------
 
 .. attention:: You do not neccessarily need to do this as part of this tutorial
-    for UCE identification and probe design - you can simply download the
-    prepared files from `figshare <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>`.
+    for UCE identification and probe design - If you only want to follow the
+    steps for locus identification (skipping probe design and in-silico
+    testing), you can simply download the prepared `FASTQ/BAM files from
+    figshare <https://dx.doi.org/10.6084/m9.figshare.3487349>`_.
 
 Make a directory to hold the genome sequences:
 
@@ -108,8 +99,10 @@ Cleanup the genome sequences
 ----------------------------
 
 .. attention:: You do not neccessarily need to do this as part of this tutorial
-    for UCE identification and probe design - you can simply download the
-    prepared files from `figshare <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>`.
+    for UCE identification and probe design - If you only want to follow the
+    steps for locus identification (skipping probe design and in-silico
+    testing), you can simply download the prepared `FASTQ/BAM files from
+    figshare <https://dx.doi.org/10.6084/m9.figshare.3487349>`_.
 
 When you get genome sequences from NCBI, the FASTA headers of most
 scaffold/contigs contain a lot of extra cruft that can cause problems with some
@@ -297,9 +290,9 @@ Now the directory structure looks like:
 Simulate reads from genomes
 ---------------------------
 
-.. attention:: You do not neccessarily need to do this as part of this tutorial
-    for UCE identification and probe design - you can simply download the
-    prepared files from `figshare <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>`.
+.. attention:: You do not neccessarily need to take this step as part of the
+    tutorial - you can simply download prepared, simulated `FASTQ files from
+    figshare <https://ndownloader.figshare.com/files/5513204>`_.
 
 In order to locate UCE loci across a selection of different genomes, we're going
 to align reads from each taxon, above, to a reference genome sequence (the
@@ -409,34 +402,27 @@ If we take a look at our directory structure, it should look like:
     uce-coleoptera
     ├── genomes (collapsed)
     └── reads
-        ├── anoGla1-pe100-reads
-        ├── agrPla1-pe100-reads
-        ├── denPon1-pe100-reads
-        ├── lepDec1-pe100-reads
-        └── ontTau1-pe100-reads
+        ├── anoGla1-pe100-reads.fq.gz
+        ├── agrPla1-pe100-reads.fq.gz
+        ├── denPon1-pe100-reads.fq.gz
+        ├── lepDec1-pe100-reads.fq.gz
+        └── ontTau1-pe100-reads.fq.gz
 
 .. _uce-read-alignment:
 
 Read alignment to the base genome
 ==================================
 
-Download prepared data
-----------------------
+.. attention:: You do not neccessarily need to run this step as part of the
+    tutorial - you can simply download the prepared, BAM files from
+    `figshare <https://ndownloader.figshare.com/files/5513489>`_.
 
-You can download the alignment data generated in the steps below from
-`figshare <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>` for use in subsequent steps,
-rather than generating them youself (thus, saving you time).
-
-Because we also provide the BAM files created below, you can choose to just
-start with the BAM files in the :ref:`uce-identification` section.
+    Because we also provide the BAM files created below, you can choose to just
+    start with the BAM files in the :ref:`uce-identification` section.
 
 
 Prepare the base genome
 -----------------------
-
-.. attention:: You do not neccessarily need to do this as part of this tutorial
-    for UCE identification and probe design - you can simply download the
-    prepared files from `figshare <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>`.
 
 Now that we have read data representing each of our exemplar taxa, we need to
 align these reads to the "base" genome sequence, in this case the genome sequence
@@ -526,9 +512,12 @@ If we look at our directory structure, it should look like:
 Align reads to the base genome
 ------------------------------
 
-.. attention:: You do not neccessarily need to do this as part of this tutorial
-    for UCE identification and probe design - you can simply download the
-    prepared files from `figshare <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>`.
+.. attention:: You do not neccessarily need to run this step as part of the
+    tutorial - you can simply download the prepared, BAM files from
+    `figshare <https://ndownloader.figshare.com/files/5513489>`_.
+
+    Because we also provide the BAM files created below, you can choose to just
+    start with the BAM files in the :ref:`uce-identification` section.
 
 Now that we've prepared our base genome, we need to perform the actual alignment
 of the simulated reads to the base genome. And, before we do that, let's create
@@ -670,7 +659,7 @@ Now, your directory structure should look something like:
         └── ontTau1-pe100-reads
 
 These `*-MAPPING.bam` files are available from `figshare
-<http://dx.doi.org/10.6084/m9.figshare.XXXXXX>`.
+<https://ndownloader.figshare.com/files/5513489>`_.
 
 What it all means
 -----------------
@@ -690,13 +679,13 @@ exemplar taxa - not simply a single exemplar and the base taxon.
 Conserved locus identification
 ==============================
 
-You can download the alignment data generated in the steps above from `figshare
-<http://dx.doi.org/10.6084/m9.figshare.XXXXXX>` for use in subsequent steps,
+You can download the alignment data generated in the steps above from figshare
+<https://ndownloader.figshare.com/files/5513489>`_ for use in subsequent steps,
 rather than generating them youself (thus, saving you time).
 
 .. attention:: If you are starting the tutorial at this position after
-    downloading the `*-MAPPING.bam` files from `figshare
-    <http://dx.doi.org/10.6084/m9.figshare.XXXXXX>`, then you will need to
+    downloading the `*-MAPPING.bam` files from figshare
+    <https://ndownloader.figshare.com/files/5513489>`_, then you will need to
     create a directory to work in named `uce-coleoptera` and then place all of
     the `*-MAPPING.bam` files in a subdirectory of `uce-coleoptera` names
     `alignments/all`.  Your resulting directory structure should look like:
@@ -712,6 +701,10 @@ rather than generating them youself (thus, saving you time).
         │       ├── lepDec1-to-triCas1-MAPPING.bam -> ../lepDec1/lepDec1-to-triCas1-MAPPING.bam
         │       └── ontTau1-to-triCas1-MAPPING.bam -> ../ontTau1/ontTau1-to-triCas1-MAPPING.bam
         └── genomes (collapsed)
+
+    If you want to go beyond conserved locus identification and design probes
+    from the target taxa, you will also need to download the appropriate
+    genomes.  See the :ref:`data-download` section.
 
 Convert BAMS to BEDS
 --------------------
