@@ -1,0 +1,210 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2015 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 02 June 2013 10:06 PDT (-0700)
+"""
+
+
+import os
+import glob
+import shutil
+import argparse
+import subprocess
+import ConfigParser
+from phyluce.helpers import FullPaths, is_dir, is_file
+from phyluce.raw_reads import get_input_data, get_input_files
+from phyluce.log import setup_logging
+from phyluce.pth import get_user_path, get_user_param
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Assemble raw reads using SPAdes"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=FullPaths,
+        default=None,
+        help="""The directory in which to store the assembly data"""
+    )
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""The number of compute cores/threads to run with SPAdes"""
+    )
+    parser.add_argument(
+        "--subfolder",
+        type=str,
+        default='',
+        help="""A subdirectory, below the level of the group, containing the reads"""
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use"""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
+    parser.add_argument(
+        "--do-not-clean",
+        action="store_true",
+        default=False,
+        help="""Do not cleanup intermediate SPAdes files""",
+    )
+    # one of these is required.  The other will be set to None.
+    input = parser.add_mutually_exclusive_group(required=True)
+    input.add_argument(
+        "--config",
+        type=is_file,
+        action=FullPaths,
+        default=None,
+        help="""A configuration file containing reads to assemble"""
+    )
+    input.add_argument(
+        "--dir",
+        type=is_dir,
+        action=FullPaths,
+        default=None,
+        help="""A directory of reads to assemble""",
+    )
+    return parser.parse_args()
+
+
+def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
+    log.info("Running SPAdes for PE data")
+    # spades.py --careful
+    #   --threads 12
+    #   --memory 62
+    #   --cov-cutoff auto
+    #   --pe1-1 read1
+    #   --pe1-2 read2
+    #   --pe1-s singleton
+    #   -o assembly
+    cmd = [
+        spades,
+        "--careful",
+        "--memory",
+        get_user_param("spades", "max_memory"),
+        "--threads",
+        str(cores),
+        "--cov-cutoff",
+        get_user_param("spades", "cov_cutoff"),
+        "--pe1-1",
+        os.path.join(reads.r1.dir, reads.r1.file),
+        "--pe1-2",
+        os.path.join(reads.r2.dir, reads.r2.file),
+        "-o",
+        sample_dir
+    ]
+    if reads.singleton:
+        cmd.extend(["--pe1-s", os.path.join(reads.singleton.dir, reads.singleton.file)])
+    pdb.set_trace()
+    try:
+        with open(os.path.join(sample_dir, 'spades.phyluce.log'), 'w') as outf:
+            proc = subprocess.Popen(cmd, stdout=outf)
+            proc.communicate()
+    except:
+        log.critical("Could not assemble {}".format(sample_dir))
+    if not do_not_clean:
+        try:
+            kmer_dirs = glob.glob(os.path.join(sample_dir, "K*"))
+            all_dirs = kmer_dirs + ["corrected", "misc", "tmp"]
+            # cleanup unnecessary files
+            for f in all_dirs:
+                shutil.rmtree(f)
+        except:
+            log.warn("Did not clean all fastq/fasta files from {}".format(sample_dir))
+    return sample_dir
+
+
+def generate_symlinks(contig_dir, sample, reads, log):
+    log.info("Symlinking assembled contigs into {}".format(contig_dir))
+    try:
+        trinity_fname = os.path.join(reads.r1.dir, "Trinity.fasta")
+        contig_lname = os.path.join(reads.r1.dir, "contigs.fasta")
+        # create a link btw. contigs.fasta -> Trinity.fasta
+        relpth = os.path.relpath(trinity_fname, reads.r1.dir)
+        os.symlink(relpth, contig_lname)
+        # create a link btw. ../contigs/genus-species.contigs.fasta -> Trinity.fasta
+        relpth = os.path.relpath(trinity_fname, contig_dir)
+        contig_lname = os.path.join(contig_dir, sample)
+        os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
+    except:
+        log.warn("Unable to symlink {} to {}".format(trinity_fname, contig_lname))
+
+def main():
+    # get args and options
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    # get the input data
+    log.info("Getting input filenames and creating output directories")
+    input = get_input_data(args.config, args.dir)
+    # create the output directory if it does not exist
+    if not os.path.isdir(args.output):
+        os.makedirs(args.output)
+    else:
+        pass
+    # make the symlink directory within the output directory
+    contig_dir = os.path.join(args.output, 'contigs')
+    if not os.path.isdir(contig_dir):
+        os.makedirs(contig_dir)
+    else:
+        pass
+    try:
+        spades = get_user_path("spades", "spades")
+    except:
+        raise EnvironmentError("Cannot find SPAdes.  Ensure the $PATH is correctly entered in your phyluce.conf file.")
+    for group in input:
+        sample, dir = group
+        # pretty print taxon status
+        text = " Processing {} ".format(sample)
+        log.info(text.center(65, "-"))
+        # make a directory for sample-specific assemblies
+        sample_name = "{0}_spades".format(sample)
+        sample_dir = os.path.join(args.output, sample_name)
+        os.makedirs(sample_dir)
+        # determine how many files we're dealing with
+        reads = get_input_files(dir, args.subfolder, log)
+        # we don't need to combine singleton files here.  copy
+        # the read data over and run the assembly for PE data
+        if reads.r1 and reads.r2:
+            output = run_spades_pe(spades, reads, sample_dir, args.cores, args.do_not_clean, log)
+            #copy_read_data(reads, sample_dir, log)
+            #output = run_trinity_pe(trinity, reads, args.cores, args.min_kmer_coverage, log)
+            #if args.clean:
+            #    cleanup_trinity_assembly_folder(output, log)
+        # here, we don't have PE data, so copy the file over
+        # and run the assembly for SE data
+        elif reads.r1:
+            pass
+            #copy_read_data(reads, sample_dir, log)
+            #output = run_trinity_se(trinity, reads, args.cores, args.min_kmer_coverage, log)
+            #if args.clean:
+            #    cleanup_trinity_assembly_folder(output, log)
+        # generate symlinks to assembled contigs
+        generate_symlinks(contig_dir, sample, reads, log)
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+if __name__ == '__main__':
+    main()
