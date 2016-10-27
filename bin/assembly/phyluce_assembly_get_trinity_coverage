@@ -87,7 +87,7 @@ def get_args():
     )
     parser.add_argument(
         "--assembler",
-        choices=["velvet", "abyss", "trinity", "idba", "spades"],
+        choices=["velvet", "abyss", "trinity", "trinity2", "idba", "spades"],
         default="trinity",
         help="""Program used to asemble raw reads""",
     )
@@ -97,7 +97,14 @@ def get_args():
         default=False,
         help="""Trim contigs to a minimum coverage amount""",
     )
-    return parser.parse_args()
+    # deal with naming issues related to trinity2/spades
+    args = parser.parse_args()
+    if args.assembler == "spades":
+        args.assemblies = args.assemblies + "_spades"
+    elif args.assembler == "trinity2":
+        args.assemblies = args.assemblies + "_trinity"
+    return args
+
 
 
 def cleanup_trinity_assembly_folder(log, pth):

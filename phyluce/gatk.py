@@ -108,7 +108,7 @@ def compute_coverage_metrics(contig_depth, trim=False):
 
 def get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, assembler):
     log.info("Screening and filtering contigs for coverage (3x ends, 5x avg.)")
-    if assembler == "trinity":
+    if assembler == "trinity" or assembler == "trinity2":
         regex = re.compile("({}).*:(\d+)".format(get_user_param("headers", "trinity")))
     elif assembler == "velvet":
         regex = re.compile("({}.*):(\d+)".format(get_user_param("headers", "velvet")))
@@ -200,7 +200,7 @@ def get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, assemb
 
 def get_untrimmed_coverage_from_output(log, sample, assembly_pth, coverage, assembler):
     log.info("Screening contigs for coverage")
-    if assembler == "trinity":
+    if assembler == "trinity" or assembler == "trinity2":
         regex = re.compile("({}).*:(\d+)".format(get_user_param("headers", "trinity")))
     elif assembler == "velvet":
         regex = re.compile("({}.*):(\d+)".format(get_user_param("headers", "velvet")))
