@@ -98,13 +98,7 @@ def get_args():
         help="""Trim contigs to a minimum coverage amount""",
     )
     # deal with naming issues related to trinity2/spades
-    args = parser.parse_args()
-    if args.assembler == "spades":
-        args.assemblies = args.assemblies + "_spades"
-    elif args.assembler == "trinity2":
-        args.assemblies = args.assemblies + "_trinity"
-    return args
-
+    return parser.parse_args()
 
 
 def cleanup_trinity_assembly_folder(log, pth):
@@ -153,7 +147,12 @@ def main():
         text = " Processing {} ".format(sample)
         log.info(text.center(65, "-"))
         # ensure that assembly exists
-        assembly_pth = os.path.join(args.assemblies, sample)
+        if args.assembler == "spades":
+            assembly_pth = os.path.join(args.assemblies, sample + "_spades")
+        elif args.assembler == "trinity2":
+            assembly_pth = os.path.join(args.assemblies, sample + "_trinity")
+        else:
+            assembly_pth = os.path.join(args.assemblies, sample)
         assembly = os.path.join(assembly_pth, "contigs.fasta")
         if not os.path.exists(assembly):
             raise IOError("Assembly for {} does not appear to exist.".format(sample))
