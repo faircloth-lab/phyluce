@@ -18,7 +18,7 @@ import shutil
 import argparse
 import subprocess
 import ConfigParser
-from phyluce.helpers import FullPaths, is_dir, is_file
+from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
 from phyluce.pth import get_user_path, get_user_param
@@ -117,39 +117,61 @@ def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
     ]
     if reads.singleton:
         cmd.extend(["--pe1-s", os.path.join(reads.singleton.dir, reads.singleton.file)])
-    pdb.set_trace()
     try:
         with open(os.path.join(sample_dir, 'spades.phyluce.log'), 'w') as outf:
             proc = subprocess.Popen(cmd, stdout=outf)
             proc.communicate()
+            pass
     except:
         log.critical("Could not assemble {}".format(sample_dir))
     if not do_not_clean:
         try:
             kmer_dirs = glob.glob(os.path.join(sample_dir, "K*"))
-            all_dirs = kmer_dirs + ["corrected", "misc", "tmp"]
-            # cleanup unnecessary files
+            other_dirs = [os.path.join(sample_dir, i) for i in ["corrected", "misc", "tmp"]]
+            all_dirs = kmer_dirs + other_dirs
+            # cleanup unnecessary directories
             for f in all_dirs:
+                pass
                 shutil.rmtree(f)
+            other_files = [os.path.join(sample_dir, i) for i in ["assembly_graph.fastg", "before_rr.fasta"]]
+            for f in other_files:
+                pass
+                os.remove(f)
+
         except:
             log.warn("Did not clean all fastq/fasta files from {}".format(sample_dir))
     return sample_dir
 
 
-def generate_symlinks(contig_dir, sample, reads, log):
+def generate_symlinks(contig_dir, sample_dir, sample, reads, log):
     log.info("Symlinking assembled contigs into {}".format(contig_dir))
     try:
-        trinity_fname = os.path.join(reads.r1.dir, "Trinity.fasta")
-        contig_lname = os.path.join(reads.r1.dir, "contigs.fasta")
+        # rename uncorrected files to be clear about what we are using
+        shutil.move(
+            os.path.join(sample_dir, "contigs.fasta"),
+            os.path.join(sample_dir, "contigs.UNCORRECTED.fasta")
+        )
+        shutil.move(
+            os.path.join(sample_dir, "contigs.paths"),
+            os.path.join(sample_dir, "contigs.UNCORRECTED.paths")
+        )
+        spades_fname = os.path.join(
+            sample_dir,
+            "mismatch_corrector",
+            "contigs",
+            "corrected_contigs.fasta"
+        )
+        contig_lname = os.path.join(sample_dir, "contigs.fasta")
         # create a link btw. contigs.fasta -> Trinity.fasta
-        relpth = os.path.relpath(trinity_fname, reads.r1.dir)
+        relpth = os.path.relpath(spades_fname, sample_dir)
         os.symlink(relpth, contig_lname)
         # create a link btw. ../contigs/genus-species.contigs.fasta -> Trinity.fasta
-        relpth = os.path.relpath(trinity_fname, contig_dir)
+        relpth = os.path.relpath(spades_fname, contig_dir)
         contig_lname = os.path.join(contig_dir, sample)
         os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
     except:
-        log.warn("Unable to symlink {} to {}".format(trinity_fname, contig_lname))
+        log.warn("Unable to symlink {} to {}".format(spades_fname, contig_lname))
+
 
 def main():
     # get args and options
@@ -188,11 +210,14 @@ def main():
         # we don't need to combine singleton files here.  copy
         # the read data over and run the assembly for PE data
         if reads.r1 and reads.r2:
-            output = run_spades_pe(spades, reads, sample_dir, args.cores, args.do_not_clean, log)
-            #copy_read_data(reads, sample_dir, log)
-            #output = run_trinity_pe(trinity, reads, args.cores, args.min_kmer_coverage, log)
-            #if args.clean:
-            #    cleanup_trinity_assembly_folder(output, log)
+            output = run_spades_pe(
+                spades,
+                reads,
+                sample_dir,
+                args.cores,
+                args.do_not_clean,
+                log
+            )
         # here, we don't have PE data, so copy the file over
         # and run the assembly for SE data
         elif reads.r1:
@@ -202,7 +227,7 @@ def main():
             #if args.clean:
             #    cleanup_trinity_assembly_folder(output, log)
         # generate symlinks to assembled contigs
-        generate_symlinks(contig_dir, sample, reads, log)
+        generate_symlinks(contig_dir, sample_dir, sample, reads, log)
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
