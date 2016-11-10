@@ -91,7 +91,9 @@ def get_args():
 
 def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
     log.info("Running SPAdes for PE data")
+    # we're using "single-cell" mode here due to coverage variance
     # spades.py --careful
+    #   --sc
     #   --threads 12
     #   --memory 62
     #   --cov-cutoff auto
@@ -102,6 +104,7 @@ def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
     cmd = [
         spades,
         "--careful",
+        "--sc",
         "--memory",
         get_user_param("spades", "max_memory"),
         "--threads",
@@ -146,25 +149,7 @@ def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
 def generate_symlinks(contig_dir, sample_dir, sample, reads, log):
     log.info("Symlinking assembled contigs into {}".format(contig_dir))
     try:
-        # rename uncorrected files to be clear about what we are using
-        shutil.move(
-            os.path.join(sample_dir, "contigs.fasta"),
-            os.path.join(sample_dir, "contigs.UNCORRECTED.fasta")
-        )
-        shutil.move(
-            os.path.join(sample_dir, "contigs.paths"),
-            os.path.join(sample_dir, "contigs.UNCORRECTED.paths")
-        )
-        spades_fname = os.path.join(
-            sample_dir,
-            "mismatch_corrector",
-            "contigs",
-            "corrected_contigs.fasta"
-        )
-        contig_lname = os.path.join(sample_dir, "contigs.fasta")
-        # create a link btw. contigs.fasta -> Trinity.fasta
-        relpth = os.path.relpath(spades_fname, sample_dir)
-        os.symlink(relpth, contig_lname)
+        spades_fname = os.path.join(sample_dir, "contigs.fasta")
         # create a link btw. ../contigs/genus-species.contigs.fasta -> Trinity.fasta
         relpth = os.path.relpath(spades_fname, contig_dir)
         contig_lname = os.path.join(contig_dir, sample)
