@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-File: get_locus_bed_from_lastz_files.py
+File: get_probe_bed_from_lastz_files.py
 Author: Brant Faircloth
 
 Created by Brant Faircloth on 31 January 2013 11:01 PST (-0800)
@@ -38,7 +38,6 @@ def get_args():
     parser.add_argument(
             "--output",
             required=True,
-            type=is_dir,
             action=CreateDir,
             help="""The output directory to hold BED-formatted files""",
         )
