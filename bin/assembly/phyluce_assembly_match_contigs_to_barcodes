@@ -74,9 +74,9 @@ def get_args():
     parser.add_argument(
         "--database",
         type=str,
-        choices=["COX1_SPECIES", "COX1_SPECIES_PUBLIC"],
+        choices=["COX1", "COX1_SPECIES", "COX1_SPECIES_PUBLIC"],
         default="COX1_SPECIES",
-        help="""The COI database to use.  Defaults to all BOLD records for COI > 500 bp.  Alternate includes all Genbank entries.""",
+        help="""The COI database to use.  Defaults to all BOLD records for COI > 500 bp.""",
     )
 
     args = parser.parse_args()
