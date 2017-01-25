@@ -25,13 +25,14 @@ from phyluce.helpers import is_dir, FullPaths, CreateDir
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Randomly sample a directory of nexus files, concatenate, and output""")
+            description="""Randomly sample a directory of NEXUS files, concatenate, and output"""
+    )
     parser.add_argument(
-            "--nexus",
+            "--alignments",
             required=True,
             action=FullPaths,
             type=is_dir,
-            help="""The input directory of NEXUS files"""
+            help="""The directory containing NEXUS alignments to sample and concatenate"""
         )
     parser.add_argument(
             "--output",
@@ -41,16 +42,15 @@ def get_args():
         )
     parser.add_argument(
             "--sample-size",
-            dest='sample_size',
             type=int,
-            default=50,
+            default=100,
             help="""The number of loci to sample"""
         )
     parser.add_argument(
-            "--samples",
+            "--replicates",
             type=int,
             default=1,
-            help="""The number of samples to take""",
+            help="""The number of replicate samples to take""",
         )
     return parser.parse_args()
 
