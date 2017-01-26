@@ -91,7 +91,11 @@ def main():
     for i in xrange(args.replicates):
         log.info("Sampling replicate {}".format(i+1))
         # choose args.sample_size files randomly
-        random_sample = numpy.random.choice(files, args.sample_size)
+        random_sample = numpy.random.choice(
+            files,
+            size=args.sample_size,
+            replace=False
+        )
         # concatenate and output
         random_files_to_combine = [(f, Nexus.Nexus(f)) for f in random_sample]
         random_combined = Nexus.combine(random_files_to_combine)
