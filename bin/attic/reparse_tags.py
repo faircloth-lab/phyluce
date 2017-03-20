@@ -1,10 +1,24 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2017 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 17 March 2017 15:15 CDT (-0500)
+"""
+
 import pdb
 import sys
+import gzip
 import argparse
-from Levenshtein import hamming
-from seqtools.sequence import fastq
-from seqtools.sequence import transform
+from Bio import SeqIO
+
 from collections import Counter
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='Parse fastqs from input based on tag sequence')
@@ -15,16 +29,18 @@ def get_args():
 
 def main():
     args = get_args()
-    #pdb.set_trace()
-    fastqs = fastq.FastqReader(args.input)
-    out_fastq = fastq.FastqWriter(args.output)
-    for read in fastqs:
-        read_tag = read.identifier.split('#')[-1].split('/')[0]
-        if hamming(read_tag, args.tag) <= 1:
-            out_fastq.write(read)
-        else:
-            pass
-    out_fastq.close()
+    count = 0
+    with gzip.open(args.output, 'wb') as outfile:
+        with gzip.open(args.input, 'rb') as infile:
+            fastqs = SeqIO.parse(infile, 'fastq')
+            for read in fastqs:
+                read_tag = read.description.split(' ')[1].split(":")[-1]
+                if read_tag == args.tag:
+                    outfile.write(read.format('fastq'))
+                count += 1
+                if count%1000000 == 0:
+                    print count
+                #pdb.set_trace()
 
 if __name__ == '__main__':
     main()
