@@ -318,9 +318,9 @@ working directory is `/home/bcf/tmp/uce-genome`):
 
 .. code-block:: text
 
-[scaffolds]
-galGal4:/home/bcf/tmp/uce-genome/galGal4/galGal4.2bit
-allMis2:/home/bcf/tmp/uce-genome/allMis2/allMis2.2bit
+    [scaffolds]
+    galGal4:/home/bcf/tmp/uce-genome/galGal4/galGal4.2bit
+    allMis2:/home/bcf/tmp/uce-genome/allMis2/allMis2.2bit
 
 .. attention:: Be careful to make sure that your capitalization is consistent
     with your file names.
@@ -348,6 +348,8 @@ we need to input the path to the `lastz` files from above, the path to the
 `conf` file we just created, the amount of flanking sequence (to each side) that
 we would like to slice, a name pattern, matching the lastz files that we would
 like to use, and the name of the output directory we want to create:
+
+.. code-block:: bash
 
     phyluce_probe_slice_sequence_from_genomes \
         --lastz tutorial3-genome-lastz \
