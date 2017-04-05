@@ -52,6 +52,12 @@ def get_args():
         type=str,
         help="""The taxon on which to root trees"""
     )
+    parser.add_argument(
+        "--extension",
+        required=True,
+        type=str,
+        help="""File extension used with each 'best' tree"""
+    )
     return parser.parse_args()
 
 
