@@ -82,7 +82,7 @@ def main():
     print "creating tree objects"
     for d in directories:
         if os.path.isdir(d):
-            if d not in args.exclude:
+            if os.path.basename(d) not in args.exclude:
                 tree = dendropy.Tree.get_from_stream(open(os.path.join(d, "RAxML_bestTree.{}".format(args.extension)), 'rU'), schema=args.schema, preserve_underscores=True)
                 tree.gene_name = os.path.basename(d)
                 trees.append(tree)
