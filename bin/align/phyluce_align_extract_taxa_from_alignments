@@ -100,18 +100,15 @@ def get_samples_to_run(args, all_names):
     else:
         return all_names
 
-def get_all_taxon_names(log, nexus_files):
+def get_all_taxon_names(log, input_format, files):
     log.info("Getting taxon names")
     taxa = set()
-    for align_file in nexus_files:
-        for align in AlignIO.parse(align_file, "nexus"):
+    for align_file in files:
+        for align in AlignIO.parse(align_file, input_format):
             for taxon in list(align):
                 #pdb.set_trace()
                 taxa.add(taxon.name)
     return taxa
-
-def get_files(input_dir):
-    return glob.glob(os.path.join(os.path.expanduser(input_dir), '*.nexus'))
 
 def record_formatter(seq, name):
     """return a string formatted as a biopython sequence record"""
@@ -141,7 +138,7 @@ def main():
     log, my_name = setup_logging(args)
     files = get_alignment_files(log, args.alignments, args.input_format)
     if not args.skip_check:
-        taxa = get_all_taxon_names(log, files)
+        taxa = get_all_taxon_names(log, args.input_format, files)
         taxa_to_keep = get_samples_to_run(args, taxa)
     else:
         assert args.include is not None, "--skip-check can only be used with args.include"
