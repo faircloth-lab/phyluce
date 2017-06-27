@@ -134,8 +134,9 @@ def worker(work):
             if taxon.name in taxa_to_keep:
                 new_align.append(taxon)
     if len(new_align) > 1:
-        outf = os.path.join(args.output, os.path.basename(align_file))
-        AlignIO.write(new_align, open(outf, 'w'), args.output_format)
+        new_name = os.path.splitext(os.path.split(align_file)[1])[0] + '.{0}'.format(args.output_format)
+        outf = open(os.path.join(args.output, new_name), 'w')
+        AlignIO.write(new_align, outf, args.output_format)
     sys.stdout.write(".")
     sys.stdout.flush()
 
