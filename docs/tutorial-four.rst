@@ -54,25 +54,25 @@ Now, get the genome sequences:
 .. code-block:: bash
 
     # Anoplophora glabripennis (Asian longhorned beetle)
-    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000390285.1_Agla_1.0/GCA_000390285.1_Agla_1.0_genomic.fna.gz
+    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/390/285/GCA_000390285.1_Agla_1.0/GCA_000390285.1_Agla_1.0_genomic.fna.gz
 
     # Agrilus planipennis (emerald ash borer)
-    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000699045.1_Apla_1.0/GCA_000699045.1_Apla_1.0_genomic.fna.gz
+    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/699/045/GCA_000699045.1_Apla_1.0/GCA_000699045.1_Apla_1.0_genomic.fna.gz
 
     # Leptinotarsa decemlineata (Colorado potato beetle)
-    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000500325.1_Ldec_1.5/GCA_000500325.1_Ldec_1.5_genomic.fna.gz
+    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/500/325/GCA_000500325.1_Ldec_1.5/GCA_000500325.1_Ldec_1.5_genomic.fna.gz
 
     # Onthophagus taurus (beetles)
-    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000648695.1_Otau_1.0/GCA_000648695.1_Otau_1.0_genomic.fna.gz
+    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/648/695/GCA_000648695.1_Otau_1.0/GCA_000648695.1_Otau_1.0_genomic.fna.gz
 
     # Dendroctonus ponderosae (mountain pine beetle)
-    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000355655.1_DendPond_male_1.0/GCA_000355655.1_DendPond_male_1.0_genomic.fna.gz
+    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/355/655/GCA_000355655.1_DendPond_male_1.0/GCA_000355655.1_DendPond_male_1.0_genomic.fna.gz
 
     # Tribolium castaneum (red flour beetle)
-    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000002335.2_Tcas_3.0/GCA_000002335.2_Tcas_3.0_genomic.fna.gz
+    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/002/335/GCA_000002335.2_Tcas_3.0/GCA_000002335.2_Tcas_3.0_genomic.fna.gz
 
     # Mengenilla moldrzyki (twisted-wing parasites) [Outgroup]
-    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000281935.1_Memo_1.0/GCA_000281935.1_Memo_1.0_genomic.fna.gz
+    > wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/281/935/GCA_000281935.1_Memo_1.0/GCA_000281935.1_Memo_1.0_genomic.fna.gz
 
 You need to unzip all of the genome sequences
 
