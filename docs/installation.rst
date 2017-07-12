@@ -186,7 +186,7 @@ distributions.  to do taht, you have to add the
 to conda.  You can do that with the following command, which automatically edits
 your ``~/.condarc`` file)::
 
-    conda config --add channels https://conda.binstar.org/faircloth-lab
+    conda config --add channels https://conda.anaconda.org/faircloth-lab
 
 
 Install phyluce
