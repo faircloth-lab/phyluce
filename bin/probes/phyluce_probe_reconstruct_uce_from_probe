@@ -25,7 +25,7 @@ from Bio.Align.Applications import MuscleCommandline
 from phyluce.log import setup_logging
 from phyluce.helpers import is_file, is_dir, FullPaths
 
-#import pdb
+import pdb
 
 
 def get_args():
@@ -64,37 +64,49 @@ def get_args():
 
 
 def get_sequences(infile):
+    count = 0
     d = defaultdict(list)
     for record in SeqIO.parse(open(infile), "fasta"):
         locus = record.id.split("_")[0]
         d[locus].append(record)
-    return d
+        count += 1
+    return d, count
 
 
 def main():
     args = get_args()
     # setup logging
     log, my_name = setup_logging(args)
-    sequences_dict = get_sequences(args.input)
-    log.info("There are {} loci in {}".format(
-        len(sequences_dict),
+    sequences_dict, sequence_count = get_sequences(args.input)
+    log.info("There are {} baits in {}".format(
+        sequence_count,
         os.path.basename(args.input)
         )
     )
     count = 0
     with open(args.output, 'w') as outfile:
         for locus, records in sequences_dict.iteritems():
-            handle = StringIO()
-            SeqIO.write(records, handle, "fasta")
-            data = handle.getvalue()
-            muscle_cline = MuscleCommandline(clwstrict=True)
-            stdout, stderr = muscle_cline(stdin=data)
-            align = AlignIO.read(StringIO(stdout), "clustal")
-            consensus = AlignInfo.SummaryInfo(align).dumb_consensus()
-            consensus_record = SeqRecord(consensus, id=locus, name="", description="")
-            outfile.write(consensus_record.format('fasta'))
-            count += 1
-    log.info("Wrote {} sequences to {}".format(
+            if len(records) > 1:
+                #pdb.set_trace()
+                handle = StringIO()
+                SeqIO.write(records, handle, "fasta")
+                data = handle.getvalue()
+                muscle_cline = MuscleCommandline(clwstrict=True)
+                stdout, stderr = muscle_cline(stdin=data)
+                align = AlignIO.read(StringIO(stdout), "clustal")
+                consensus = AlignInfo.SummaryInfo(align).dumb_consensus()
+                consensus_record = SeqRecord(consensus, id=locus, name="", description="")
+                outfile.write(consensus_record.format('fasta'))
+                count += 1
+            else:
+                record = records[0]
+                record.id = record.id.split('_')[0]
+                record.name = ""
+                record.description = ""
+                outfile.write(record.format('fasta'))
+                count += 1
+
+    log.info("Wrote {} loci to {}".format(
         count,
         os.path.basename(args.output)
         ))
