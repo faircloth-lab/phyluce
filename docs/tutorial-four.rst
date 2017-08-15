@@ -48,6 +48,7 @@ Make a directory to hold the genome sequences:
 .. code-block:: bash
 
     > mkdir genomes
+    > cd genomes
 
 Now, get the genome sequences:
 
@@ -391,7 +392,7 @@ pretty easily using a quick BASH script:
             cat $critter-pe100-reads1.fq > $critter-pe100-reads.fq;
             cat $critter-pe100-reads2.fq >> $critter-pe100-reads.fq;
             rm $critter-pe100-reads1.fq;
-            rm $critter-pe100-reads1.fq;
+            rm $critter-pe100-reads2.fq;
             gzip $critter-pe100-reads.fq;
         done;
 
@@ -558,14 +559,14 @@ computer) we can use a BASH script to run the alignments serially:
 
     export cores=16
     export base=triCas1
-    export base_dir=$HOME/uce-coloeptera/alignments
+    export base_dir=$HOME/uce-coleoptera/alignments
     for critter in agrPla1 anoGla1 denPon1 lepDec1 ontTau1;
         do
             export reads=$critter-pe100-reads.fq.gz;
             mkdir -p $base_dir/$critter;
             cd $base_dir/$critter;
-            stampy.py --maxbasequal 93 -g ../../base/$base -h ../../base/$base
-            --substitutionrate=0.05 -t$cores --insertsize=400 -M
+            stampy.py --maxbasequal 93 -g ../../base/$base -h ../../base/$base \
+            --substitutionrate=0.05 -t$cores --insertsize=400 -M \
             ../../reads/$reads | samtools view -Sb - > $critter-to-$base.bam;
         done;
 
