@@ -878,7 +878,6 @@ genome is shorter than 80 bp and where > 25 % of the base genome is masked.
     Screened 48350 sequences from anoGla1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 13226 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 35124.
     Screened 21390 sequences from denPon1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 3008 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 18382.
     Screened 33144 sequences from lepDec1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 6585 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 26559.
-    Screened 9637 sequences from menMol1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 4379 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 5258.
     Screened 25188 sequences from ontTau1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 6505 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 18683.
 
 When this finishes, your directory structure should look like:
@@ -905,10 +904,6 @@ When this finishes, your directory structure should look like:
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.merge.bed
