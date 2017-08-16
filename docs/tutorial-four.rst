@@ -1027,7 +1027,7 @@ database created above and the name of the base taxon:
 
 .. code-block:: python
 
-    > python phyluce_probe_query_multi_merge_table \
+    > phyluce_probe_query_multi_merge_table \
             --db coleoptera-to-triCas1.sqlite  \
             --base-taxon triCas1
 
@@ -1256,10 +1256,6 @@ following:
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.merge.bed
@@ -1322,6 +1318,7 @@ bait design steps in a new directory, named `probe-design`.  So:
 
     > cd uce-coleoptera
     > mkdir probe-design
+    > cd probe-design
 
 Now, you're directory structure should look like:
 
@@ -1376,6 +1373,7 @@ database to create and the output directory in which to store the lastz results.
 
 .. code-block:: python
 
+    > mkdir coleoptera-genome-lastz
     > phyluce_probe_run_multiple_lastzs_sqlite \
         --probefile ../bed/triCas1+5.temp-DUPE-SCREENED.probes \
         --scaffoldlist agrPla1 anoGla1 denPon1 lepDec1 ontTau1 triCas1 menMol1 \
@@ -1528,7 +1526,7 @@ and a name to use as the output database:
 .. code-block:: python
 
     > phyluce_probe_get_multi_fasta_table \
-        --fastas coleoptera-genome-fasta \
+        --fastas ../coleoptera-genome-fasta \
         --output multifastas.sqlite \
         --base-taxon triCas1
 
