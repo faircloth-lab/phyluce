@@ -48,6 +48,7 @@ Make a directory to hold the genome sequences:
 .. code-block:: bash
 
     > mkdir genomes
+    > cd genomes
 
 Now, get the genome sequences:
 
@@ -391,7 +392,7 @@ pretty easily using a quick BASH script:
             cat $critter-pe100-reads1.fq > $critter-pe100-reads.fq;
             cat $critter-pe100-reads2.fq >> $critter-pe100-reads.fq;
             rm $critter-pe100-reads1.fq;
-            rm $critter-pe100-reads1.fq;
+            rm $critter-pe100-reads2.fq;
             gzip $critter-pe100-reads.fq;
         done;
 
@@ -558,14 +559,14 @@ computer) we can use a BASH script to run the alignments serially:
 
     export cores=16
     export base=triCas1
-    export base_dir=$HOME/uce-coloeptera/alignments
+    export base_dir=$HOME/uce-coleoptera/alignments
     for critter in agrPla1 anoGla1 denPon1 lepDec1 ontTau1;
         do
             export reads=$critter-pe100-reads.fq.gz;
             mkdir -p $base_dir/$critter;
             cd $base_dir/$critter;
-            stampy.py --maxbasequal 93 -g ../../base/$base -h ../../base/$base
-            --substitutionrate=0.05 -t$cores --insertsize=400 -M
+            stampy.py --maxbasequal 93 -g ../../base/$base -h ../../base/$base \
+            --substitutionrate=0.05 -t$cores --insertsize=400 -M \
             ../../reads/$reads | samtools view -Sb - > $critter-to-$base.bam;
         done;
 
@@ -877,7 +878,6 @@ genome is shorter than 80 bp and where > 25 % of the base genome is masked.
     Screened 48350 sequences from anoGla1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 13226 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 35124.
     Screened 21390 sequences from denPon1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 3008 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 18382.
     Screened 33144 sequences from lepDec1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 6585 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 26559.
-    Screened 9637 sequences from menMol1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 4379 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 5258.
     Screened 25188 sequences from ontTau1-to-triCas1-MAPPING.bam.sort.merge.bed.  Filtered 6505 with > 25.0% masked bases or > 0 N-bases or < 80 length. Kept 18683.
 
 When this finishes, your directory structure should look like:
@@ -904,10 +904,6 @@ When this finishes, your directory structure should look like:
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.merge.bed
@@ -1031,7 +1027,7 @@ database created above and the name of the base taxon:
 
 .. code-block:: python
 
-    > python phyluce_probe_query_multi_merge_table \
+    > phyluce_probe_query_multi_merge_table \
             --db coleoptera-to-triCas1.sqlite  \
             --base-taxon triCas1
 
@@ -1260,10 +1256,6 @@ following:
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.bed
     │   ├── lepDec1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.bed
-    │   ├── menMol1-to-triCas1-MAPPING.bam.sort.merge.strip.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.bed
     │   ├── ontTau1-to-triCas1-MAPPING.bam.sort.merge.bed
@@ -1326,6 +1318,7 @@ bait design steps in a new directory, named `probe-design`.  So:
 
     > cd uce-coleoptera
     > mkdir probe-design
+    > cd probe-design
 
 Now, you're directory structure should look like:
 
@@ -1380,6 +1373,7 @@ database to create and the output directory in which to store the lastz results.
 
 .. code-block:: python
 
+    > mkdir coleoptera-genome-lastz
     > phyluce_probe_run_multiple_lastzs_sqlite \
         --probefile ../bed/triCas1+5.temp-DUPE-SCREENED.probes \
         --scaffoldlist agrPla1 anoGla1 denPon1 lepDec1 ontTau1 triCas1 menMol1 \
@@ -1532,7 +1526,7 @@ and a name to use as the output database:
 .. code-block:: python
 
     > phyluce_probe_get_multi_fasta_table \
-        --fastas coleoptera-genome-fasta \
+        --fastas ../coleoptera-genome-fasta \
         --output multifastas.sqlite \
         --base-taxon triCas1
 
