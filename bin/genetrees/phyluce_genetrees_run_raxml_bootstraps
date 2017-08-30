@@ -21,6 +21,8 @@ import argparse
 import subprocess
 import multiprocessing
 from phyluce.helpers import is_dir, FullPaths, CreateDir
+from phyluce.pth import get_user_path
+
 
 #import pdb
 
@@ -85,7 +87,7 @@ def get_basic_raxml(seeds, alignment, outputdir):
     key = os.path.splitext(os.path.split(alignment)[1])[0]
     p_seed = seeds[key]
     cmd = [
-        "/home/bcf/git/raxml/raxmlHPC-SSE3",
+        get_user_path("raxml", "raxmlHPC-SSE3"),
         "-m",
         "GTRGAMMA",
         "-n",
@@ -165,7 +167,10 @@ def main():
             seeds[os.path.split(treedir)[1]] = seed
         time = re.compile("Overall\sTime\sfor\s\d+\sBootstraps\s(\d+\.\d+)")
         patterns = re.compile("Alignment\sPatterns:\s(\d+)")
-        alignments = glob.glob(os.path.join(args.input, '*.phylip'))
+        alignments = []
+        for ftype in ('.phylip', '.phy', '.phylip-relaxed'):
+            alignments.extend(glob.glob(os.path.join(args.input, "*{}".format(ftype))))
+        print "{0} alignments read".format(len(alignments))
         work = [[args.threads, args.output, args.outgroup, args.bootreps, seeds, time, patterns, alignment] for alignment in alignments]
         pool.map(run_raxml, work)
         #output = open(os.path.join(args.output, "all-bootreps.tre"), 'w')
