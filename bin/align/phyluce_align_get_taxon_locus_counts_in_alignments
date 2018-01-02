@@ -28,6 +28,7 @@ def get_args():
     )
     parser.add_argument(
         "--alignments",
+        dest="input",
         required=True,
         action=FullPaths,
         type=is_dir,
