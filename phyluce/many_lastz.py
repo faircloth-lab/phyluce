@@ -98,7 +98,7 @@ def chunk_scaffolds(target, size):
             sequence_length = 0
         # if we hit the end of the twobit file
         elif sequence_count >= tb_key_len:
-	        temp_out_handle.close()
+            temp_out_handle.close()
             # put tempfile name on stack
             chromos.append(temp_out)
         else:
