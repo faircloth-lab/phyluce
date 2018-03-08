@@ -1,6 +1,12 @@
+.. include:: global.rst
 
-Phasing UCE data
-================
+.. _Tutorial II:
+
+*********************************
+Tutorial II: UCE Phasing UCE data
+*********************************
+
+The following workflow derives from Andermann et al. 2018 (https://doi.org/10.1101/255752) and focuses on phasing SNPs in UCE data.
 
 The following steps should be included into the UCE workflow after you extracted the target contigs from the assembly files, which represent UCE loci. The target-contig FASTA file (e.g. ``dataset1.fasta``) contains all contig sequences of interest. However, any diploid individual may have more than one sequence at each individual UCE locus. This allelic information lies in the reads for each sample and can be recovered by allele phasing.
 
