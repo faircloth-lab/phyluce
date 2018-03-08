@@ -53,7 +53,7 @@ def get_files(input_dir, input_format):
 def main():
     args = get_args()
     # iterate through all the files to determine the longest alignment
-    files = get_files(args.input, args.input_format)
+    files = get_files(args.alignments, args.input_format)
     count = Counter()
     for f in files:
         aln = AlignIO.read(f, args.input_format)

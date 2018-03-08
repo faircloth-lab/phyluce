@@ -71,6 +71,14 @@ def get_args():
         default=False,
         help="""Don't run matches against BOLD""",
     )
+    parser.add_argument(
+        "--database",
+        type=str,
+        choices=["COX1", "COX1_SPECIES", "COX1_SPECIES_PUBLIC"],
+        default="COX1_SPECIES",
+        help="""The COI database to use.  Defaults to all BOLD records for COI > 500 bp.""",
+    )
+
     args = parser.parse_args()
     return args
 
@@ -124,7 +132,7 @@ def main():
                     if not args.no_bold:
                         payload = {
                             "sequence":matches_barcode_sequence,
-                            "db":"COX1_SPECIES"
+                            "db":args.database
                         }
                         r = requests.get("http://boldsystems.org/index.php/Ids_xml", params=payload)
                         root = ElementTree.fromstring(r.content)

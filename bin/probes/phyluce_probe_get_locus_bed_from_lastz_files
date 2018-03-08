@@ -81,7 +81,8 @@ def main():
         outname = search_result.groups()[0]
         log.info("Working on {}".format(outname))
         for match in lz:
-            locus = re.sub(regex, '', match.name2.split('|')[0].strip())
+            #pdb.set_trace()
+            locus = re.search(regex, match.name2.split('|')[0].strip()).groups()[0]
             for pos in [match.zstart1, match.end1]:
                 loci[locus][match.name1].append(pos)
         outf = open(os.path.join(args.output, "{}.bed".format(outname)), 'w')

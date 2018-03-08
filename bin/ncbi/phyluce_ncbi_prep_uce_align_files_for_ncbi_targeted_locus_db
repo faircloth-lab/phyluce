@@ -88,7 +88,10 @@ def get_new_identifier(sample, species, uce, partial, counter, metadata, voucher
                 "biosample":"{0}".format(biosample)
             }
     #pdb.set_trace()
-    new_identifier = "{counter}{partial} [organism={organism}] [moltype={moltype}] [specimen-voucher={specimen_voucher}] [BioProject={bioproject}] [BioSample={biosample}] {title}".format(**metad)
+    if metad['specimen_voucher'] != 'None':
+        new_identifier = "{counter}{partial} [organism={organism}] [moltype={moltype}] [specimen-voucher={specimen_voucher}] [BioProject={bioproject}] [BioSample={biosample}] {title}".format(**metad)
+    else:
+        new_identifier = "{counter}{partial} [organism={organism}] [moltype={moltype}] [BioProject={bioproject}] [BioSample={biosample}] {title}".format(**metad)
     return new_identifier
 
 def open_files(samples, outdir):
@@ -134,6 +137,7 @@ def main():
     # setup logging
     log, my_name = setup_logging(args)
     conf = ConfigParser.ConfigParser(allow_no_value=True)
+    conf.optionxform = str
     conf.read(args.conf)
     # get alignments
     alignments = get_alignment_files(

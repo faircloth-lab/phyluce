@@ -25,7 +25,7 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Root some genetrees"""
+        description="""Count gene tree topologies"""
     )
     parser.add_argument(
         "--trees",
@@ -52,6 +52,19 @@ def get_args():
         type=str,
         help="""The taxon on which to root trees"""
     )
+    parser.add_argument(
+        "--extension",
+        required=True,
+        type=str,
+        help="""File extension used with each 'best' tree"""
+    )
+    parser.add_argument(
+        '--exclude',
+        type=str,
+        default=[],
+        nargs='+',
+        help='Loci to exclude'
+    )
     return parser.parse_args()
 
 
@@ -69,9 +82,10 @@ def main():
     print "creating tree objects"
     for d in directories:
         if os.path.isdir(d):
-            tree = dendropy.Tree.get_from_stream(open(os.path.join(d, "RAxML_bestTree.best"), 'rU'), schema=args.schema, preserve_underscores=True)
-            tree.gene_name = os.path.basename(d)
-            trees.append(tree)
+            if os.path.basename(d) not in args.exclude:
+                tree = dendropy.Tree.get_from_stream(open(os.path.join(d, "RAxML_bestTree.{}".format(args.extension)), 'rU'), schema=args.schema, preserve_underscores=True)
+                tree.gene_name = os.path.basename(d)
+                trees.append(tree)
     print "creating treelist"
     treelist = dendropy.TreeList(trees)
     sys.stdout.write("Running")

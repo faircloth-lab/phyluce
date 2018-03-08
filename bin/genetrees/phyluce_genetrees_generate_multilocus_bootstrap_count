@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+File: phyluce_genetrees_generate_multilocus_bootstrap_count.py
+Author: Carl H. Oliveros
+Description:  Counts the number bootstrap replicates needed for each locus for
+multi-locus bootstrapping.
+"""
+
+import os
+import re
+import glob
+import random
+import argparse
+import pickle
+from collections import defaultdict
+from phyluce.helpers import is_dir, FullPaths
+from phyluce.log import setup_logging
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Performs multi-locus bootstrapping and ML tree searches for a folder of phylip-formatted alignments""")
+    parser.add_argument(
+            "--alignments",
+            required=True,
+            type=is_dir,
+            action=FullPaths,
+            help="""The input directory containing alignments in phylip format"""
+        )
+    parser.add_argument(
+            "--bootstrap_replicates",
+            required=True,
+            action=FullPaths,
+            help="""The file that will hold bootstrap replicates sampling"""
+        )
+    parser.add_argument(
+            "--directory",
+            type=str,
+            default='',
+            help="""Optional path to directory containing alignments.  Defaults to alignment directory if not provided."""
+        )
+    parser.add_argument(
+            "--bootstrap_counts",
+            required=True,
+            action=FullPaths,
+            help="""The CSV file that will hold bootstrap replicate counts for each locus"""
+        )
+    parser.add_argument(
+            "--bootreps",
+            type=int,
+            default=100,
+            help="""The number of bootstrap replicates to run"""
+        )
+    parser.add_argument(
+            "--verbosity",
+            type=str,
+            choices=["INFO", "WARN", "CRITICAL"],
+            default="INFO",
+            help="""The logging level to use."""
+        )
+    parser.add_argument(
+            "--log-path",
+            action=FullPaths,
+            type=is_dir,
+            default=None,
+            help="""The path to a directory to hold logs."""
+        )
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
+    log, my_name = setup_logging(args)
+    # read alignments
+    alignments = []
+    for ftype in ('.phylip', '.phy', '.phylip-relaxed'):
+        alignments.extend(glob.glob(os.path.join(args.alignments, "*{}".format(ftype))))
+    loci = [os.path.basename(locus) for locus in alignments]
+    log.info("Processing {0} alignments".format(len(alignments)))
+    # generate multi-locus bootstrap
+    num_loci = len(loci)
+    replicates = [[random.choice(loci) for i in xrange(num_loci)] for j in xrange(args.bootreps)]
+    # count bootstrap replicates required for each locus
+    bootstrap_counter = defaultdict(int)
+    for replicate in replicates:
+        for locus in replicate:
+            bootstrap_counter[locus] += 1
+    # write out bootstrap counts
+    outf = open(args.bootstrap_counts, 'w')
+    if args.directory:
+        path = args.directory
+    else:
+        path = args.alignments
+    for locus, count in bootstrap_counter.iteritems():
+        outf.write('{0} {1}\n'.format(os.path.join(path,locus), count))
+    outf.close()
+    # write out bootstrap replicate sampling
+    with open(args.bootstrap_replicates, 'wb') as f:
+        pickle.dump(replicates, f)
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+if __name__ == '__main__':
+    main()

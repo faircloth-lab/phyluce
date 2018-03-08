@@ -17,74 +17,96 @@ import glob
 import numpy
 import argparse
 from Bio.Nexus import Nexus
-from phyluce.helpers import is_dir, FullPaths, CreateDir
 
-#import pdb
+from phyluce.helpers import is_dir, FullPaths, CreateDir
+from phyluce.log import setup_logging
+
+import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Randomly sample a directory of nexus files, concatenate, and output""")
+            description="""Randomly sample a directory of NEXUS files, concatenate, and output"""
+    )
     parser.add_argument(
-            "--nexus",
-            required=True,
-            action=FullPaths,
-            type=is_dir,
-            help="""The input directory of NEXUS files"""
-        )
+        "--alignments",
+        required=True,
+        action=FullPaths,
+        type=is_dir,
+        help="""The directory containing NEXUS alignments to sample and concatenate"""
+    )
     parser.add_argument(
-            "--output",
-            required=True,
-            action=CreateDir,
-            help="""The output directory to hold concatenated files"""
-        )
+        "--output",
+        required=True,
+        action=CreateDir,
+        help="""The output directory to hold concatenated files"""
+    )
     parser.add_argument(
-            "--sample-size",
-            dest='sample_size',
-            type=int,
-            default=50,
-            help="""The number of loci to sample"""
-        )
+        "--sample-size",
+        type=int,
+        default=100,
+        help="""The number of loci to sample"""
+    )
     parser.add_argument(
-            "--samples",
-            type=int,
-            default=1,
-            help="""The number of samples to take""",
-        )
+        "--replicates",
+        type=int,
+        default=1,
+        help="""The number of replicate samples to take""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use."""
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs."""
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
-    #pdb.set_trace()
+    # setup logging
+    log, my_name = setup_logging(args)
+    log.info("Reading input alignments in NEXUS format")
     # get filenames in directory and convert to array
-    files = numpy.array(glob.glob(os.path.join(args.nexus, '*.nex*')))
-    # make sure we have enough
-    assert len(files) >= args.sample_size, "Sample size must be < number(files)"
-    print "Running"
-    for i in xrange(args.samples):
-        sys.stdout.write('.')
-        sys.stdout.flush()
-        # get list of random numbers
-        sample = numpy.random.random_integers(0, len(files) - 1, args.sample_size)
-        # reindex filenames by random selections
-        random_files = sorted(files[sample].tolist())
+    files = numpy.array(glob.glob(os.path.join(args.alignments, '*.nex*')))
+    try:
+        # make sure we have enough
+        assert len(files) >= args.sample_size
+    except AssertionError:
+        log.exception("You have requested a larger sample size than your population of alignments")
+    log.info("Creating {} replicates of size {} from {} alignments".format(
+        args.replicates,
+        args.sample_size,
+        len(files)
+    ))
+    for i in xrange(args.replicates):
+        log.info("Sampling replicate {}".format(i+1))
+        # choose args.sample_size files randomly
+        random_sample = numpy.random.choice(
+            files,
+            size=args.sample_size,
+            replace=False
+        )
         # concatenate and output
-        files_to_combine = [(f, Nexus.Nexus(f)) for f in random_files]
-        combined = Nexus.combine(files_to_combine)
-        align_name = "random-sample-{}-{}-loci.nex".format(i, args.sample_size)
-        # open metadata file
-        meta_name = 'META-random-sample-{}-{}-loci.txt'.format(i, args.sample_size)
-        meta = open(
-                os.path.join(args.output, meta_name), 'w'
+        random_files_to_combine = [(f, Nexus.Nexus(f)) for f in random_sample]
+        random_combined = Nexus.combine(random_files_to_combine)
+        align_name = "random-sample-{}_{}-loci.nex".format(i, args.sample_size)
+        random_combined.write_nexus_data(
+            filename=open(os.path.join(args.output, align_name), 'w'),
+            append_sets=True
             )
-        meta.write('{}'.format('\n'.join(random_files)))
-        meta.close()
-        combined.write_nexus_data(filename=open(
-                os.path.join(args.output, align_name), 'w')
-            )
-    sys.stdout.write("Done")
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 if __name__ == '__main__':
     main()
