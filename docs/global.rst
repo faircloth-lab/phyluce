@@ -57,3 +57,4 @@
 .. _bedtools: http://bedtools.readthedocs.io/en/latest/
 .. _BAM: https://samtools.github.io/hts-specs/SAMv1.pdf
 .. _SAM: https://samtools.github.io/hts-specs/SAMv1.pdf
+.. _trimal: http://trimal.cgenomics.org

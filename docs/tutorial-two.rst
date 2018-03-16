@@ -8,27 +8,70 @@ Tutorial II: UCE Phasing UCE data
 
 The following workflow derives from Andermann et al. 2018 (https://doi.org/10.1101/255752) and focuses on phasing SNPs in UCE data.
 
-The following steps should be included into the UCE workflow after you extracted the target contigs from the assembly files, which represent UCE loci. The target-contig FASTA file (e.g. ``dataset1.fasta``) contains all contig sequences of interest. However, any diploid individual may have more than one sequence at each individual UCE locus. This allelic information lies in the reads for each sample and can be recovered by allele phasing.
+To phase your UCE data, you need to have individual-specific "reference" contigs against which to align your raw reads.  Generally speaking, you can create these individual-specific reference contigs at several stages of the phyluce_ pipeline, and the stage at which you choose to do this may depend on the analyses that you are running.  Some of the factors that come into play when making this decision are the sequence divergence between your organisms of interest, the quality of your alignments, and the types of locus trimming you are employing.
 
-In this approach we use the fastq read data and map them against the recovered UCE contig sequences. This collects all the read variation at each given locus for each individual. In a subsequent step all matching reads for each locus are phased into two separate allele bins. We then create a consensus sequence of each allele bin separately and export all allele FASTA sequences into a joined FASTA library.
+The following give you two different options for creating these individual-specific FASTA reference sequences: (1) uses the UCE contigs identified just after running :ref:`UceExtraction` and (2) which assumes your organisms are closely-related, and that you have aligned your sequence data using mafft_ with edge-trimming (this means that you have reached the end of the :ref:`EdgeTrimming` section).
 
-Separating the contig FASTA library
------------------------------------
+.. attention::  We have not yet fully-implemented code that you can
+    use if you are trimming your alignment data with some other
+    approach (e.g. gblocks_ or trimal_).
 
-First we will have to split the contig FASTA file (e.g. ``dataset1.fasta``) into sample specific FASTA databases, which will serve as the sample specific templates for the following mapping. You can do this in two simple steps:
+The first thing we will do is separate the alignments that we've generated into individual-specific FASTA files, then we will align raw reads to these FASTA files using bwa_, and we will call SNPs and phase the SNPs using samtools_.
 
-1. Deposit all sample names/IDs into a text file named ``sample_IDs.txt``. Each sample ID should occupy an individual line in the text file. This file will be used in the next step by iterating through each line and extracting all sequences containing the stated sample ID in the FASTA header inot a separate FASTA file. Make sure to use the exact sample IDs as they occur in the contig FASTA file.
+Approach 1: Exploding the UCE FASTA library
+-------------------------------------------
 
-.. attention:: Make sure that the sample IDs are unique. This can be tricky when having names like ``genus_species1`` and ``genus_species10``, since when searching for the former one (``genus_species1``) all sequences for both samples (``genus_species1`` and ``genus_species10``) will be returned. To avoid this it is recommendable to add an underscore after each sample ID (e.g. ``genus_species1_``).
-
-2. Run the following command in the command line after altering the paths to the contig file (``dataset1.fasta``) and to the output fasta files (``${sample}_contigs.fasta``):
+As outlined in :ref:`Tutorial I`, once you extract your contigs that are UCE loci, you can create individual-specific reference FASTA files by "exploding" the monolithic fasta file.  You can do that with the following:
 
 .. code-block:: bash
 
-  for sample in $(cat sample_IDs.txt); \
-      do grep $sample -A 1 /path/to/uce/taxon-set1/dataset1.fasta > /path/to/uce/taxon-set1/sample_specific/${sample}_contigs.fasta; \
-      done
+    # explode the monolithic FASTA by taxon (you can also do by locus)
+    phyluce_assembly_explode_get_fastas_file \
+        --input all-taxa-incomplete.fasta \
+        --output-dir exploded-fastas \
+        --by-taxon
 
+You may want to get stats on these exploded-fastas by running something like the following:
+
+.. code-block:: bash
+
+    # get summary stats on the FASTAS
+    for i in exploded-fastas/*.fasta;
+    do
+        phyluce_assembly_get_fasta_lengths --input $i --csv;
+    done
+
+    # samples,contigs,total bp,mean length,95 CI length,min length,max length,median legnth,contigs >1kb
+    alligator-mississippiensis.unaligned.fasta,4315,3465679,803.170104287,3.80363492428,224,1794,823.0,980
+    anolis-carolinensis.unaligned.fasta,703,400214,569.294452347,9.16433421241,224,1061,546.0,7
+    gallus-gallus.unaligned.fasta,3923,3273674,834.482283966,4.26048496461,231,1864,852.0,1149
+    mus-musculus.unaligned.fasta,825,594352,720.426666667,9.85933217965,225,1178,823.0,139
+
+
+Approach 2: Exploding aligned and trimmed UCE sequences
+-------------------------------------------------------
+
+You can also choose loci that have already been aligned and trimmed as the basis for SNP calling and haplotype phasing.  The benefits of this approach is that the individual-specific reference contigs you are inputting to the process will be somewhat normalized across all of your individuals because you have already generated alignments from all of your UCE loci and trimmed the edges of these loci.
+
+To follow this approach, first proceed through the :ref:`EdgeTrimming` section of :ref:`TutorialOne`.  Then, you can "explode" the directory of alignments you have generated to create separate FASTA files for each individual using the following (this assumes your alignments are in `mafft-nexus-edge-trimmed` as in the tutorial).
+
+.. code-block:: bash
+
+    # explode the alignment files in mafft-nexus-edge-trimmed by taxon create a taxon-specific FASTA
+    phyluce_align_explode_alignments \
+        --input mafft-nexus-edge-trimmed \
+        --output-dir exploded-fastas \
+        --by-taxon
+
+You may want to get stats on these exploded-fastas by running something like the following:
+
+.. code-block:: bash
+
+    # get summary stats on the FASTAS
+    for i in exploded-fastas/*.fasta;
+    do
+        phyluce_assembly_get_fasta_lengths --input $i --csv;
+    done
 
 
 Creating a configuration file
@@ -38,8 +81,8 @@ Before you run the script, you have to create a configuration file, telling the 
 The configuration file should look like in the following example and should be saved as e.g. ``phasing.conf``::
 
     [references]
-    genus_species1:/path/to/uce/taxon-set1/sample_specific/genus_species1_contigs.fasta
-    genus_species2:/path/to/uce/taxon-set1/sample_specific/genus_species2_contigs.fasta
+    genus_species1:/path/to/uce/taxon-set1/exploded-fastas/genus_species1_contigs.fasta
+    genus_species2:/path/to/uce/taxon-set1/exploded-fastas/genus_species2_contigs.fasta
 
     [individuals]
     genus_species1:/path/to/clean-fastq/genus_species1
@@ -56,17 +99,24 @@ The configuration file should look like in the following example and should be s
 
 In this section you simply state the sample ID (``genus_species1``) followed by a colon (``:``) and the full path to the sample-specific FASTA library which was generated in the previous step.
 
-
-
 [individuals]
 ^^^^^^^^^^^^^
 
 In this section you give the complete path to the cleaned and trimmed reads folder for each sample.
 
-.. attention:: The cleaned reads used by this program should preferably be generated by illumiprocessor_ as the folder structure of the cleaned reads files is assumed to be that of illumiprocessor_ . This means that the zipped fastq files (fastq.gz) have to be located in a subfolder with the name ``split-adapter-quality-trimmed`` within each sample-specific folder.
+.. attention:: The cleaned reads used by this program should be generated by illumiprocessor_ because the folder structure of the cleaned reads files is assumed to be that of illumiprocessor_ . This means that the zipped fastq files (fastq.gz) have to be located in a subfolder with the name ``split-adapter-quality-trimmed`` within each sample-specific folder.
 
 [flowcell]
 ^^^^^^^^^^
+
+The flowcell section is meant to add flowcell information from the Illumina run to the header to the BAM file that is created.  This can be helpful for later identication of sample and run information.  If you do not know the flowcell information for the data you are processing, you can look inside of the `fastq.gz` file using a program like `less`.  The flowcell identifier is the set of digits and numbers after the 2nd colon.
+
+.. code-block:: bash
+
+  @J00138:149:HT23LBBXX:8:1101:5589:1015 1:N:0:ATAAGGCG+CATACCAC
+              ^^^^^^^^^
+
+Alternatively, you can enter any string of information here (no spaces) that you would like to help identify a given sample.
 
 
 Mapping reads against contigs
