@@ -13,9 +13,12 @@ Created on 02 June 2013 10:06 PDT (-0700)
 
 
 import os
+import sys
 import glob
 import shutil
 import argparse
+import platform
+import textwrap
 import subprocess
 import ConfigParser
 from phyluce.helpers import FullPaths, is_dir, is_file
@@ -287,6 +290,14 @@ def cleanup_trinity_assembly_folder(pth, log):
 
 
 def main():
+    if platform.system() == "Darwin":
+        text = ("NOTE: assemblo_trinity and Trinity are no longer supported "
+        "on Mac OS. Trinity has been consistently hard to build on Mac OS "
+        "and we will no longer be supporting it (unless it becomes" +
+        " easier to build).  We suggest you use Trinity on Linux " +
+        "_OR_ ABYSS, itero, or spades on Mac OS.")
+        print textwrap.fill(text)
+        sys.exit()
     # get args and options
     args = get_args()
     # setup logging
