@@ -1,6 +1,6 @@
 .. include:: global.rst
 
-.. _Tutorial I:
+.. _TutorialOne:
 
 *****************************
 Tutorial I: UCE Phylogenomics
@@ -674,7 +674,7 @@ The search we just ran created lastz_ search result files for each taxon, and
 stored summary results of these searches in the `probe.matches.sqlite` database
 (see :ref:`Database` for more information on this database and its structure).
 
-.. _tutorial-uce-extraction:
+.. _UceExtraction:
 
 Extracting UCE loci
 ===================
@@ -868,6 +868,8 @@ And, our directory structure should now look like this (collapsing all but
 The extracted FASTA data are in a monolithic FASTA file (all data for all
 organisms) named `all-taxa-incomplete.fasta`.
 
+.. _ExplodingFasta:
+
 Exploding the monolithic FASTA file
 -----------------------------------
 
@@ -917,6 +919,9 @@ You also have a choice of aligner - mafft_ or muscle_ (or you can externally
 align UCE loci using a tool like SATé, as well).
 
 Generally, I would use mafft_.
+
+
+.. _EdgeTrimming:
 
 Edge trimming
 -------------

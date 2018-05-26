@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2017 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 15 Feb 2017 08:14 CST (-0500)
+"""
+
+import os
+import argparse
+from phyluce.helpers import FullPaths, is_dir
+
+from Bio import SeqIO
+
+import pdb
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Get a BED from fasta file"""
+    )
+    parser.add_argument(
+        "--input",
+        required=True,
+        action=FullPaths,
+        default=None,
+        help="""The fasta file to parse"""
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=FullPaths,
+        default=None,
+        help="""The BED file to create"""
+    )
+    parser.add_argument(
+        "--locus-prefix",
+        type=str,
+        default='',
+        help="""A prefix to add to each locus name"""
+    )
+    return parser.parse_args()
+
+def main():
+    args = get_args()
+    records = SeqIO.parse(args.input, 'fasta')
+    with open(args.output, 'w') as outfile:
+        for seq in records:
+            seqs = seq.id.split('|')
+            contig = seqs[1].split(':')[1]
+            coords = seqs[2].split(':')[1]
+            locus = seqs[3].split(':')[1]
+            begin, end = coords.split('-')
+            outfile.write("{}\t{}\t{}\t{}{}\n".format(
+                contig,
+                begin,
+                end,
+                args.locus_prefix,
+                locus
+                ))
+
+if __name__ == '__main__':
+    main()
