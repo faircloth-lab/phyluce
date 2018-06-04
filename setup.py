@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 import glob
-from distutils.core import setup
+from setuptools import setup
 
 align = ["{}".format(i) for i in glob.glob("bin/align/*")]
 assembly = ["{}".format(i) for i in glob.glob("bin/assembly/*")]
