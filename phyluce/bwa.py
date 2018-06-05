@@ -16,11 +16,7 @@ import subprocess
 
 from phyluce.pth import get_user_param, get_user_path
 
-import pdb
-
-JAVA = get_user_param("java", "executable")
-JAVA_PARAMS = get_user_param("java", "mem")
-JAR_PATH = get_user_path("java", "jar")
+#import pdb
 
 
 def create_index_files(log, reference):
