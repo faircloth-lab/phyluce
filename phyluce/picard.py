@@ -17,11 +17,6 @@ import subprocess
 from phyluce.pth import get_user_path, get_user_param
 
 
-JAVA = get_user_param("java", "executable")
-JAVA_PARAMS = get_user_param("java", "mem")
-JAR_PATH = get_user_path("java", "jar")
-
-
 def new_bam_name(bam, append):
     pth, bamfname = os.path.split(bam)
     bamfname = os.path.splitext(bamfname)[0]
@@ -34,10 +29,8 @@ def create_reference_dict(log, sample, sample_dir, reference):
     log.info("Creating FASTA dict for {}".format(sample))
     outf = os.path.splitext(reference)[0] + ".dict"
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, "CreateSequenceDictionary.jar"),
+        get_user_path("picard", "picard"),
+        "CreateSequenceDictionary",
         "R={}".format(reference),
         "O={}".format(outf)
     ]
@@ -51,10 +44,8 @@ def clean_up_bam(log, sample, sample_dir, bam, type):
     log.info("Cleaning BAM for {}".format(sample))
     new_bam = new_bam_name(bam, "CL")
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, "CleanSam.jar"),
+        get_user_path("picard", "picard"),
+        "CleanSam",
         "I={}".format(bam),
         "O={}".format(new_bam)
     ]
@@ -71,10 +62,8 @@ def fix_mate_information(log, sample, sample_dir, bam, type):
     log.info("Fixing mate information for {}".format(sample))
     new_bam = new_bam_name(bam, "CL")
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, "FixMateInformation.jar"),
+        get_user_path("picard", "picard"),
+        "FixMateInformation",
         "I={}".format(bam),
         "O={}".format(new_bam),
         "VALIDATION_STRINGENCY=SILENT"
@@ -93,10 +82,8 @@ def add_rg_header_info(log, sample, sample_dir, flowcell, bam, type):
     log.info("Adding RG header to BAM for {}".format(sample))
     new_bam = new_bam_name(bam, "RG")
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, "AddOrReplaceReadGroups.jar"),
+        get_user_path("picard", "picard"),
+        "AddOrReplaceReadGroups",
         "I={}".format(bam),
         "O={}".format(new_bam),
         "SORT_ORDER=coordinate",
@@ -120,10 +107,8 @@ def merge_two_bams(log, sample, sample_dir, bam, bam_se):
     log.info("Merging BAMs for {}".format(sample))
     new_bam = new_bam_name(bam, "M")
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, "MergeSamFiles.jar"),
+        get_user_path("picard", "picard"),
+        "MergeSamFiles",
         "SO=coordinate",
         "AS=true",
         "I={}".format(bam),
@@ -146,10 +131,8 @@ def mark_duplicates(log, sample, sample_dir, bam, type):
     new_bam = new_bam_name(bam, "MD")
     metricsfile = os.path.join(sample_dir, "{}.{}.picard-metricsfile.txt".format(sample, type))
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, "MarkDuplicates.jar"),
+        get_user_path("picard", "picard"),
+        "MarkDuplicates",
         "I={}".format(bam),
         "O={}".format(new_bam),
         "METRICS_FILE={}".format(metricsfile),
@@ -171,10 +154,8 @@ def calculate_hs_metrics(log, sample, sample_dir, reference, bam, target, bait):
     log.info("Calculating coverage metrics for {}".format(sample))
     hs_metrics_file = os.path.join(sample_dir, "{}.reads-on-target.txt".format(sample))
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, "CalculateHsMetrics.jar"),
+        get_user_path("picard", "picard"),
+        "CollectHsMetrics",
         "I={}".format(bam),
         "O={}".format(hs_metrics_file),
         "REFERENCE_SEQUENCE={}".format(reference),
