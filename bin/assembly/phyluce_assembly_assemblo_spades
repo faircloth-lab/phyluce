@@ -18,6 +18,7 @@ import shutil
 import argparse
 import subprocess
 import ConfigParser
+
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
@@ -124,7 +125,6 @@ def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
         with open(os.path.join(sample_dir, 'spades.phyluce.log'), 'w') as outf:
             proc = subprocess.Popen(cmd, stdout=outf)
             proc.communicate()
-            pass
     except:
         log.critical("Could not assemble {}".format(sample_dir))
     if not do_not_clean:
