@@ -133,9 +133,11 @@ def get_input_data(config, dir):
         conf.optionxform = str
         conf.read(config)
         groups = conf.items('samples')
+        # expand params when given userdirs or relative paths
+        groups = [(g[0], os.path.abspath(os.path.expanduser(g[1]))) for g in groups]
         for sample in groups:
             try:
-                assert os.path.isdir(sample[1])
+                assert os.path.isdir(os.path.abspath(os.path.expanduser(sample[1])))
             except:
                 raise IOError("{} is not a directory".format(sample[1]))
     else:
