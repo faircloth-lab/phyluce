@@ -25,22 +25,13 @@ from phyluce.pth import get_user_param, get_user_path
 from Bio import SeqIO
 
 
-JAVA = get_user_param("java", "executable")
-JAVA_PARAMS = get_user_param("java", "mem")
-JAR_PATH = get_user_path("java", "jar")
-GATK = get_user_param("java", "gatk")
-
-
 def coverage(log, sample, assembly_pth, assembly, cores, bam):
     log.info("Computing coverage with GATK for {}".format(sample))
     cwd = os.getcwd()
     # move into reference directory
     os.chdir(assembly_pth)
     cmd = [
-        JAVA,
-        JAVA_PARAMS,
-        "-jar",
-        os.path.join(JAR_PATH, GATK),
+        get_user_path("gatk", "gatk"),
         "-T",
         "DepthOfCoverage",
         "-R",
