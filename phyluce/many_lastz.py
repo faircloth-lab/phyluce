@@ -48,7 +48,7 @@ def run_lastz(work):
 def lastz_params(target, query, coverage, identity, outfile):
     output_format = "general-:score,name1,strand1,zstart1,end1,length1,name2,strand2,zstart2,end2,length2,diff,cigar,identity,continuity,coverage"
     cmd = [
-            get_user_path("lastz", "lastz"),
+            get_user_path("binaries", "lastz"),
             "{0}[multiple]".format(target),
             "{0}[nameparse=full]".format(query),
             "--strand=both",

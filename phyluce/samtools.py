@@ -22,7 +22,7 @@ import pdb
 def index(log, sample, sample_dir, bam):
     log.info("Indexing BAM for {}".format(sample))
     cmd = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "index",
         bam
     ]
@@ -35,7 +35,7 @@ def index(log, sample, sample_dir, bam):
 def create_faidx(log, sample, sample_dir, fasta):
     log.info("Indexing fasta for {}".format(sample))
     cmd = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "faidx",
         fasta
     ]
@@ -49,7 +49,7 @@ def sort(log, sample, sample_dir, bam):
     log.info("Sorting BAM for {}".format(sample))
     out_prefix = "{}.sorted".format(os.path.splitext(bam)[0])
     cmd = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "sort",
         bam,
         out_prefix
@@ -67,7 +67,7 @@ def call(log, sample, sample_dir, reference, bam, phase=None):
     else:
         log.info("Creating REF/ALT allele FASTQ file {}".format(phase))
     cmd1 = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "mpileup",
         "-u",
         "-f",
@@ -75,13 +75,13 @@ def call(log, sample, sample_dir, reference, bam, phase=None):
         bam
     ]
     cmd2 = [
-        get_user_path("samtools", "bcftools"),
+        get_user_path("binaries", "bcftools"),
         "view",
         "-cg",
         "-"
     ]
     cmd3 = [
-        get_user_path("samtools", "vcfutils"),
+        get_user_path("binaries", "vcfutils"),
         "vcf2fq"
     ]
     mpileup_out_fname = "{}.samtools-mpileup-out.log".format(sample_dir)
@@ -106,7 +106,7 @@ def call(log, sample, sample_dir, reference, bam, phase=None):
 def phase(log, sample, sample_dir, bam):
     log.info("Phasing BAM file for {}".format(sample))
     cmd = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "phase",
         "-A",
         "-F",

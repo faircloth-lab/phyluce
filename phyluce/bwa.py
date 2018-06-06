@@ -24,7 +24,7 @@ def create_index_files(log, reference):
     cwd = os.getcwd()
     # move into reference directory
     os.chdir(os.path.dirname(reference))
-    cmd = [get_user_path("bwa", "bwa"), "index", reference]
+    cmd = [get_user_path("binaries", "bwa"), "index", reference]
     with open('bwa-index-file.log', 'a') as outf:
         proc = subprocess.Popen(cmd, stdout=outf, stderr=subprocess.STDOUT)
         proc.communicate()
@@ -34,7 +34,7 @@ def create_index_files(log, reference):
 def create_sai(log, sample, sample_dir, ref, cores, reads, read):
     log.info("Creating read index file for {}".format(reads.file))
     cmd = [
-        get_user_path("bwa", "bwa"),
+        get_user_path("binaries", "bwa"),
         "aln",
         "-t",
         str(cores),
@@ -61,14 +61,14 @@ def create_sai(log, sample, sample_dir, ref, cores, reads, read):
 def se_align(log, sample, sample_dir, ref, cores, rS):
     rSsai = create_sai(log, sample, sample_dir, ref, cores, rS, 'S')
     cmd1 = [
-        get_user_path("bwa", "bwa"),
+        get_user_path("binaries", "bwa"),
         "samse",
         ref,
         rSsai,
         rS.pth,
     ]
     cmd2 = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "view",
         "-bS",
         "-"
@@ -93,7 +93,7 @@ def pe_align(log, sample, sample_dir, ref, cores, r1, r2):
     r1sai = create_sai(log, sample, sample_dir, ref, cores, r1, 1)
     r2sai = create_sai(log, sample, sample_dir, ref, cores, r2, 2)
     cmd1 = [
-        get_user_path("bwa", "bwa"),
+        get_user_path("binaries", "bwa"),
         "sampe",
         "-a",
         "700",
@@ -104,7 +104,7 @@ def pe_align(log, sample, sample_dir, ref, cores, r1, r2):
         r2.pth
     ]
     cmd2 = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "view",
         "-bS",
         "-"
@@ -129,7 +129,7 @@ def pe_align(log, sample, sample_dir, ref, cores, r1, r2):
 def mem_se_align(log, sample, sample_dir, ref, cores, rS):
     #pdb.set_trace()
     cmd1 = [
-        get_user_path("bwa", "bwa"),
+        get_user_path("binaries", "bwa"),
         "mem",
         "-t",
         str(cores),
@@ -138,7 +138,7 @@ def mem_se_align(log, sample, sample_dir, ref, cores, rS):
         rS.pth,
     ]
     cmd2 = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "view",
         "-bS",
         "-"
@@ -160,7 +160,7 @@ def mem_se_align(log, sample, sample_dir, ref, cores, rS):
 def mem_pe_align(log, sample, sample_dir, ref, cores, r1, r2):
     #pdb.set_trace()
     cmd1 = [
-        get_user_path("bwa", "bwa"),
+        get_user_path("binaries", "bwa"),
         "mem",
         "-t",
         str(cores),
@@ -170,7 +170,7 @@ def mem_pe_align(log, sample, sample_dir, ref, cores, r1, r2):
         r2.pth
     ]
     cmd2 = [
-        get_user_path("samtools", "samtools"),
+        get_user_path("binaries", "samtools"),
         "view",
         "-bS",
         "-"

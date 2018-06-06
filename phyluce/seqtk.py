@@ -25,7 +25,7 @@ def fq_to_fa(log, sample, sample_dir, fastq, phase=None):
     else:
         log.info("Creating REF/ALT allele FASTA file {0} from FASTQ {0}".format(phase))
     cmd = [
-        get_user_path("seqtk", "seqtk"),
+        get_user_path("binaries", "seqtk"),
         "seq",
         "-a",
         fastq

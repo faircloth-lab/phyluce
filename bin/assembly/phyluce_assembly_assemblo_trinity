@@ -317,7 +317,7 @@ def main():
     else:
         pass
     try:
-        trinity = get_user_path("trinity", "trinity")
+        trinity = get_user_path("binaries", "trinity")
     except:
         raise EnvironmentError("Cannot find Trinity.  Ensure the $PATH is correctly entered in your phyluce.conf file.")
     for group in input:

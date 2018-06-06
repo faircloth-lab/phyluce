@@ -5,3 +5,4 @@ test-out
 docs/build
 build
 tmp
+tests

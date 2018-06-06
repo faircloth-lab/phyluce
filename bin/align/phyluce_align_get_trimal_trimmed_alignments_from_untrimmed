@@ -89,7 +89,7 @@ def get_and_trim_alignments(params):
     name = os.path.splitext(os.path.basename(align_file))[0]
     try:
         cmd = [
-            get_user_path("trimal","trimal"),
+            get_user_path("binaries","trimal"),
             "-in",
             align_file,
             "-out",

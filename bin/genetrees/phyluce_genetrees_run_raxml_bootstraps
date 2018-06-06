@@ -20,6 +20,8 @@ import random
 import argparse
 import subprocess
 import multiprocessing
+
+from phyluce.pth import get_user_path
 from phyluce.helpers import is_dir, FullPaths, CreateDir
 
 #import pdb
@@ -85,7 +87,7 @@ def get_basic_raxml(seeds, alignment, outputdir):
     key = os.path.splitext(os.path.split(alignment)[1])[0]
     p_seed = seeds[key]
     cmd = [
-        "/home/bcf/git/raxml/raxmlHPC-SSE3",
+        get_user_path("binaries", "raxmlHPC-SSE3"),
         "-m",
         "GTRGAMMA",
         "-n",
@@ -113,6 +115,7 @@ def run_raxml(work):
     os.makedirs(outputdir)
     cmd = get_basic_raxml(seeds, alignment, outputdir)
     if threads > 1:
+        cmd[0] = get_user_path("binaries", "raxmlHPC-PTHREADS-SSE3")
         cmd.extend([
             "-T",
             str(threads),

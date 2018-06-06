@@ -23,7 +23,7 @@ from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
 from phyluce.pth import get_user_path, get_user_param
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -178,7 +178,8 @@ def main():
     else:
         pass
     try:
-        spades = get_user_path("spades", "spades")
+        spades = get_user_path("binaries", "spades")
+
     except:
         raise EnvironmentError("Cannot find SPAdes.  Ensure the $PATH is correctly entered in your phyluce.conf file.")
     for group in input:

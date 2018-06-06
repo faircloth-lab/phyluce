@@ -90,7 +90,7 @@ def get_args():
 
 def get_basic_raxml(alignment, tree_searches, outputdir):
     cmd = [
-        get_user_path("raxml", "raxmlHPC-SSE3"),
+        get_user_path("binaries", "raxmlHPC-SSE3"),
         "-m",
         "GTRGAMMA",
         "-n",
@@ -120,7 +120,7 @@ def run_raxml(work):
     # add threads
     if threads > 1:
         # uncomment/edit below for threaded version
-        # cmd[0] = get_user_path("raxml", "raxmlHPC-PTHREADS-SSE3")
+        cmd[0] = get_user_path("binaries", "raxmlHPC-PTHREADS-SSE3")
         cmd.extend([
             "-T",
             str(threads),

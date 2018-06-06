@@ -29,7 +29,7 @@ def create_reference_dict(log, sample, sample_dir, reference):
     log.info("Creating FASTA dict for {}".format(sample))
     outf = os.path.splitext(reference)[0] + ".dict"
     cmd = [
-        get_user_path("picard", "picard"),
+        get_user_path("binaries", "picard"),
         "CreateSequenceDictionary",
         "R={}".format(reference),
         "O={}".format(outf)
@@ -44,7 +44,7 @@ def clean_up_bam(log, sample, sample_dir, bam, type):
     log.info("Cleaning BAM for {}".format(sample))
     new_bam = new_bam_name(bam, "CL")
     cmd = [
-        get_user_path("picard", "picard"),
+        get_user_path("binaries", "picard"),
         "CleanSam",
         "I={}".format(bam),
         "O={}".format(new_bam)
@@ -62,7 +62,7 @@ def fix_mate_information(log, sample, sample_dir, bam, type):
     log.info("Fixing mate information for {}".format(sample))
     new_bam = new_bam_name(bam, "CL")
     cmd = [
-        get_user_path("picard", "picard"),
+        get_user_path("binaries", "picard"),
         "FixMateInformation",
         "I={}".format(bam),
         "O={}".format(new_bam),
@@ -82,7 +82,7 @@ def add_rg_header_info(log, sample, sample_dir, flowcell, bam, type):
     log.info("Adding RG header to BAM for {}".format(sample))
     new_bam = new_bam_name(bam, "RG")
     cmd = [
-        get_user_path("picard", "picard"),
+        get_user_path("binaries", "picard"),
         "AddOrReplaceReadGroups",
         "I={}".format(bam),
         "O={}".format(new_bam),
@@ -107,7 +107,7 @@ def merge_two_bams(log, sample, sample_dir, bam, bam_se):
     log.info("Merging BAMs for {}".format(sample))
     new_bam = new_bam_name(bam, "M")
     cmd = [
-        get_user_path("picard", "picard"),
+        get_user_path("binaries", "picard"),
         "MergeSamFiles",
         "SO=coordinate",
         "AS=true",
@@ -131,7 +131,7 @@ def mark_duplicates(log, sample, sample_dir, bam, type):
     new_bam = new_bam_name(bam, "MD")
     metricsfile = os.path.join(sample_dir, "{}.{}.picard-metricsfile.txt".format(sample, type))
     cmd = [
-        get_user_path("picard", "picard"),
+        get_user_path("binaries", "picard"),
         "MarkDuplicates",
         "I={}".format(bam),
         "O={}".format(new_bam),
@@ -154,7 +154,7 @@ def calculate_hs_metrics(log, sample, sample_dir, reference, bam, target, bait):
     log.info("Calculating coverage metrics for {}".format(sample))
     hs_metrics_file = os.path.join(sample_dir, "{}.reads-on-target.txt".format(sample))
     cmd = [
-        get_user_path("picard", "picard"),
+        get_user_path("binaries", "picard"),
         "CollectHsMetrics",
         "I={}".format(bam),
         "O={}".format(hs_metrics_file),

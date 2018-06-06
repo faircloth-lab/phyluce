@@ -31,7 +31,7 @@ def coverage(log, sample, assembly_pth, assembly, cores, bam):
     # move into reference directory
     os.chdir(assembly_pth)
     cmd = [
-        get_user_path("gatk", "gatk"),
+        get_user_path("binaries", "gatk"),
         "-T",
         "DepthOfCoverage",
         "-R",

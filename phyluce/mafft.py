@@ -40,7 +40,7 @@ class Align(GenericAlign):
         os.close(fd)
         aln_stdout = open(aln, 'w')
         # run MAFFT on the temp file
-        cmd = [get_user_path("mafft", "mafft"), "--adjustdirection", "--maxiterate", "1000", self.input]
+        cmd = [get_user_path("binaries", "mafft"), "--adjustdirection", "--maxiterate", "1000", self.input]
         # just pass all ENV params
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,

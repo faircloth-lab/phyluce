@@ -221,8 +221,8 @@ def main():
     else:
         pass
     try:
-        velveth = get_user_path("velvet", "velveth")
-        velvetg = get_user_path("velvet", "velvetg")
+        velveth = get_user_path("binaries", "velveth")
+        velvetg = get_user_path("binaries", "velvetg")
     except:
         raise EnvironmentError("Cannot find velveth or velvetg.  Ensure they "
                                "are installed and in your $PATH")

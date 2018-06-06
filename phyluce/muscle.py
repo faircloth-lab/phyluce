@@ -38,7 +38,7 @@ class Align(GenericAlign):
         fd, aln = tempfile.mkstemp(suffix='.muscle')
         os.close(fd)
         # run MUSCLE on the temp file
-        cmd = [get_user_path("muscle", "muscle"), "-in", self.input, "-out", aln]
+        cmd = [get_user_path("binaries", "muscle"), "-in", self.input, "-out", aln]
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE

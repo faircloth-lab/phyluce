@@ -121,7 +121,7 @@ def get_and_trim_alignments(params):
         if b2 < b1:
             b2 = b1
         cmd = [
-            get_user_path("gblocks","gblocks"),
+            get_user_path("binaries","gblocks"),
             align_file,
             "-t=DNA",
             "-b1={}".format(b1),

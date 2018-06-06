@@ -263,8 +263,8 @@ def main():
     else:
         pass
     try:
-        abyss_pe = get_user_path("abyss", "abyss-pe")
-        abyss_se = get_user_path("abyss", "abyss")
+        abyss_pe = get_user_path("binaries", "abyss-pe")
+        abyss_se = get_user_path("binaries", "abyss")
     except:
         raise EnvironmentError("Cannot find abyss-pe or ABYSS.  Ensure they "
                                "are installed and in your $PATH")
