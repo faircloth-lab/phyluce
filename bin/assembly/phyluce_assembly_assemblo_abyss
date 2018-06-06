@@ -79,6 +79,12 @@ def get_args():
         default=False,
         help="""Cleanup all intermediate Trinity files""",
     )
+    parser.add_argument(
+        "--abyss-se",
+        action="store_true",
+        default=False,
+        help="""Only use abyss-se""",
+    )
     # one of these is required.  The other will be set to None.
     input = parser.add_mutually_exclusive_group(required=True)
     input.add_argument(
@@ -98,7 +104,7 @@ def get_args():
     return parser.parse_args()
 
 
-def run_abyss_pe(abyss_pe, kmer, reads, cores, output, log):
+def run_abyss_pe(kmer, reads, cores, output, log):
     log.info("Running abyss-pe against data")
     # we're going to move into the working dir so getcwd
     start_dir = os.getcwd()
@@ -106,7 +112,7 @@ def run_abyss_pe(abyss_pe, kmer, reads, cores, output, log):
     name = "out_k{}".format(kmer)
     os.chdir(output)
     cmd = [
-        abyss_pe,
+        get_user_path("binaries", "abyss-pe"),
         'k={}'.format(kmer),
         'j={}'.format(cores),
         'name={}'.format(name),
@@ -134,21 +140,34 @@ def run_abyss_pe(abyss_pe, kmer, reads, cores, output, log):
     os.chdir(start_dir)
     return output
 
-def run_abyss_se(abyss_se, kmer, reads, output, log):
+def run_abyss_se(kmer, reads, output, log, abyss_se):
     log.info("Running abyss-se against data")
     # we're going to move into the working dir so getcwd
     start_dir = os.getcwd()
     # make and switch to the working dir
     name = "out_k{}".format(kmer)
     os.chdir(output)
-    cmd = [
-        abyss_se,
-        '-k',
-        str(kmer),
-        '-o',
-        "out_k{}-contigs.fa".format(kmer, name),
-        os.path.join(reads.r1.dir, reads.r1.file)
-    ]
+    if not abyss_se:
+        cmd = [
+            get_user_path("binaries", "abyss"),
+            '-k',
+            str(kmer),
+            '-o',
+            "out_k{}-contigs.fa".format(kmer, name),
+            os.path.join(reads.r1.dir, reads.r1.file)
+        ]
+    else:
+        cmd = [
+            get_user_path("binaries", "abyss"),
+            '-k',
+            str(kmer),
+            '-o',
+            "out_k{}-contigs.fa".format(kmer, name),
+            os.path.join(reads.r1.dir, reads.r1.file),
+            os.path.join(reads.r2.dir, reads.r2.file)
+        ]
+        if reads.singleton:
+            cmd.append(os.path.join(reads.singleton.dir, reads.singleton.file))
     try:
         stdpth = 'abyss-k{}.out.log'.format(kmer)
         errpth = 'abyss-k{}.err.log'.format(kmer)
@@ -262,12 +281,6 @@ def main():
         os.makedirs(contig_dir)
     else:
         pass
-    try:
-        abyss_pe = get_user_path("binaries", "abyss-pe")
-        abyss_se = get_user_path("binaries", "abyss")
-    except:
-        raise EnvironmentError("Cannot find abyss-pe or ABYSS.  Ensure they "
-                               "are installed and in your $PATH")
     # run abyss in (mostly) single-threaded mode for RAM and simplicity
     # reasons.  abyss-map will run using as many cores as user specifies.
     for group in input:
@@ -282,14 +295,17 @@ def main():
         reads = get_input_files(dir, args.subfolder, log)
         # copy the read data over, combine singletons with read 1
         # and run the assembly for PE data.
-        if reads.r1 and reads.r2:
-            output = run_abyss_pe(abyss_pe, args.kmer, reads, args.cores,
+        if not args.abyss_se and reads.r1 and reads.r2:
+            output = run_abyss_pe(args.kmer, reads, args.cores,
                                   sample_dir, log)
             if args.clean:
                 cleanup_abyss_assembly_folder(output, log)
+        elif args.abyss_se:
+            output = run_abyss_se(args.kmer, reads, sample_dir, log, args.abyss_se)
+            if args.clean:
+                cleanup_abyss_assembly_folder(output, log, single_end=True)
         elif reads.r1 and not reads.r2:
-            output = run_abyss_se(abyss_se, args.kmer, reads,
-                                  sample_dir, log)
+            output = run_abyss_se(args.kmer, reads, sample_dir, log, args.abyss_se)
             if args.clean:
                 cleanup_abyss_assembly_folder(output, log, single_end=True)
         contigs_file = get_contigs_file_from_output(output)
