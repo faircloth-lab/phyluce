@@ -1,6 +1,6 @@
 .. include:: global.rst
 
-.. _Tutorial II:
+.. _TutorialTwo:
 
 *********************************
 Tutorial II: UCE Phasing UCE data
@@ -21,7 +21,7 @@ The first thing we will do is separate the alignments that we've generated into 
 Approach 1: Exploding the UCE FASTA library
 -------------------------------------------
 
-As outlined in :ref:`Tutorial I`, once you extract your contigs that are UCE loci, you can create individual-specific reference FASTA files by "exploding" the monolithic fasta file.  You can do that with the following:
+As outlined in :ref:`TutorialOne`, once you extract your contigs that are UCE loci, you can create individual-specific reference FASTA files by "exploding" the monolithic fasta file.  You can do that with the following:
 
 .. code-block:: bash
 

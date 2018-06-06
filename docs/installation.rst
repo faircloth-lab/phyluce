@@ -21,7 +21,7 @@ fingers, and hope that everything ran smoothly (it usually did not).
 
 In the current versions (> 1.4.x), we have removed a number of dependencies,
 **and we very strongly suggest** that users install phyluce_ using either the
-anaconda_ or miniconda_ Python distributions.
+anaconda_ or miniconda_ Python distributions, along with bioconda_.
 
 .. attention:: We do not support installing phyluce through means other than the
     conda_ installer.  This means that we do not test phyluce_ against any
@@ -34,7 +34,7 @@ anaconda_ or miniconda_ Python distributions.
     64-bit operating systems that include:
 
     - Apple OSX 10.9.x
-    - CentOS 6.x
+    - CentOS 6.x, 7.x
     - Ubuntu 14.04 LTS
 
 Why conda?
@@ -59,59 +59,28 @@ Install Process
    64-bit operating systems that include:
 
    - Apple OSX 10.9.x
-   - CentOS 6.x
+   - CentOS 6.x, 7.x
    - Ubuntu 14.04 LTS
 
-The installation process is now a 3-step process.  You need to:
+The installation process is a 3-step process.  You need to:
 
-#. Install JAVA
 #. Install conda_ (either anaconda_ or miniconda_)
+#. Edit your ``~/.condarc`` to add the necessary bioconda repositories
 #. Install phyluce_
 
 Installing phyluce_ will install all of the required binaries, libraries, and
 Python_ dependencies.
 
-Install JAVA
-------------
-
-Although we're using conda_, you need to install a JAVA distribution for your
-platform.  You should install **JAVA7**, as that will ensure a number of future
-tools in phyluce_ will work on your platform.  Installing JAVA is a little
-tricky across different platforms (and somewhat beyond the scope of this
-document), but we describe, below, how we usually do it.
-
-Apple OS X
-^^^^^^^^^^
-
-To install JAVA 1.7, download and install the JAVA 1.7 package from Oracle here:
-http://www.java.com/en/download/manual.jsp
-
-CentOS 6.5.x linux
-^^^^^^^^^^^^^^^^^^^
-
-You can install the JRE with the following `yum` command::
-
-    su -c "yum update"
-    su -c "yum install java-1.7.0-openjdk"
-
-Ubuntu 14.04 linux
-^^^^^^^^^^^^^^^^^^^
-
-You can install the JRE with the following `apt-get` command::
-
-    sudo apt-get update
-    sudo apt-get install openjdk-7-jre
-
 
 Install Anaconda or miniconda
 -----------------------------
 
-After you installed `JAVA`, you need to install anaconda_ or miniconda_.  Which
-one you choose is up to you, your needs, how much disk space you have, and if
-you are on a fast/slow connection.
+First, you need to install anaconda_ or miniconda_ **with Python 2.7**.  Whether
+you choose miniconda_ or anaconda_ is up to you, your needs, how much disk
+space you have, and if you are on a fast/slow connection.
 
-.. attention:: You can easily install anaconda_ or miniconda_ in your $HOME,
-    although you should be aware that this setup can cause problems in some
+.. attention:: You can easily install anaconda_ or miniconda_ in your ``$HOME``,
+    although you should be aware that this setup can sometimes cause problems in
     cluster-computing situations.
 
 .. tip:: Do I want anaconda_ or miniconda_?
@@ -123,6 +92,26 @@ you are on a fast/slow connection.
     distribution is roughly 200-500 MB in size while the beginning miniconda_
     distribution is 15-30 MB in size.
 
+    **We suggest that you install miniconda.**
+
+.. tip:: What version of miniconda_ or anaconda_ do I need?
+    :class: admonition tip
+
+    Right now, phyluce_ **only runs with Python 2.7**.  This means that you need
+    to install a version of miniconda_ or anaconda_ that uses Python 2.7.  The
+    easiest way to do this is to choose carefully when you download a
+    particular distribution for your OS (be sure to choose the Python 2.7
+    version).
+
+
+miniconda
+^^^^^^^^^
+
+Follow the instructions here for your platform:
+https://conda.io/docs/user-guide/install/index.html
+
+.. note:: Once you have installed either Miniconda or Anaconda, we will refer
+    to the install as `conda` throughout the remainder of this documentation.
 
 anaconda
 ^^^^^^^^
@@ -130,25 +119,15 @@ anaconda
 Follow the instructions here for your platform:
 http://docs.continuum.io/anaconda/install.html
 
-miniconda
-^^^^^^^^^
 
-Find the correct `miniconda-x.x.x` file for your platform from
-http://repo.continuum.io/miniconda/ and download that file.  Be sure you **do
-not** get one of the packages that has a name starting with `miniconda3-`. When
-that has completed, run one of the following::
-
-    bash Miniconda-x.x.x-Linux-x86_64.sh  [linux]
-    bash Miniconda-x.x.x-MacOSX-x86_64.sh [osx]
-
-.. note:: Once you have installed Miniconda, we will refer to it as **anaconda**
-   throughout the remainder of this documentation.
+.. note:: Once you have installed either Miniconda or Anaconda, we will refer
+    to the install as `conda` throughout the remainder of this documentation.
 
 
 Checking your `$PATH`
 ^^^^^^^^^^^^^^^^^^^^^
 
-Regardless of whether you install anaconda_ or miniconda_, you need to check
+Regardless of whether you install miniconda_ or anaconda_, you need to check
 that you've installed the package correctly.  To ensure that the correct
 location for anaconda_ or miniconda_ are added to your $PATH (this occurs
 automatically on the $BASH shell), run the following::
@@ -177,27 +156,75 @@ system (usually ``$HOME/anaconda/bin`` or ``$HOME/miniconda/bin``).
    installation of phyluce_.  The solution is to remove the offending library
    (-ies) from your ``$PYTHONPATH``.
 
-Add the faircloth-lab repository to conda
------------------------------------------
 
-You need to add the location of the packages we need to your conda
-distributions.  to do taht, you have to add the
-`faircloth-lab conda repository <http://conda.binstar.org/faircloth-lab>`_
-to conda.  You can do that with the following command, which automatically edits
-your ``~/.condarc`` file)::
+Add the necessary bioconda repositories to conda
+------------------------------------------------
 
-    conda config --add channels https://conda.anaconda.org/faircloth-lab
+You need to add the location of the bioconda_ repositories to your conda_
+installation.  To do that, you can follow the instructions `at the bioconda
+site <https://bioconda.github.io/#set-up-channels>`_ or you can simply edit
+your ``~/.condarc`` file to look like:
 
+.. code-block:: bash
 
-Install phyluce
----------------
+    channels:
+      - defaults
+      - conda-forge
+      - bioconda
 
-Now, you install phyluce_ and all of it's dependencies by running::
+Once you do this, you have access to all of the packages installed at
+bioconda_ and conda-forge_.  The order of this file is important - conda_ will
+first search in it's default repositories for package, then it will check
+conda-forge, finally it will check bioconda.
+
+How to install phyluce
+----------------------
+
+You now have two options for installing phyluce_.  You can install phyluce_ in
+what is known as a `conda environment <https://conda.io/docs/user-guide/tasks
+/manage-environments.html>`_, which lets you keep code for different
+applications separated into different environments.  **We suggest this
+route**.
+
+You can also install all of the phyluce_ code and dependencies in
+your default conda_ environment.
+
+Install phyluce in it's own conda environment
+---------------------------------------------
+
+We can install everything that we need for phyluce_ in it's own environment by running:
+
+.. code-block:: bash
+
+    conda create --name phyluce phyluce
+
+This will create an environment named ``phyluce``, then download and install
+everything you need to run phyluce_ into this `phyluce` conda environment. To
+use this phyluce environment, you **must** run:
+
+.. code-block:: bash
+
+    source activate phyluce
+
+To stop using this phyluce environment, you **must** run:
+
+.. code-block:: bash
+
+    source deactivate
+
+Install phyluce in the default conda environment
+------------------------------------------------
+
+We can simply install everything that we need in our default conda_
+environment, as well.  In some ways, this is easier, but it could be viewed as
+a less-ideal option in terms of repeatability and separability of functions.
+To install phyluce_ in the default environment, after making sure that you
+have miniconda_ or anaconda_ in your $PATH, and after adding the bioconda
+repositories, run:
+
+.. code-block:: bash
 
     conda install phyluce
-
-This step will add the phyluce_ library to your $PYTHONPATH and also add a
-number of scripts from the phyluce_ code to your `$HOME/anaconda/bin` directory.
 
 
 What conda installs
@@ -205,44 +232,42 @@ What conda installs
 
 When you install phyluce, it specifies a number of dependencies that it needs
 to run.  conda_ is great because it will pull specific **versions** of the
-required programs from the
-`faircloth-lab conda repository <http://conda.binstar.org/faircloth-lab>`_ and
-install those on your machine, setup the paths, etc.
+required programs from the bioconda_ repository and install those on your machine,
+setup the paths, etc.
 
-Below is a list of what phyluce_ currently (v1.4.x) requires for installation.
+Below is a list of what phyluce_ currently (1.6.2) installs:
 
-3rd-party dependencies
-----------------------
+3rd-party dependencies and packages installed
+---------------------------------------------
 
-- abyss 1.3.7 (max kmer=96; built with boost and google-sparsehash)
-- bowtie 1.1.1
-- bedtools 2.18.1
-- bwa 0.7.7
-- bx-python 0.7.1
-- dendropy 3.12.0
-- gatk-lite 2.3.0
-- gblocks 0.91b
-- illumiprocessor 2.0.7
-- lastz 1.02.00
-- mafft 7.130
-- muscle 3.8.31
-- picard 1.106
-- pysam 0.7.7
-- pyvcf 0.6.4
-- raxml 8.0.19
-- samtools 0.1.19
-- trinity 2.0.6
-- velvet 1.2.10 (max kmer=96)
+.. code-block:: text
 
-Python packages
----------------
-
-- Python 2.7 (sets conda default Python to 2.7)
-- numpy 1.7
-- BioPython 1.63
-- dendropy 3.12.0
-- illumiprocessor 2.0.7
-- phyluce 1.4.x
+    - python
+    - abyss 1.5.2
+    - bcftools
+    - bedtools
+    - biopython
+    - bwa
+    - bx-python
+    - dendropy 3.12.3
+    - gatk
+    - gblocks
+    - lastz
+    - mafft
+    - muscle
+    - pandas
+    - picard
+    - pysam
+    - pyvcf
+    - raxml
+    - samtools
+    - seqtk
+    - trimal
+    - trinity # [not osx]
+    - velvet
+    - illumiprocessor
+    - spades
+    - itero
 
 
 Added benefits
@@ -252,7 +277,7 @@ An added benefit of using conda_ and installing packages in this way is that you
 can also run all of the 3rd-party binaries without worrying about setting the
 correct $PATH, etc.
 
-For example, phyluce_ required MUSCLE for installation, and MUSCLE was installed
+For example, phyluce_ requires MUSCLE for installation, and MUSCLE was installed
 by conda_ as a dependency of phyluce_. Because ``$HOME/anaconda/bin`` (which we
 will now call `$CONDA`) is part of our path now, and because phyluce_ installed
 MUSCLE, we can also just run MUSCLE on the command-line, with::
@@ -300,28 +325,6 @@ within our conda_ distribution so that we always know where things are
 installed, hopefully avoiding lots of the problems with `dependency hell
 <http://en.wikipedia.org/wiki/Dependency_hell>`_ and making our lives easier.
 
-The structure of the conda repository that we use looks like the following::
-
-    $CONDA/ (<= can be main CONDA or CONDA env)
-        bin/
-            Binaries we build
-        config/
-            Holds a default configuration file for phyluce
-        docs/
-            Pertinent documentation, if any.
-        include/
-            Header files (Qt, Boost)
-        jar/
-            Java Archive (JAR) Files
-        lib/
-            Libraries
-        libexec/
-            Helpers called by other programs (e.g. mafft)
-        share/
-            Additional support files
-        test/
-            Test data required by some programs.
-
 
 $PATH configuration
 ===================
@@ -330,7 +333,8 @@ As of v1.5, phyluce_ uses a configuration file to keep track of paths to relvant
 binaries, as well as some configuration information.  This file is located at
 `$CONDA/config/phyluce.conf`.  Although you can edit this file directly, you can
 also create a user-specific configuration file at `~/.phyluce.conf` (**note the
-preceding dot**), which will override the default values for different paths.
+preceding dot**), which will override the default values with different paths.
+
 So, if you need to use a slightly different binary or you want to experiment
 with new binaries (e.g. for assembly), then you can change the paths in this
 file rather than deal with hard-coded paths.
@@ -342,51 +346,30 @@ file rather than deal with hard-coded paths.
     substantially, so please use with caution (and edit the copy at
     `~/.phyluce.conf`) rather than the default copy.
 
-The format of the config file as of v1.5 looks like the following:
+The format of the config file as of v1.6 looks like the following:
 
 .. code-block:: bash
 
-    [abyss]
+    [binaries]
     abyss:$CONDA/bin/ABYSS
     abyss-pe:$CONDA/bin/abyss-pe
-
-    [bowtie]
-    bowtie:$CONDA/bin/bowtie
-
-    [bwa]
+    bcftools:$CONDA/bin/bcftools
+    bedtools:$CONDA/bin/bedtools
     bwa:$CONDA/bin/bwa
-
-    [gblocks]
+    gatk:$CONDA/bin/gatk
     gblocks:$CONDA/bin/gblocks
-
-    [java]
-    executable:java
-    mem:-Xmx8g
-    jar:$CONDA/jar
-    gatk:GenomeAnalysisTKLite.jar
-
-    [lastz]
     lastz:$CONDA/bin/lastz
-
-    [mafft]
     mafft:$CONDA/bin/mafft
-
-    [muscle]
     muscle:$CONDA/bin/muscle
-
-    [raxml]
+    picard:$CONDA/bin/picard
     raxmlHPC-SSE3:$CONDA/bin/raxmlHPC-SSE3
     raxmlHPC-PTHREADS-SSE3:$CONDA/bin/raxmlHPC-PTHREADS-SSE3
-
-    [samtools]
     samtools:$CONDA/bin/samtools
-
-    [trinity]
+    seqtk:$CONDA/bin/seqtk
+    spades:$CONDA/bin/spades.py
+    trimal:$CONDA/bin/trimal
     trinity:$CONDA/bin/Trinity
-    max_memory:8G
-    kmer_coverage:2
-
-    [velvet]
+    vcfutils:$CONDA/bin/vcfutils.pl
     velvetg:$CONDA/bin/velvetg
     velveth:$CONDA/bin/velveth
 
@@ -397,14 +380,25 @@ The format of the config file as of v1.5 looks like the following:
     [headers]
     trinity:comp\d+_c\d+_seq\d+|c\d+_g\d+_i\d+|TR\d+\|c\d+_g\d+_i\d+
     velvet:node_\d+
+    abyss:node_\d+
+    idba:contig-\d+_\d+
+    spades:NODE_\d+_length_\d+_cov_\d+.\d+
+
+    [trinity]
+    max_memory:8G
+    kmer_coverage:2
+
+    [spades]
+    max_memory:2
+    cov_cutoff:5
 
 
 Other useful tools
 ==================
 
 You will need to be familiar with the command-line/terminal, and it helps to
-have a decent text editor for your platform:
+have a decent text editor for your platform.  Here are some suggestions:
 
-- gedit [linux]
-- Sublime Text [linux, osx]
-- TextMate [osx]
+- `vscode <https://code.visualstudio.com/>`_
+- `Sublime Text <https://www.sublimetext.com/>`_
+- `atom <https://atom.io/>`_

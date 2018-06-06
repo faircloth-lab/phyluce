@@ -94,7 +94,7 @@ pass the code the directory containing reads you want to summarize and run:
     phyluce_assembly_get_fastq_lengths --input /directory/containing/reads/ --csv; done
 
 You can run this across many directories of reads as described in
-:ref:`Tutorial I`.
+:ref:`TutorialOne`.
 
 
 Adapter- and quality-trimming

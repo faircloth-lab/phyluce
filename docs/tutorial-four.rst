@@ -1,6 +1,6 @@
 .. include:: global.rst
 
-.. _Tutorial IV:
+.. _TutorialFour:
 
 ********************************************************************
 Tutorial IV: Identifying UCE Loci and Designing Baits To Target Them
@@ -1811,7 +1811,7 @@ we know about the specific taxa?
 
 How we do that is outlined below.  Many of the steps we've run before, so I'm
 not going to explain these quite as much as I have previously.  Several other of
-the steps that we're going to run are also outlined in :ref:`Tutorial I`.
+the steps that we're going to run are also outlined in :ref:`TutorialOne`.
 
 First, we need to make a directory to hold our in-silico test results:
 
@@ -1924,7 +1924,7 @@ Get match counts and extract FASTA information
 
 Now, we need to get the count of matches that we recovered to UCE loci in the
 probe set, and extract all of the "good" loci to a monolithic FASTA (see
-:ref:`Tutorial I` if this is not making sense):
+:ref:`TutorialOne` if this is not making sense):
 
 .. code-block:: python
 
@@ -2111,7 +2111,7 @@ Compute stats across the alignments:
 Generate an incomplete matrix
 -----------------------------
 
-Now, given the alignments that we have, let's generate a 70% complete matrix
+Now, given the alignments that we have, let's generate a 70% complete matrix:
 
 .. code-block:: python
 
@@ -2124,6 +2124,7 @@ Now, given the alignments that we have, let's generate a 70% complete matrix
         --log log
 
     2016-06-03 16:58:19,687 - phyluce_align_get_only_loci_with_min_taxa - INFO - Copied 865 alignments of 994 total containing ≥ 0.75 proportion of taxa (n = 5)
+
 
 .. warning:: Note that I am using 12 physical CPU cores (`--cores`) to do this
     work. You need to use the number of physical cores available on *your*

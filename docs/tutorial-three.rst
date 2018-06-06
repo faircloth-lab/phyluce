@@ -1,6 +1,6 @@
 .. include:: global.rst
 
-.. _Tutorial III:
+.. _TutorialThree:
 
 **********************************************
 Tutorial III: Harvesting UCE Loci From Genomes
@@ -399,11 +399,11 @@ Using the extracted sequences in downstream analyses
 
 The easiest way for you to use the extracted sequences is to symlink them into
 an appropriate `contigs` folder that resulted from a PHYLUCE_ assembly process
-and then proceed with the :ref:`tutorial-uce-extraction` procedure.
+and then proceed with the :ref:`UceExtraction` procedure.
 
 For more information on the structure of this folder, look at the
-:ref:`tutorial-assembly` section of :ref:`Tutorial I` for more information.
+:ref:`tutorial-assembly` section of :ref:`TutorialOne` for more information.
 
  .. attention:: Although we have already extracted the UCE loci from each genome
     sequence and even though it seems redundant to go back through the
-    :ref:`tutorial-uce-extraction` process, this is the best path forward.
+    :ref:`UceExtraction` process, this is the best path forward.
