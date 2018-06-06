@@ -248,6 +248,26 @@ def create_untrimmed_per_base_coverage_file(log, output, assembly, organism, loc
 
 
 def main():
+    import textwrap
+    import platform
+    # Note 1
+    note_1 = ("NOTE: As we move phyluce to bioconda, some programs are going to break. "
+        "The coverage computation scripts are one of those programs because of their "
+        "dependence on Picard and GATK.  We are working on a fix to the problem, which "
+        "likely involves moving away from Picard and GATK.  In the meantime, you may "
+        "need to download your own version of GATK-lite and put the path to that "
+        "in your ~/.phyluce.conf")
+    print textwrap.fill(note_1)
+    print "\n"
+    # Note 2
+    if platform.system() == "Darwin":
+        note_2 = ("NOTE: assemblo_trinity and Trinity are no longer supported "
+        "on Mac OS. Trinity has been consistently hard to build on Mac OS "
+        "and we will no longer be supporting it (unless it becomes" +
+        " easier to build).  We suggest you use Trinity on Linux " +
+        "_OR_ ABYSS, itero, or spades on Mac OS.")
+        print textwrap.fill(note_2)
+    print "\n"
     # get args and options
     args = get_args()
     # if we're resuming, we need to set output = resume
