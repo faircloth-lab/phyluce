@@ -17,7 +17,7 @@ import glob
 import shutil
 import argparse
 import subprocess
-import ConfigParser
+import configparser
 
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
