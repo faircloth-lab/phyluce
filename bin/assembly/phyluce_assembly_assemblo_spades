@@ -201,16 +201,10 @@ def main():
             output = run_spades_pe(
                 spades, reads, sample_dir, args.cores, args.do_not_clean, log
             )
-        # here, we don't have PE data, so copy the file over
-        # and run the assembly for SE data
+            # generate symlinks to assembled contigs
+            generate_symlinks(contig_dir, sample_dir, sample, reads, log)
         elif reads.r1:
-            pass
-            # copy_read_data(reads, sample_dir, log)
-            # output = run_trinity_se(trinity, reads, args.cores, args.min_kmer_coverage, log)
-            # if args.clean:
-            #    cleanup_trinity_assembly_folder(output, log)
-        # generate symlinks to assembled contigs
-        generate_symlinks(contig_dir, sample_dir, sample, reads, log)
+            log.critical("assemblo_spades will not run single-end data")
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
