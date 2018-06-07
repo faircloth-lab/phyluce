@@ -10,16 +10,13 @@ LICENSE.txt for more information.
 
 Created on 02 June 2013 10:06 PDT (-0700)
 """
-
-
 import os
 import glob
 import shutil
 import argparse
 import subprocess
-import configparser
 
-from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
+from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
 from phyluce.pth import get_user_path, get_user_param
@@ -70,15 +67,15 @@ def get_args():
         help="""Do not cleanup intermediate SPAdes files""",
     )
     # one of these is required.  The other will be set to None.
-    input = parser.add_mutually_exclusive_group(required=True)
-    input.add_argument(
+    input_data = parser.add_mutually_exclusive_group(required=True)
+    input_data.add_argument(
         "--config",
         type=is_file,
         action=FullPaths,
         default=None,
         help="""A configuration file containing reads to assemble""",
     )
-    input.add_argument(
+    input_data.add_argument(
         "--dir",
         type=is_dir,
         action=FullPaths,
@@ -168,7 +165,7 @@ def main():
     log, my_name = setup_logging(args)
     # get the input data
     log.info("Getting input filenames and creating output directories")
-    input = get_input_data(args.config, args.dir)
+    input_data = get_input_data(args.config, args.dir)
     # create the output directory if it does not exist
     if not os.path.isdir(args.output):
         os.makedirs(args.output)
@@ -187,7 +184,7 @@ def main():
         raise EnvironmentError(
             "Cannot find SPAdes.  Ensure the $PATH is correctly entered in your phyluce.conf file."
         )
-    for group in input:
+    for group in input_data:
         sample, dir = group
         # pretty print taxon status
         text = " Processing {} ".format(sample)
