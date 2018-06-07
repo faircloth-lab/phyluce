@@ -23,7 +23,7 @@ scrpt.extend(utilities)
 
 setup(
     name='phyluce',
-    version='1.6.2',
+    version='1.6.3',
     description='software for UCE (and general) phylogenomics',
     url='https://github.com/faircloth-lab/phyluce',
     author='Brant C. Faircloth',

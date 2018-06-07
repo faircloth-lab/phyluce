@@ -48,9 +48,9 @@ copyright = u'2012-2015, Brant C. Faircloth'
 # built documents.
 #
 # The short X.Y version.
-version = '1.6.2'
+version = '1.6'
 # The full version, including alpha/beta/rc tags.
-release = '1.6.2'
+release = '1.6.3'
 
 # Add fix for unicode characters failing in RTD PDF build.  From
 # https://github.com/rtfd/readthedocs.org/issues/416
