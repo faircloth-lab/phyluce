@@ -32,11 +32,11 @@ def get_args():
     parser = argparse.ArgumentParser(
             description="""Program description""")
     parser.add_argument(
-            "--input",
+            "--alignments",
             required=True,
             type=is_dir,
             action=FullPaths,
-            help="""The input directory containing alignments in phylip format"""
+            help="""The directory containing alignments to be summarized."""
         )
     parser.add_argument(
             "--best-trees",
@@ -168,7 +168,10 @@ def main():
             seeds[os.path.split(treedir)[1]] = seed
         time = re.compile("Overall\sTime\sfor\s\d+\sBootstraps\s(\d+\.\d+)")
         patterns = re.compile("Alignment\sPatterns:\s(\d+)")
-        alignments = glob.glob(os.path.join(args.input, '*.phylip'))
+        alignments = []
+        for ftype in ('.phylip', '.phy', '.phylip-relaxed'):
+            alignments.extend(glob.glob(os.path.join(args.alignments, "*{}".format(ftype))))
+        print "{0} alignments read".format(len(alignments))
         work = [[args.threads, args.output, args.outgroup, args.bootreps, seeds, time, patterns, alignment] for alignment in alignments]
         pool.map(run_raxml, work)
         #output = open(os.path.join(args.output, "all-bootreps.tre"), 'w')
