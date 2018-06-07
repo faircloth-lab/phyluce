@@ -2,6 +2,7 @@
 *.pyo
 *.bak
 *.log
+tmp
 myhtmldocs
 test-out
 docs/build
