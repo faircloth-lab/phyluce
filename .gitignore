@@ -1,8 +1,8 @@
 *.pyc
 *.pyo
 *.bak
+*.log
 myhtmldocs
 test-out
 docs/build
 build
-tmp

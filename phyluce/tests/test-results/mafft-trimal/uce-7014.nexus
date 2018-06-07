@@ -1,0 +1,11 @@
+#NEXUS
+begin data;
+	dimensions ntax=4 nchar=490;
+	format datatype=dna missing=? gap=-;
+matrix
+'uce-7014_alligator_mississippiensis' aaaaaacaacaaacaaacaaagaacagcaaaaccatgcttagggagtgatccatcagtaatctcttgggtgtaaaaagtgtattttgtttagcttgactgttcaaaaccagataattgctgtagtattttacagaataatata-tgttgttttcttgcacaggtttccacttgagtggcacagtgacagaacctgcaatgcaatcggagccagaaactgtttgcaatgtagctatcagctttgatcgttgcaagattacctcagtgacctgtagctgtggaaacaaggacatattttactgtgcccatgttgtggcactttctttatatcggatccgcaagccagatcaggtcaaactgcatcttcccatttcagagacactctttcaaatgaacagagaccaacttcaaaagtttgtacagtatttgatcacagtgcaccatacagaagttttgccaactgctcagaaattagcagatgaaattctttc
+'uce-7014_gallus_gallus'              cctgagctgctgggaattttgcattggtgcagctctgcttgtgcagctgtcagttactgactattgagcttttatgaacgttctgcctttggttttgttatttaaggtgcatcatttattatagtatttttcttagtaacatatttttcttttcctgcacaggtttccacttgagtggcacagtgacagagcctgcaatgcaatcggagccagaaactgtttgcaatgtagctatcagctttgatcgttgcaagattacctcagtgacctgcagctgtggaaacaaggacatattttattgtgcccacgttgtggcactttctttataccggatccgcaagccagatcaggtcaaactgcatctccccatttcagagacgctctttcaaatgaacagagaccaactacaaaaatttgtacagtatttgatcacagtgcaccatacagaagttttgccaactgctcaaaagttagcagatgaaattctttc
+'uce-7014_peromyscus_maniculatus'     tcagtgctgttgattatcatttgtcttttcatccctggtagagaagctggtgcttattactggcttgactgt-------------ttcccggctctgctgtccagagccacctgtttgctttaggacctgccttagcacctgatgcctttcttgtcacctaggtttccacttgagtggtacagtgacagagcctgcagtacaatcggagccagaaaccatttgcaatgtggccatcagctttgatcgttgcaagattacctcagtgacctgcagctgtggaaacaaggacatattttactgtgcccatgttgtggcactgtctttataccgcatccgcaagcccgatcaggtcaaactacatcttcccatttcagagactctcttccagatgaacagagaccagctgcagaagtttgtccagtatttgattacagtgcaccacacagaagtcttgccaactgctcaaaagctagcagatgaaatcctttc
+'uce-7014_rana_sphenocephafa'         g-------------------------------------------------------------acttaactgaaataaatgttgta----------------------------------tccagaattttaattagttttttattccctcccttccttctaggttttcacttaagcggcacagtgacagaacctgcgacacagtctgatccggaatccgtttgcaatgtagccatcagctttgaccgttgcaagattacctcagttacctgcagctgtggaaacaaggacatcttctactgcgcccatgtggtggcactttctttatatcgcatccgcaagcccgatcaggtcaagctgcatcttcctatttcagagaccctgtttca------------------------------------------------------------------------------------------------------
+;
+end;
