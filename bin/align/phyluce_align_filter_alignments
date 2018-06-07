@@ -133,7 +133,7 @@ def main():
     args = get_args()
     # setup logging
     log, my_name = setup_logging(args)
-    files = get_files(args.input, args.input_format)
+    files = get_files(args.alignments, args.input_format)
     for f in files:
         try:
             aln = AlignIO.read(f, args.input_format)

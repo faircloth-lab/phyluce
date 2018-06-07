@@ -34,7 +34,7 @@ def get_args():
             help="""The configuration file giving locus names"""
         )
     parser.add_argument(
-            "--input",
+            "--alignments",
             required=True,
             action=FullPaths,
             type=is_dir,
@@ -80,7 +80,7 @@ def main():
         temp_items.extend([i[0] for i in conf.items(section)])
     items = set(temp_items)
     #pdb.set_trace()
-    for src in glob.glob(os.path.join(args.input, '*.{}*'.format(args.extension))):
+    for src in glob.glob(os.path.join(args.alignments, '*.{}*'.format(args.extension))):
         basename = os.path.basename(src)
         if not args.opposite:
             if basename in items:
