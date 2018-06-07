@@ -24,46 +24,44 @@ from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
 from phyluce.pth import get_user_path, get_user_param
 
-#import pdb
+# import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
-    parser = argparse.ArgumentParser(
-        description="""Assemble raw reads using SPAdes"""
-    )
+    parser = argparse.ArgumentParser(description="""Assemble raw reads using SPAdes""")
     parser.add_argument(
         "--output",
         required=True,
         action=FullPaths,
         default=None,
-        help="""The directory in which to store the assembly data"""
+        help="""The directory in which to store the assembly data""",
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""The number of compute cores/threads to run with SPAdes"""
+        help="""The number of compute cores/threads to run with SPAdes""",
     )
     parser.add_argument(
         "--subfolder",
         type=str,
-        default='',
-        help="""A subdirectory, below the level of the group, containing the reads"""
+        default="",
+        help="""A subdirectory, below the level of the group, containing the reads""",
     )
     parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use"""
+        help="""The logging level to use""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--do-not-clean",
@@ -78,7 +76,7 @@ def get_args():
         type=is_file,
         action=FullPaths,
         default=None,
-        help="""A configuration file containing reads to assemble"""
+        help="""A configuration file containing reads to assemble""",
     )
     input.add_argument(
         "--dir",
@@ -117,12 +115,12 @@ def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
         "--pe1-2",
         os.path.join(reads.r2.dir, reads.r2.file),
         "-o",
-        sample_dir
+        sample_dir,
     ]
     if reads.singleton:
         cmd.extend(["--pe1-s", os.path.join(reads.singleton.dir, reads.singleton.file)])
     try:
-        with open(os.path.join(sample_dir, 'spades.phyluce.log'), 'w') as outf:
+        with open(os.path.join(sample_dir, "spades.phyluce.log"), "w") as outf:
             proc = subprocess.Popen(cmd, stdout=outf)
             proc.communicate()
     except:
@@ -130,13 +128,18 @@ def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
     if not do_not_clean:
         try:
             kmer_dirs = glob.glob(os.path.join(sample_dir, "K*"))
-            other_dirs = [os.path.join(sample_dir, i) for i in ["corrected", "misc", "tmp"]]
+            other_dirs = [
+                os.path.join(sample_dir, i) for i in ["corrected", "misc", "tmp"]
+            ]
             all_dirs = kmer_dirs + other_dirs
             # cleanup unnecessary directories
             for f in all_dirs:
                 pass
                 shutil.rmtree(f)
-            other_files = [os.path.join(sample_dir, i) for i in ["assembly_graph.fastg", "before_rr.fasta"]]
+            other_files = [
+                os.path.join(sample_dir, i)
+                for i in ["assembly_graph.fastg", "before_rr.fasta"]
+            ]
             for f in other_files:
                 pass
                 os.remove(f)
@@ -172,7 +175,7 @@ def main():
     else:
         pass
     # make the symlink directory within the output directory
-    contig_dir = os.path.join(args.output, 'contigs')
+    contig_dir = os.path.join(args.output, "contigs")
     if not os.path.isdir(contig_dir):
         os.makedirs(contig_dir)
     else:
@@ -181,7 +184,9 @@ def main():
         spades = get_user_path("binaries", "spades")
 
     except:
-        raise EnvironmentError("Cannot find SPAdes.  Ensure the $PATH is correctly entered in your phyluce.conf file.")
+        raise EnvironmentError(
+            "Cannot find SPAdes.  Ensure the $PATH is correctly entered in your phyluce.conf file."
+        )
     for group in input:
         sample, dir = group
         # pretty print taxon status
@@ -197,25 +202,21 @@ def main():
         # the read data over and run the assembly for PE data
         if reads.r1 and reads.r2:
             output = run_spades_pe(
-                spades,
-                reads,
-                sample_dir,
-                args.cores,
-                args.do_not_clean,
-                log
+                spades, reads, sample_dir, args.cores, args.do_not_clean, log
             )
         # here, we don't have PE data, so copy the file over
         # and run the assembly for SE data
         elif reads.r1:
             pass
-            #copy_read_data(reads, sample_dir, log)
-            #output = run_trinity_se(trinity, reads, args.cores, args.min_kmer_coverage, log)
-            #if args.clean:
+            # copy_read_data(reads, sample_dir, log)
+            # output = run_trinity_se(trinity, reads, args.cores, args.min_kmer_coverage, log)
+            # if args.clean:
             #    cleanup_trinity_assembly_folder(output, log)
         # generate symlinks to assembled contigs
         generate_symlinks(contig_dir, sample_dir, sample, reads, log)
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
