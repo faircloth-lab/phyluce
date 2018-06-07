@@ -25,4 +25,5 @@ RUN conda config --add channels bioconda
 
 # get set of dependencies for phyluce
 RUN conda install nomkl abyss=1.5.2 bcftools bedtools biopython bx-python dendropy gblocks lastz mafft muscle pandas picard pysam pyvcf raxml samtools seqtk trimal trinity velvet spades
+RUN conda install pytest
 RUN conda clean --all --yes
