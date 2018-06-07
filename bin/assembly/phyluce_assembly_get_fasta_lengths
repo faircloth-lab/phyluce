@@ -22,31 +22,30 @@ import argparse
 from itertools import groupby
 from phyluce.helpers import FullPaths, is_file
 
-#import pdb
+# import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Get summary (length) data for a directory of FASTA files""")
+        description="""Get summary (length) data for a directory of FASTA files"""
+    )
     parser.add_argument(
-            "--input",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""The fasta file to summarize"""
-        )
+        "--input",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The fasta file to summarize""",
+    )
     parser.add_argument(
-            "--csv",
-            action="store_true",
-            default=False,
-            help="""Give output in CSV"""
-        )
+        "--csv", action="store_true", default=False, help="""Give output in CSV"""
+    )
     return parser.parse_args()
+
 
 def fasta_iter(fasta):
     """modified from @brent_p on stackoverflow.  yield tuple of header, sequence"""
-    if fasta.endswith('.gz'):
+    if fasta.endswith(".gz"):
         with gzip.open(fasta) as f:
             faiter = (x[1] for x in groupby(f, lambda line: line[0] == ">"))
             for header in faiter:
@@ -76,10 +75,32 @@ def main():
         print("Contigs > 1kb:\t{:,}".format(sum(lengths >= 1000)))
     else:
         try:
-            print("{},{},{},{},{},{},{},{},{}".format(os.path.basename(args.input), len(lengths), sum(lengths), numpy.average(lengths), std_error, min(lengths), max(lengths), numpy.median(lengths), sum(lengths >= 1000)))
+            print(
+                "{},{},{},{},{},{},{},{},{}".format(
+                    os.path.basename(args.input),
+                    len(lengths),
+                    sum(lengths),
+                    numpy.average(lengths),
+                    std_error,
+                    min(lengths),
+                    max(lengths),
+                    numpy.median(lengths),
+                    sum(lengths >= 1000),
+                )
+            )
         except:
-            print("{},{},{},{},{},{},{}".format(os.path.basename(args.input), len(lengths), "Div/0", "Div/0", "Div/0","Div/0", sum(lengths >= 1000)))
+            print(
+                "{},{},{},{},{},{},{}".format(
+                    os.path.basename(args.input),
+                    len(lengths),
+                    "Div/0",
+                    "Div/0",
+                    "Div/0",
+                    "Div/0",
+                    sum(lengths >= 1000),
+                )
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

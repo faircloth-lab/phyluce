@@ -27,53 +27,47 @@ from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.pth import get_user_path
 
-#import pdb
-
+# import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
-    parser = argparse.ArgumentParser(
-        description="""Assemble raw reads using ABySS"""
-    )
+    parser = argparse.ArgumentParser(description="""Assemble raw reads using ABySS""")
     parser.add_argument(
         "--output",
         required=True,
         action=FullPaths,
         default=None,
-        help="""The directory in which to store the assembly data"""
+        help="""The directory in which to store the assembly data""",
     )
     parser.add_argument(
-        "--kmer",
-        type=int,
-        default=31,
-        help="""The kmer value to use"""
+        "--kmer", type=int, default=31, help="""The kmer value to use"""
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""The number of compute cores/threads to run with Trinity"""
+        help="""The number of compute cores/threads to run with Trinity""",
     )
     parser.add_argument(
         "--subfolder",
         type=str,
-        default='',
-        help="""A subdirectory, below the level of the group, containing the reads"""
+        default="",
+        help="""A subdirectory, below the level of the group, containing the reads""",
     )
     parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use"""
+        help="""The logging level to use""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--clean",
@@ -82,10 +76,7 @@ def get_args():
         help="""Cleanup all intermediate Trinity files""",
     )
     parser.add_argument(
-        "--abyss-se",
-        action="store_true",
-        default=False,
-        help="""Only use abyss-se""",
+        "--abyss-se", action="store_true", default=False, help="""Only use abyss-se"""
     )
     # one of these is required.  The other will be set to None.
     input = parser.add_mutually_exclusive_group(required=True)
@@ -94,7 +85,7 @@ def get_args():
         type=is_file,
         action=FullPaths,
         default=None,
-        help="""A configuration file containing reads to assemble"""
+        help="""A configuration file containing reads to assemble""",
     )
     input.add_argument(
         "--dir",
@@ -115,23 +106,23 @@ def run_abyss_pe(kmer, reads, cores, output, log):
     os.chdir(output)
     cmd = [
         get_user_path("binaries", "abyss-pe"),
-        'k={}'.format(kmer),
-        'j={}'.format(cores),
-        'name={}'.format(name),
-        'in={} {}'.format(
+        "k={}".format(kmer),
+        "j={}".format(cores),
+        "name={}".format(name),
+        "in={} {}".format(
             os.path.join(reads.r1.dir, reads.r1.file),
             os.path.join(reads.r2.dir, reads.r2.file),
-        )
+        ),
     ]
     if reads.singleton:
-        cmd.append('se={}'.format(
-            os.path.join(reads.singleton.dir, reads.singleton.file),
-        ))
+        cmd.append(
+            "se={}".format(os.path.join(reads.singleton.dir, reads.singleton.file))
+        )
     try:
-        stdpth = 'abyss-k{}.out.log'.format(kmer)
-        errpth = 'abyss-k{}.err.log'.format(kmer)
-        with open(stdpth, 'w') as out:
-            with open(errpth, 'w') as err:
+        stdpth = "abyss-k{}.out.log".format(kmer)
+        errpth = "abyss-k{}.err.log".format(kmer)
+        with open(stdpth, "w") as out:
+            with open(errpth, "w") as err:
                 proc = subprocess.Popen(cmd, stdout=out, stderr=err)
                 proc.communicate()
     except:
@@ -141,6 +132,7 @@ def run_abyss_pe(kmer, reads, cores, output, log):
     # move back to dir where we started
     os.chdir(start_dir)
     return output
+
 
 def run_abyss_se(kmer, reads, output, log, abyss_se):
     log.info("Running abyss-se against data")
@@ -152,29 +144,29 @@ def run_abyss_se(kmer, reads, output, log, abyss_se):
     if not abyss_se:
         cmd = [
             get_user_path("binaries", "abyss"),
-            '-k',
+            "-k",
             str(kmer),
-            '-o',
+            "-o",
             "out_k{}-contigs.fa".format(kmer, name),
-            os.path.join(reads.r1.dir, reads.r1.file)
+            os.path.join(reads.r1.dir, reads.r1.file),
         ]
     else:
         cmd = [
             get_user_path("binaries", "abyss"),
-            '-k',
+            "-k",
             str(kmer),
-            '-o',
+            "-o",
             "out_k{}-contigs.fa".format(kmer, name),
             os.path.join(reads.r1.dir, reads.r1.file),
-            os.path.join(reads.r2.dir, reads.r2.file)
+            os.path.join(reads.r2.dir, reads.r2.file),
         ]
         if reads.singleton:
             cmd.append(os.path.join(reads.singleton.dir, reads.singleton.file))
     try:
-        stdpth = 'abyss-k{}.out.log'.format(kmer)
-        errpth = 'abyss-k{}.err.log'.format(kmer)
-        with open(stdpth, 'w') as out:
-            with open(errpth, 'w') as err:
+        stdpth = "abyss-k{}.out.log".format(kmer)
+        errpth = "abyss-k{}.err.log".format(kmer)
+        with open(stdpth, "w") as out:
+            with open(errpth, "w") as err:
                 proc = subprocess.Popen(cmd, stdout=out, stderr=err)
                 proc.communicate()
     except:
@@ -188,18 +180,18 @@ def run_abyss_se(kmer, reads, output, log, abyss_se):
 
 def cleanup_abyss_assembly_folder(output, log, single_end=False):
     # we want to keep coverage hist
-    keep = ['coverage.hist']
-    files = glob.glob(os.path.join(output, '*'))
+    keep = ["coverage.hist"]
+    files = glob.glob(os.path.join(output, "*"))
     # we also want to keep out stats and log files
     for f in files:
-        for end in ('.log', '-stats'):
+        for end in (".log", "-stats"):
             name = os.path.basename(f)
             if name.endswith(end):
                 keep.append(name)
     # now, change the links to the actual files they represent
     links = [f for f in files if os.path.islink(f)]
     for link in links:
-        if os.path.splitext(link)[1] == '.fa':
+        if os.path.splitext(link)[1] == ".fa":
             real = os.path.realpath(link)
             os.remove(link)
             shutil.move(real, link)
@@ -208,10 +200,10 @@ def cleanup_abyss_assembly_folder(output, log, single_end=False):
     # to keep
     if single_end:
         for file in files:
-            if os.path.splitext(file)[1] == '.fa':
+            if os.path.splitext(file)[1] == ".fa":
                 keep.append(os.path.basename(file))
     # remove the stuff we don't want to keep
-    for f in glob.glob(os.path.join(output, '*')):
+    for f in glob.glob(os.path.join(output, "*")):
         if os.path.basename(f) not in keep:
             os.remove(f)
 
@@ -226,20 +218,40 @@ def generate_within_dir_symlink(contigs_file):
 
 
 def convert_abyss_contigs_to_velvet(contigs_file):
-    iupac = set([
-        'B', 'D', 'H', 'K', 'M', 'S', 'R', 'W', 'V', 'Y', 'X',
-        'b', 'd', 'h', 'k', 'm', 's', 'r', 'w', 'v', 'y', 'x'
-        ])
+    iupac = set(
+        [
+            "B",
+            "D",
+            "H",
+            "K",
+            "M",
+            "S",
+            "R",
+            "W",
+            "V",
+            "Y",
+            "X",
+            "b",
+            "d",
+            "h",
+            "k",
+            "m",
+            "s",
+            "r",
+            "w",
+            "v",
+            "y",
+            "x",
+        ]
+    )
     outpth = os.path.dirname(contigs_file)
     contig_file_name = os.path.splitext(os.path.basename(contigs_file))[0]
-    velvet_contig_file_name = "{}-velvet.fa".format(
-        contig_file_name
-    )
+    velvet_contig_file_name = "{}-velvet.fa".format(contig_file_name)
     velvet_contig_pth = os.path.join(outpth, velvet_contig_file_name)
-    with open(velvet_contig_pth, 'w') as outfile:
-        with open(contigs_file, 'rU') as infile:
-            for seq in SeqIO.parse(infile, 'fasta'):
-                num, ln, cov = seq.description.split(' ')[:3]
+    with open(velvet_contig_pth, "w") as outfile:
+        with open(contigs_file, "rU") as infile:
+            for seq in SeqIO.parse(infile, "fasta"):
+                num, ln, cov = seq.description.split(" ")[:3]
                 seq.id = "NODE_{}_length_{}_cov_{}".format(num, ln, cov)
                 seq.name = ""
                 seq.description = ""
@@ -249,7 +261,7 @@ def convert_abyss_contigs_to_velvet(contigs_file):
                         seqstring = seqstring.replace(degen, "N")
                         seq.seq = Seq(seqstring)
                 if len(seq) > 100:
-                    outfile.write(seq.format('fasta'))
+                    outfile.write(seq.format("fasta"))
     return velvet_contig_pth
 
 
@@ -278,7 +290,7 @@ def main():
     else:
         pass
     # make the symlink directory within the output directory
-    contig_dir = os.path.join(args.output, 'contigs')
+    contig_dir = os.path.join(args.output, "contigs")
     if not os.path.isdir(contig_dir):
         os.makedirs(contig_dir)
     else:
@@ -298,8 +310,7 @@ def main():
         # copy the read data over, combine singletons with read 1
         # and run the assembly for PE data.
         if not args.abyss_se and reads.r1 and reads.r2:
-            output = run_abyss_pe(args.kmer, reads, args.cores,
-                                  sample_dir, log)
+            output = run_abyss_pe(args.kmer, reads, args.cores, sample_dir, log)
             if args.clean:
                 cleanup_abyss_assembly_folder(output, log)
         elif args.abyss_se:
@@ -321,5 +332,6 @@ def main():
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -16,6 +16,7 @@ import configparser
 
 class Read(object):
     """Fastq reads"""
+
     def __init__(self, dir, file):
         self.dir = dir
         self.file = file
@@ -28,40 +29,44 @@ class Read(object):
         return "{} fastq read".format(self.file)
 
     def __repr__(self):
-        return "<{}.{} instance at {}>".format(self.file, self.__class__.__name__, hex(id(self)))
+        return "<{}.{} instance at {}>".format(
+            self.file, self.__class__.__name__, hex(id(self))
+        )
 
 
 class Fastqs(object):
     """Container for fastq data"""
+
     def __init__(self):
         self.r1 = None
         self.r2 = None
         self.singleton = None
         self.type = None
         self.gzip = False
-        self.type = 'fastq'
+        self.type = "fastq"
         self.reads = ()
 
     def __str__(self):
         return "Fastq container of R1, R2, Singletons"
 
     def set_read(self, read, dir, file):
-        if read == 'r1':
+        if read == "r1":
             self.r1 = Read(dir, file)
             self.reads += ((self.r1),)
-        elif read == 'r2':
+        elif read == "r2":
             self.r2 = Read(dir, file)
             self.reads += ((self.r2),)
-        elif read == 'singleton':
+        elif read == "singleton":
             self.singleton = Read(dir, file)
             self.reads += ((self.singleton),)
 
 
 class Fastas(Fastqs):
     """Container for fasta data"""
+
     def __init__(self):
         Fastqs.__init__(self)
-        self.type = 'fasta'
+        self.type = "fasta"
 
 
 def check_for_fastq(dir, subfolder):
@@ -105,22 +110,24 @@ def get_input_files(dir, subfolder, log):
         # get file name
         fname = os.path.basename(f)
         # find which reach this is
-        match = re.search("(?:.*)[_-](?:READ|Read|R)(\d)*[_-]*(singleton|unpaired)*(?:.*)", fname)
+        match = re.search(
+            "(?:.*)[_-](?:READ|Read|R)(\d)*[_-]*(singleton|unpaired)*(?:.*)", fname
+        )
         try:
-            if match.groups()[0] == '1':
+            if match.groups()[0] == "1":
                 assert fq.r1 is None
-                fq.set_read('r1', dir, fname)
-            elif match.groups()[0] == '2':
+                fq.set_read("r1", dir, fname)
+            elif match.groups()[0] == "2":
                 assert fq.r2 is None
-                fq.set_read('r2', dir, fname)
-            elif match.groups()[1] == 'singleton'or match.groups()[1] == 'unpaired':
+                fq.set_read("r2", dir, fname)
+            elif match.groups()[1] == "singleton" or match.groups()[1] == "unpaired":
                 assert fq.singleton is None
-                fq.set_read('singleton', dir, fname)
+                fq.set_read("singleton", dir, fname)
         except:
             raise IOError("The appear to be multiple files for R1/R2/Singleton reads")
     if len(ext) != 1:
         raise IOError("Files are of different types (e.g. gzip and fastq)")
-    if '.gzip' in ext or '.gz' in ext:
+    if ".gzip" in ext or ".gz" in ext:
         fq.gzip = True
     return fq
 
@@ -130,7 +137,7 @@ def get_input_data(config, dir):
         conf = configparser.ConfigParser()
         conf.optionxform = str
         conf.read(config)
-        groups = conf.items('samples')
+        groups = conf.items("samples")
         # expand params when given userdirs or relative paths
         groups = [(g[0], os.path.abspath(os.path.expanduser(g[1]))) for g in groups]
         for sample in groups:
@@ -140,6 +147,6 @@ def get_input_data(config, dir):
                 raise IOError("{} is not a directory".format(sample[1]))
     else:
         groups = []
-        for name in glob.glob(os.path.join(dir, '*')):
+        for name in glob.glob(os.path.join(dir, "*")):
             groups.append((os.path.basename(name), name))
     return groups

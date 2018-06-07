@@ -15,16 +15,22 @@ import os
 import sys
 import configparser
 
-#import pdb
+# import pdb
+
 
 def get_user_path(program, binary, package_only=False):
     config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
     if package_only:
-        config.read(os.path.join(sys.prefix, 'config/phyluce.conf'))
+        config.read(os.path.join(sys.prefix, "config/phyluce.conf"))
     else:
-        config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+        config.read(
+            [
+                os.path.join(sys.prefix, "config/phyluce.conf"),
+                os.path.expanduser("~/.phyluce.conf"),
+            ]
+        )
     # ensure program is in list
     pth = config.get(program, binary)
     # expand path as necessary - replace CONDA variable placeholder
@@ -40,7 +46,12 @@ def get_user_param(section, param):
     config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
-    config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+    config.read(
+        [
+            os.path.join(sys.prefix, "config/phyluce.conf"),
+            os.path.expanduser("~/.phyluce.conf"),
+        ]
+    )
     return config.get(section, param)
 
 
@@ -48,5 +59,10 @@ def get_all_user_params(section):
     config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
-    config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
+    config.read(
+        [
+            os.path.join(sys.prefix, "config/phyluce.conf"),
+            os.path.expanduser("~/.phyluce.conf"),
+        ]
+    )
     return [item[1] for item in config.items(section)]
