@@ -10,7 +10,9 @@ LICENSE.txt for more information.
 
 Created on 07 November 2013 21:11 PST (-0800)
 """
+from __future__ import print_function
 
+from builtins import str
 import os
 import sys
 import glob
@@ -134,7 +136,7 @@ def run_abyss_pe(kmer, reads, cores, output, log):
                 proc.communicate()
     except:
         log.critical("Could not assemble {}".format(reads.r1.dir))
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
     # move back to dir where we started
     os.chdir(start_dir)
@@ -177,7 +179,7 @@ def run_abyss_se(kmer, reads, output, log, abyss_se):
                 proc.communicate()
     except:
         log.critical("Could not assemble {}".format(reads.r1.dir))
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
     # move back to dir where we started
     os.chdir(start_dir)

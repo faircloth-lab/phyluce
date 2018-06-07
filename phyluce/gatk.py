@@ -166,7 +166,7 @@ def get_trimmed_coverage_from_output(log, sample, assembly_pth, coverage, assemb
                                     metadata["ending-length"],
                                     metadata["ending-mean-cov"]
                                 ))
-                                for pos, line in contig_data.iteritems():
+                                for pos, line in contig_data.items():
                                     if pos-1 >= metadata["trim-start"] and pos-1 < metadata["trim-end"]:
                                         per_base_cov.write(line)
                                 overall_contigs[previous_match] = metadata

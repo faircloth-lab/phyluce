@@ -10,8 +10,11 @@ LICENSE.txt for more information.
 
 Created on 21 July 2012 12:07 PDT (-0700)
 """
+from __future__ import division
+from __future__ import print_function
 
 
+from past.utils import old_div
 import os
 import gzip
 import numpy
@@ -47,35 +50,35 @@ def fasta_iter(fasta):
         with gzip.open(fasta) as f:
             faiter = (x[1] for x in groupby(f, lambda line: line[0] == ">"))
             for header in faiter:
-                yield sum(len(s.strip()) for s in faiter.next())
+                yield sum(len(s.strip()) for s in next(faiter))
     else:
         with open(fasta) as f:
             faiter = (x[1] for x in groupby(f, lambda line: line[0] == ">"))
             for header in faiter:
-                yield sum(len(s.strip()) for s in faiter.next())
+                yield sum(len(s.strip()) for s in next(faiter))
 
 
 def main():
     args = get_args()
     lengths = numpy.array([int(record) for record in fasta_iter(args.input)])
     if len(lengths) > 1:
-        std_error = numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths))
+        std_error = old_div(numpy.std(lengths, ddof=1), numpy.sqrt(len(lengths)))
     else:
         std_error = 0
     if not args.csv:
-        print "Reads:\t\t{:,}".format(len(lengths))
-        print "Bp:\t\t{:,}".format(sum(lengths))
-        print "Avg. len:\t{:,}".format(numpy.average(lengths))
-        print "STDERR len:\t{:,}".format(std_error)
-        print "Min. len:\t{:,}".format(min(lengths))
-        print "Max. len:\t{:,}".format(max(lengths))
-        print "Median len:\t{:,}".format(numpy.median(lengths))
-        print "Contigs > 1kb:\t{:,}".format(sum(lengths >= 1000))
+        print("Reads:\t\t{:,}".format(len(lengths)))
+        print("Bp:\t\t{:,}".format(sum(lengths)))
+        print("Avg. len:\t{:,}".format(numpy.average(lengths)))
+        print("STDERR len:\t{:,}".format(std_error))
+        print("Min. len:\t{:,}".format(min(lengths)))
+        print("Max. len:\t{:,}".format(max(lengths)))
+        print("Median len:\t{:,}".format(numpy.median(lengths)))
+        print("Contigs > 1kb:\t{:,}".format(sum(lengths >= 1000)))
     else:
         try:
-            print "{},{},{},{},{},{},{},{},{}".format(os.path.basename(args.input), len(lengths), sum(lengths), numpy.average(lengths), std_error, min(lengths), max(lengths), numpy.median(lengths), sum(lengths >= 1000))
+            print("{},{},{},{},{},{},{},{},{}".format(os.path.basename(args.input), len(lengths), sum(lengths), numpy.average(lengths), std_error, min(lengths), max(lengths), numpy.median(lengths), sum(lengths >= 1000)))
         except:
-            print "{},{},{},{},{},{},{}".format(os.path.basename(args.input), len(lengths), "Div/0", "Div/0", "Div/0","Div/0", sum(lengths >= 1000))
+            print("{},{},{},{},{},{},{}".format(os.path.basename(args.input), len(lengths), "Div/0", "Div/0", "Div/0","Div/0", sum(lengths >= 1000)))
 
 
 if __name__ == '__main__':

@@ -4,6 +4,8 @@
 import os
 import subprocess
 
+import pdb
+
 __version__ = "1.6.2"
 
 # get a dynamic version number, if possible.  if not running from git
@@ -21,7 +23,7 @@ try:
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout, stderr = proc.communicate()
-    __version__ = "git {}".format(stdout.strip())
+    __version__ = "git {}".format(stdout.strip().decode("utf-8"))
 
 except:
     pass

@@ -13,12 +13,12 @@ Created on 11 April 2015 16:57 CDT (-0500)
 
 import os
 import sys
-import ConfigParser
+import configparser
 
 #import pdb
 
 def get_user_path(program, binary, package_only=False):
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
     if package_only:
@@ -37,7 +37,7 @@ def get_user_path(program, binary, package_only=False):
 
 
 def get_user_param(section, param):
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
     config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])
@@ -45,7 +45,7 @@ def get_user_param(section, param):
 
 
 def get_all_user_params(section):
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
     config.read([os.path.join(sys.prefix, 'config/phyluce.conf'), os.path.expanduser('~/.phyluce.conf')])

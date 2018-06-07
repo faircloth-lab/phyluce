@@ -8,15 +8,13 @@ Created by Brant Faircloth on 30 September 2013 10:09 PDT (-0700)
 Copyright (c) 2013 Brant C. Faircloth. All rights reserved.
 
 """
-
-
 import os
 import re
 import glob
-import ConfigParser
+import configparser
 
 
-class Read():
+class Read(object):
     """Fastq reads"""
     def __init__(self, dir, file):
         self.dir = dir
@@ -33,7 +31,7 @@ class Read():
         return "<{}.{} instance at {}>".format(self.file, self.__class__.__name__, hex(id(self)))
 
 
-class Fastqs():
+class Fastqs(object):
     """Container for fastq data"""
     def __init__(self):
         self.r1 = None
@@ -129,7 +127,7 @@ def get_input_files(dir, subfolder, log):
 
 def get_input_data(config, dir):
     if config is not None:
-        conf = ConfigParser.ConfigParser()
+        conf = configparser.ConfigParser()
         conf.optionxform = str
         conf.read(config)
         groups = conf.items('samples')

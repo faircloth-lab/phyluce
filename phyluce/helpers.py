@@ -14,8 +14,7 @@ import sys
 import glob
 import argparse
 import shutil
-import ConfigParser
-#from operator import itemgetter
+import configparser
 from collections import defaultdict
 
 from phyluce import lastz
@@ -35,11 +34,11 @@ class CreateDir(argparse.Action):
         d = os.path.abspath(os.path.expanduser(values))
         # check to see if directory exists
         if os.path.exists(d):
-            answer = raw_input("[WARNING] Output directory exists, REMOVE [Y/n]? ")
+            answer = input("[WARNING] Output directory exists, REMOVE [Y/n]? ")
             if answer == "Y":
                 shutil.rmtree(d)
             else:
-                print "[QUIT]"
+                print("[QUIT]")
                 sys.exit()
         # create the new directory
         os.makedirs(d)
@@ -83,7 +82,7 @@ def get_dupes(lastz_file, splitchar = "|", pos = 1, longfile = False):
     matches = get_dupe_matches(lastz_file, splitchar, pos, longfile)
     # see if one probe matches any other probes
     # other than the children of the locus
-    for k, v in matches.iteritems():
+    for k, v in matches.items():
         # if the probe doesn't match itself, we have
         # problems
         if len(v) > 1:
@@ -98,7 +97,7 @@ def get_dupes(lastz_file, splitchar = "|", pos = 1, longfile = False):
 def get_names_from_config(config, group):
     try:
         return [i[0] for i in config.items(group)]
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         return None
 
 def run_checks(k, v, probes, verbose = True):
@@ -109,13 +108,13 @@ def run_checks(k, v, probes, verbose = True):
         return True
     except AssertionError:
         if verbose:
-            print "Probe: ", k
+            print("Probe: ", k)
             result_string = ["{0}:{1}-{2}|{3}".format(i[0], i[2], i[3], i[1]) for i in v]
-            print "\t\tExpected hits: {0}\n\t\tObserved Hits: {1}\n\t\t\t{2}".format(
+            print("\t\tExpected hits: {0}\n\t\tObserved Hits: {1}\n\t\t\t{2}".format(
                     probes[k],
                     len(v),
                     '\n\t\t\t'.join(result_string)
-                )
+                ))
         return False
 
 def get_matches(lastz_file, splitchar, components, fish = False):
@@ -124,7 +123,7 @@ def get_matches(lastz_file, splitchar, components, fish = False):
     for lz in lastz.Reader(lastz_file, long_format = True):
         # skip silly hg19 mhc haplotypes
         if "hap" in lz.name1:
-            print "Skipping: ", lz.name1
+            print("Skipping: ", lz.name1)
         else:
             if fish:
                 uce_name = get_name(lz.name2, "_", 1)
@@ -148,9 +147,9 @@ def get_xml_data(xml, prnt = False):
     validity_terms = set(['byHapMap', 'byOtherPop', 'suspect', 'byFrequency',
         'by1000G', 'by2Hit2Allele', 'byCluster'])
     if prnt:
-        print "rsid,type,genotype,het-type,het-value,het-std-error,freq-allele,freq-freq,"+ \
+        print("rsid,type,genotype,het-type,het-value,het-std-error,freq-allele,freq-freq,"+ \
             "freq-sample-size,val-hapmap,val-other-pop,val-freq,val-2hit,val-cluster,"+ \
-            "val-1000G,val-suspect"
+            "val-1000G,val-suspect")
     snps = {}
     for cnt, t in enumerate(xml.getiterator( '{http://www.ncbi.nlm.nih.gov/SNP/docsum}Rs' )):
         rsid = t.get('rsId')
@@ -176,11 +175,11 @@ def get_xml_data(xml, prnt = False):
                 validity['by1000G'],validity['suspect']
                 ]
         if prnt:
-            print "rs{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}".format(rsid, typ, geno,
+            print("rs{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}".format(rsid, typ, geno,
                 het['type'],het['value'],het['stdError'], freq['allele'],freq['freq'],
                 freq['sampleSize'],validity['byHapMap'],validity['byOtherPop'],
                 validity['byFrequency'],validity['by2Hit2Allele'],validity['byCluster'],
-                validity['by1000G'],validity['suspect'])
+                validity['by1000G'],validity['suspect']))
         else:
             snps[rsid] = dbsnp._make(metadata)
     return snps
@@ -231,7 +230,7 @@ def snip_if_many_N_bases(regex, chromo, seq, uce, verbose = True):
         new_end = len(seq)
     seq = seq[new_start:new_end]
     if verbose:
-        print "{0} trimmed for > 20 N bases".format(chromo)
+        print("{0} trimmed for > 20 N bases".format(chromo))
     return seq
 
 
