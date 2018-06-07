@@ -1,0 +1,8 @@
+version: 2.0
+jobs:
+  build:
+    docker:
+      - image: brantfaircloth/phyluce-py3k:0.0.1
+    steps:
+       - checkout
+       - run: echo "hello world"
