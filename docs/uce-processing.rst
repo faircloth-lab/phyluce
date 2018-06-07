@@ -546,7 +546,7 @@ differently - by indicating taxa from external data sources using asterisks::
     genus_species4*
     genus_species5*
 
-Here, ``genus_species4*`` and ``genus_species4*`` come from an external data
+Here, ``genus_species4*`` and ``genus_species5*`` come from an external data
 source.
 
 Then, you need to pass ``phyluce_assembly_get_match_counts`` the location of
