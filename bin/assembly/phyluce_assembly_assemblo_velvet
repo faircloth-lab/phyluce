@@ -130,7 +130,7 @@ def run_velveth(velveth, kmer, reads, output, log):
                 proc.communicate()
     except:
         log.critical("Could not hash {}".format(reads.r1.dir))
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
     # move back to dir where we started
     os.chdir(start_dir)
@@ -164,7 +164,7 @@ def run_velvetg(velvetg, kmer, output, log):
                 proc.communicate()
     except:
         log.critical("Could not assemble {}".format(output))
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
     # move back to dir where we started
     os.chdir(start_dir)
