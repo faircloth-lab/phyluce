@@ -3,6 +3,7 @@
 *.pyo
 *.bak
 *.log
+.pytest_cache
 tmp
 myhtmldocs
 test-out
