@@ -226,6 +226,27 @@ repositories, run:
 
     conda install phyluce
 
+If you need GATK
+================
+
+GATK changed its licensing policies, which means that there are some extra
+steps you need to take to install GATK alongside phyluce.  First, follow `this
+link to download GATK 3.5
+<https://software.broadinstitute.org/gatk/download/auth?package=GATK-
+archive&version=3.5-0-g36282e4>`_.  Once that is downloaded, you need to
+unzip/expand the archive, and ``GenomeAnalysisTK.jar`` will be inside.  To
+install this, run the follwing:
+
+.. code-block:: bash
+
+    # if phyluce is installed in its own environment (if not, skip this)
+    source activate phyluce
+
+    # install GATK
+    gatk-register /path/to/GenomeAnalysisTK-3.5-0-g36282e4/GenomeAnalysisTK.jar
+
+That should take care of everything you need, and you should be able to run GATK on the command-line.
+
 
 What conda installs
 ===================
@@ -250,7 +271,6 @@ Below is a list of what phyluce_ currently (1.6.2) installs:
     - bwa
     - bx-python
     - dendropy 3.12.3
-    - gatk
     - gblocks
     - lastz
     - mafft
@@ -317,13 +337,6 @@ MUSCLE, we can also just run MUSCLE on the command-line, with::
 This is true for other binaries you install from our repository (e.g. velveth,
 velvetg, abyss-pe, mafft) or any other conda_ repository - those binaries are
 all stored in ``$CONDA/bin``.
-
-We have setup conda to install other files in a standard location as well.  So
-JAR files are stored in ``$CONDA/jar``; libraries that you install from our repo
-are stored in ``$CONDA/lib``, etc. The locations and versions are standardized
-within our conda_ distribution so that we always know where things are
-installed, hopefully avoiding lots of the problems with `dependency hell
-<http://en.wikipedia.org/wiki/Dependency_hell>`_ and making our lives easier.
 
 
 $PATH configuration
