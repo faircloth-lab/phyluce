@@ -27,8 +27,8 @@ As outlined in :ref:`TutorialOne`, once you extract your contigs that are UCE lo
 
     # explode the monolithic FASTA by taxon (you can also do by locus)
     phyluce_assembly_explode_get_fastas_file \
-        --input all-taxa-incomplete.fasta \
-        --output-dir exploded-fastas \
+        --alignments all-taxa-incomplete.fasta \
+        --output exploded-fastas \
         --by-taxon
 
 You may want to get stats on these exploded-fastas by running something like the following:
@@ -59,8 +59,8 @@ To follow this approach, first proceed through the :ref:`EdgeTrimming` section o
 
     # explode the alignment files in mafft-nexus-edge-trimmed by taxon create a taxon-specific FASTA
     phyluce_align_explode_alignments \
-        --input mafft-nexus-edge-trimmed \
-        --output-dir exploded-fastas \
+        --alignments mafft-nexus-edge-trimmed \
+        --output exploded-fastas \
         --by-taxon
 
 You may want to get stats on these exploded-fastas by running something like the following:
