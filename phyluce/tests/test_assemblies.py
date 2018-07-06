@@ -1,11 +1,23 @@
-"""Test the assemblies output by phyluce to ensure they are sane"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2018 Brant Faircloth || http://faircloth-lab.org/
+
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 06 July 2018 15:27 CDT (-0500)
+"""
 
 import os
 import shutil
 import platform
 import subprocess
 
-from Bio import SeqIO
+from phyluce.tests.common import get_contig_lengths_and_counts
 
 import pytest
 
@@ -31,16 +43,6 @@ def e_dir(request):
 @pytest.fixture(scope="module")
 def a_conf(request):
     return os.path.join(ROOTDIR, "phyluce/tests/test-conf/assembly-short.conf")
-
-
-def get_contig_lengths_and_counts(contigs):
-    with open(contigs) as contig_file:
-        contig_count = 0
-        contig_length = 0
-        for seq in SeqIO.parse(contig_file, 'fasta'):
-            contig_count += 1
-            contig_length += len(seq)
-    return contig_count, contig_length
 
 
 def test_spades_assembly(o_dir, a_conf, e_dir):
