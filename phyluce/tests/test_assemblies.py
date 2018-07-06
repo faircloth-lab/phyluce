@@ -67,6 +67,7 @@ def test_spades_assembly(o_dir, a_conf, e_dir):
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
+    print(stderr)
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(o_dir, "spades", "contigs", "alligator_mississippiensis.contigs.fasta")
     )
@@ -142,6 +143,7 @@ def test_trinity_assembly(o_dir, a_conf, e_dir):
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
+    print(stderr)
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(o_dir, "trinity", "contigs", "alligator_mississippiensis.contigs.fasta")
     )
