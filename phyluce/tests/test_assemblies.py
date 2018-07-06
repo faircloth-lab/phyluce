@@ -21,7 +21,7 @@ from phyluce.tests.common import get_contig_lengths_and_counts
 
 import pytest
 
-import pdb
+#import pdb
 
 ROOTDIR = pytest.config.rootdir
 
@@ -34,6 +34,7 @@ def o_dir(request):
     request.addfinalizer(clean)
     return directory
 
+
 @pytest.fixture(scope="module")
 def e_dir(request):
     directory = os.path.join(ROOTDIR, "phyluce", "tests", "test-results")
@@ -42,7 +43,7 @@ def e_dir(request):
 
 @pytest.fixture(scope="module")
 def a_conf(request):
-    return os.path.join(ROOTDIR, "phyluce/tests/test-conf/assembly-short.conf")
+    return os.path.join(ROOTDIR, "phyluce", "tests", "test-conf", "assembly-short.conf")
 
 
 def test_spades_assembly(o_dir, a_conf, e_dir):
