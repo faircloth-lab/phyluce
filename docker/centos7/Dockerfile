@@ -5,7 +5,7 @@ ENV container docker
 # update yum
 RUN yum -y update
 RUN yum clean all
-RUN yum -y install bzip2 git ssh
+RUN yum -y install bzip2 git ssh which
 
 # download conda
 RUN curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
