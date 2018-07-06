@@ -31,10 +31,10 @@ def get_args():
         "--input",
         required=True,
         action=FullPaths,
-        help="""The input fasta file to explode"""
+        help="""The input fasta file to explode""",
     )
     parser.add_argument(
-        "--output-dir",
+        "--output",
         required=True,
         action=FullPaths,
         help="""The output directory to create and in which to store the fastas""",
@@ -46,10 +46,7 @@ def get_args():
         help="""Split file by taxon and not by locus""",
     )
     parser.add_argument(
-        "--split-char",
-        type=str,
-        default="_",
-        help="""The character to split on""",
+        "--split-char", type=str, default="_", help="""The character to split on"""
     )
     return parser.parse_args()
 
@@ -57,31 +54,35 @@ def get_args():
 def main():
     args = get_args()
     seqdict = defaultdict(list)
-    if os.path.isdir(args.output_dir):
-        response = raw_input("{} exists.  Add results to directory [Y/n]? ".format(args.output_dir))
-        if response == 'Y':
+    if os.path.isdir(args.output):
+        response = input(
+            "{} exists.  Add results to directory [Y/n]? ".format(args.output)
+        )
+        if response == "Y":
             pass
         else:
             sys.exit()
     else:
-        os.makedirs(args.output_dir)
-    print "Reading fasta..."
+        os.makedirs(args.output)
+    print("Reading fasta...")
     if not args.by_taxon:
-        with open(args.input, 'rU') as input:
-            for seq in SeqIO.parse(input, 'fasta'):
+        with open(args.input, "rU") as input:
+            for seq in SeqIO.parse(input, "fasta"):
                 uce = seq.id.split(args.split_char)[0]
                 seqdict[uce].append(seq)
     elif args.by_taxon:
-        with open(args.input, 'rU') as input:
-            for seq in SeqIO.parse(input, 'fasta'):
-                taxon = '-'.join(seq.id.split(args.split_char)[1:])
+        with open(args.input, "rU") as input:
+            for seq in SeqIO.parse(input, "fasta"):
+                taxon = "-".join(seq.id.split(args.split_char)[1:])
                 seqdict[taxon].append(seq)
-    print "Writing fasta..."
-    for uce, sequences in seqdict.iteritems():
-        with open(os.path.join(args.output_dir, '{}.unaligned.fasta'.format(uce)), 'w') as outf:
+    print("Writing fasta...")
+    for uce, sequences in seqdict.items():
+        with open(
+            os.path.join(args.output, "{}.unaligned.fasta".format(uce)), "w"
+        ) as outf:
             for sequence in sequences:
-                outf.write(sequence.format('fasta'))
+                outf.write(sequence.format("fasta"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
