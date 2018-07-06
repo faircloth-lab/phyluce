@@ -39,7 +39,7 @@ def get_args():
             help="""Input folder of alignments"""
         )
     parser.add_argument(
-            "--output-dir",
+            "--output",
             required=True,
             action=CreateDir,
             help="""Output folder of fasta files"""

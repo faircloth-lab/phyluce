@@ -4,9 +4,7 @@
 import os
 import subprocess
 
-import pdb
-
-__version__ = "1.6.2"
+__version__ = "1.7.0"
 
 # get a dynamic version number, if possible.  if not running from git
 # should default to static version

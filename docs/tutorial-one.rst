@@ -882,8 +882,8 @@ files.  To do that, run the following:
 
     # explode the monolithic FASTA by taxon (you can also do by locus)
     phyluce_assembly_explode_get_fastas_file \
-        --input all-taxa-incomplete.fasta \
-        --output-dir exploded-fastas \
+        --alignments all-taxa-incomplete.fasta \
+        --output exploded-fastas \
         --by-taxon
 
     # get summary stats on the FASTAS
