@@ -27,15 +27,6 @@ def e_dir(request):
     directory = os.path.join(ROOTDIR, "phyluce", "tests", "test-results")
     return directory
 
-@pytest.fixture(scope="module")
-def o_dir(request):
-    directory = os.path.join(ROOTDIR, "test")
-    os.mkdir(directory)
-    def clean():
-        shutil.rmtree(directory)
-    request.addfinalizer(clean)
-    return directory
-
 
 @pytest.fixture(scope="module")
 def a_conf(request):
@@ -143,7 +134,6 @@ def test_trinity_assembly(o_dir, a_conf, e_dir):
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
-    print(stderr)
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(o_dir, "trinity", "contigs", "alligator_mississippiensis.contigs.fasta")
     )
