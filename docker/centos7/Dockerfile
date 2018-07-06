@@ -20,10 +20,18 @@ RUN conda update conda
 
 # set conda REPOS
 RUN conda config --add channels defaults
-RUN conda config --add channels conda-forge
 RUN conda config --add channels bioconda
+RUN conda config --add channels conda-forge
 
 # get set of dependencies for phyluce
-RUN conda install nomkl abyss=1.5.2 bcftools bedtools biopython bx-python dendropy gblocks lastz mafft muscle pandas picard pysam pyvcf raxml samtools seqtk trimal trinity velvet spades
-RUN conda install pytest
+RUN conda install nomkl abyss=1.5.2 bcftools bedtools biopython bowtie bwa bx-python dendropy gatk=3.8=py36_0 gblocks jellyfish=2.2.3 lastz mafft muscle pandas picard pysam pytest pyvcf raxml samtools seqtk trimal trinity=2.1.1 velvet=1.2.10 spades=3.12.0
 RUN conda clean --all --yes
+
+# get gatk, setup, and cleanup
+RUN curl -sSL 'https://software.broadinstitute.org/gatk/download/auth?package=GATK-archive&version=3.8-1-0-gf15c1c3ef' -o /usr/local/GATK-archive-3.8-1.tar.bz2 \
+    && cd /usr/local \
+    && tar -xjf GATK-archive-3.8-1.tar.bz2 \
+    && gatk-register /usr/local/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef/GenomeAnalysisTK.jar \
+    && rm -rf /usr/local/GATK-archive-3.8-1.tar.bz2 \
+    && rm -rf /usr/local/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef \
+    && rm -rf /usr/local/LICENSE.txt

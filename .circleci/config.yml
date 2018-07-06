@@ -5,8 +5,9 @@ jobs:
       only:
         - devel
     docker:
-      - image: brantfaircloth/phyluce-py3k:0.0.2
+      - image: brantfaircloth/phyluce-py3k:0.0.4
     steps:
        - checkout
-       - run: echo 'export PYTHONPATH=/root/project:$PYTHONPATH' >> $BASH_ENV 
-       - run: pytest /root/project
+       - run: echo 'export PYTHONPATH=/root/project:$PYTHONPATH' >> $BASH_ENV
+       - run: cat config/phyluce.conf >> $HOME/.phyluce.conf
+       - run: cd phyluce/tests && pytest
