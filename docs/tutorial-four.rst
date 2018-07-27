@@ -7,7 +7,7 @@ Tutorial IV: Identifying UCE Loci and Designing Baits To Target Them
 ********************************************************************
 
 The first few tutorials have given you a feel for how to perform
-phylogenetic/phylogeograohpc analyses using existing probe sets, new data, and
+phylogenetic/phylogeograophic analyses using existing probe sets, new data, and
 genomes.  However, what if you are working on a set of organisms without a probe
 set targeting conserved loci?  How do you identify those loci and design baits
 to target them?  This Tutorial shows you how to do that.
