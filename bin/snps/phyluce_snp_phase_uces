@@ -29,7 +29,7 @@ from phyluce import seqtk
 from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 
-import pdb
+#import pdb
 
 
 def get_args():
@@ -91,7 +91,7 @@ def get_args():
 def phase_bam(log, sample, reference, bam, output_dir):
     phasing_out_dir = os.path.join(output_dir, sample)
     # phase
-    allele_0_file, allele_1_file = samtools.phase(log, sample, phasing_out_dir, bam)
+    allele_0_file, allele_1_file = samtools.phase(log, sample, phasing_out_dir, reference, bam)
     # sort phased BAMs
     sort_phased_0 = samtools.sort(log, sample, phasing_out_dir, allele_0_file)
     sort_phased_1 = samtools.sort(log, sample, phasing_out_dir, allele_1_file)
