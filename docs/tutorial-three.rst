@@ -126,7 +126,8 @@ on the link or by:
     $ cd uce-genome
     $ mkdir allMis2
     $ cd allMis2
-    wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_001541155.1_Algmis_Hirise_1.0/GCA_001541155.1_Algmis_Hirise_1.0_genomic.fna.gz
+   
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/541/155/GCA_001541155.1_Algmis_Hirise_1.0/GCA_001541155.1_Algmis_Hirise_1.0_genomic.fna.gz
 
 This put a gzipped fasta file in our `uce-genome/allMis2` directory, so that our
 directory structure looks like:
