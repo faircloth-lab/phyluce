@@ -1,0 +1,146 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2019 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 27 FEB 2019 12:59 CDT (-0500)
+"""
+
+
+import os
+import sys
+import glob
+import shutil
+import argparse
+import tempfile
+import subprocess
+import multiprocessing
+
+from phyluce.pth import get_user_path
+from phyluce.log import setup_logging
+from phyluce.helpers import get_file_extensions, is_dir, is_file, FullPaths, CreateDir
+
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+            description="""Reduce a directory of alignments using RAxML""")
+    parser.add_argument(
+            "--alignments",
+            required=True,
+            action=FullPaths,
+            type=is_dir,
+            help="""Input folder of alignments"""
+        )
+    parser.add_argument(
+            "--output",
+            required=True,
+            action=CreateDir,
+            help="""Output folder for reduced alignments"""
+        )
+    parser.add_argument(
+            "--input-format",
+            dest="input_format",
+            choices=['fasta', 'phylip', 'phylip-relaxed'],
+            default='phylip-relaxed',
+            help="""The input alignment format"""
+        )
+    parser.add_argument(
+            "--cores",
+            type=int,
+            default=1,
+            help="""The number of compute cores to use"""
+        )
+    parser.add_argument(
+            "--verbosity",
+            type=str,
+            choices=["INFO", "WARN", "CRITICAL"],
+            default="INFO",
+            help="""The logging level to use."""
+    )
+    parser.add_argument(
+            "--log-path",
+            action=FullPaths,
+            type=is_dir,
+            default=None,
+            help="""The path to a directory to hold logs."""
+    )
+    return parser.parse_args()
+
+
+def get_files(input_dir, input_format):
+    extensions = get_file_extensions(input_format)
+    files = []
+    for ext in extensions:
+        files.extend(glob.glob(os.path.join(os.path.expanduser(input_dir), '*{}*'.format(ext))))
+    # ensure we collapse duplicate filenames
+    return list(set(files))
+
+def get_basic_raxml(alignment, outputdir, tdir):    
+    cmd = [
+        get_user_path("binaries", "raxmlHPC-SSE3"),
+        "-f",
+        "c",
+        "-m",
+        "GTRGAMMA",
+        "-s",
+        alignment,
+        "-w",
+        tdir,
+        "-n",
+        "test"
+        ]
+    return cmd
+
+
+def worker(work):
+    args, old_file = work
+    old_pth, old_name = os.path.split(old_file)
+    # create a temporary dir for output
+    tdir = tempfile.mkdtemp()
+    # based on the input file, run raxml
+    cmd = get_basic_raxml(old_file, args.output, tdir)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    reduced_name = "{}.reduced".format(old_name)
+    reduced_pth = os.path.join(old_pth, reduced_name)
+    new_pth = os.path.join(args.output, old_name)
+    if os.path.exists(reduced_pth):
+        # copy the reduced alignment to the output folder with standard name
+        shutil.move(reduced_pth, new_pth)
+    else:
+        shutil.copy(old_file, new_pth)
+    # remove the tempdir
+    shutil.rmtree(tdir)
+    sys.stdout.write(".")
+    sys.stdout.flush()
+
+
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    files = get_files(args.alignments, args.input_format)
+    work = [(args, f) for f in files]
+    if args.cores > 1:
+        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        pool = multiprocessing.Pool(args.cores)
+        pool.map(worker, work)
+    else:
+        map(worker, work)
+    print ""
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+if __name__ == '__main__':
+    main()
