@@ -15,11 +15,14 @@ import sys
 import glob
 import argparse
 from Bio import SeqIO
+from itertools import tee
 from multiprocessing import Pool
 from numpy import median
 
 from phyluce.helpers import get_file_extensions, is_dir, FullPaths, CreateDir
 from phyluce.log import setup_logging
+
+import pdb
 
 
 def get_args():
@@ -36,17 +39,12 @@ def get_args():
             action=CreateDir,
             help='An output directory to hold the converted alignments.')
     parser.add_argument(
-            '--short-sequences-file',
+            '--filtered-sequences-file',
             dest='short_sequences_file',
             required=True,
             type=str,
             default=None,
             help="""The file that will contain names of sequences (and loci) removed""")
-    parser.add_argument(
-            "--proportion",
-            type=float,
-            default=0.5,
-            help="""Proportion of the median length that will serve as cut off (default=0.5)""")
     parser.add_argument(
             "--cores",
             type=int,
@@ -64,6 +62,21 @@ def get_args():
             type=is_dir,
             default=None,
             help="""The path to a directory to hold logs.""")
+    mut_ex_group = parser.add_mutually_exclusive_group(required=True)
+    mut_ex_group.add_argument("--trim-length", action="store_true")
+    mut_ex_group.add_argument('--trim-count', action="store_true")
+    parser.add_argument(
+            "--proportion",
+            type=float,
+            default=0.5,
+            help="""Proportion of the median length that will serve as cut off (default=0.5)"""
+        )
+    parser.add_argument(
+            "--count",
+            type=int,
+            default=4,
+            help="""Number of sequences per locus that will serve as cut off (default=4)."""
+        )
     return parser.parse_args()
 
 
@@ -77,19 +90,26 @@ def get_files(input_dir, input_format):
 
 def filter_worker(params):
     f, args = params
-    fasta_records = SeqIO.parse(open(f, 'rU'),'fasta')
-    seq_lengths = map(len, fasta_records)
-    cutoff = args.proportion * median(seq_lengths)
-    # minimum = min(seq_lengths)
     short_seqs = []
-    fasta_records = SeqIO.parse(open(f, 'rU'),'fasta')
-    with open(os.path.join(args.output, os.path.split(f)[1]), 'w') as outf:
-        for rec in fasta_records:
-            if len(rec) < cutoff:
-                short_seqs.append(rec.id)
-            else:
-                SeqIO.write([rec], outf, 'fasta')
-    outf.close()
+    fasta_records_1, fasta_records_2 = tee(SeqIO.parse(open(f, 'rU'),'fasta'))
+    if args.trim_length:
+        seq_lengths = map(len, fasta_records_1)
+        cutoff = args.proportion * median(seq_lengths)
+        # minimum = min(seq_lengths)
+        with open(os.path.join(args.output, os.path.split(f)[1]), 'w') as outf:
+            for rec in fasta_records_2:
+                if len(rec) < cutoff:
+                    short_seqs.append(rec.id)
+                else: 
+                    SeqIO.write([rec], outf, 'fasta')
+    elif args.trim_count:
+        #pdb.set_trace()
+        if len(list(fasta_records_1)) > args.count:
+            SeqIO.write(fasta_records_2, os.path.join(args.output, os.path.split(f)[1]), "fasta")
+            seq_lengths = [1]
+        else:
+            short_seqs.append(os.path.split(f)[1])
+            seq_lengths = [1]
     sys.stdout.write('.')
     sys.stdout.flush()
     return (len(seq_lengths), short_seqs)
@@ -99,7 +119,7 @@ def main():
     args = get_args()
     # setup logging
     log, my_name = setup_logging(args)
-    files = get_files(args.alignments, 'fasta')
+    files = get_files(args.input, 'fasta')
     if len(files) == 0:
         raise IOError("There are no fasta-formatted files in {}.".format(args.alignments))
     params = [[f, args] for f in files]
