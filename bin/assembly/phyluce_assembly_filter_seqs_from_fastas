@@ -25,11 +25,11 @@ from phyluce.log import setup_logging
 def get_args():
     parser = argparse.ArgumentParser(description="""Removes sequences that are shorter than a specified proportion of the median length of sequences in an alignment.""")
     parser.add_argument(
-            '--alignments',
+            '--input',
             required=True,
             type=is_dir,
             action=FullPaths,
-            help='The directory containing the alignments to convert.')
+            help='The directory containing the FASTA sequences to filter.')
     parser.add_argument(
             '--output',
             required=True,
