@@ -7,13 +7,13 @@ Tutorial IV: Identifying UCE Loci and Designing Baits To Target Them
 ********************************************************************
 
 The first few tutorials have given you a feel for how to perform
-phylogenetic/phylogeograophic analyses using existing probe sets, new data, and
+phylogenetic/phylogeographic analyses using existing probe sets, new data, and
 genomes.  However, what if you are working on a set of organisms without a probe
 set targeting conserved loci?  How do you identify those loci and design baits
 to target them?  This Tutorial shows you how to do that.
 
-In the examples below, we'll follow a UCE identification and probe design wo
-rkflow using data from Coleoptera (beetles).  Although you can follow the entire
+In the examples below, we'll follow a UCE identification and probe design workflow
+using data from Coleoptera (beetles).  Although you can follow the entire
 tutorial from beginning to end, I've also made the BAM files containing mapped
 reads available, which lets you skip the computationally exepensive step of
 performing read simulation and alignment.
