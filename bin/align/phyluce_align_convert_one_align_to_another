@@ -137,7 +137,9 @@ def shorten_name(args, aln):
 def rename_alignment_taxa(aln, name_map):
     new_align = Alignment([], alphabet=Gapped(IUPAC.unambiguous_dna, "-"))
     for seq in aln:
-        seq.id, seq.name = name_map[seq.id], name_map[seq.id]
+        seq.id = name_map[seq.id]
+        seq.name = ""
+        seq.description = ""
         new_align.append(seq)
     return new_align
 
@@ -169,6 +171,7 @@ def main():
         name_map = shorten_name(args, files[0])
     elif args.shorten_name and args.name_conf:
         conf = ConfigParser.ConfigParser()
+        conf.optionxform = str
         conf.readfp(open(args.name_conf))
         name_map = dict(conf.items('taxa'))
     else:

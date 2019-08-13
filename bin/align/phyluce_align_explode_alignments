@@ -113,7 +113,7 @@ def main():
             locus = os.path.splitext(basename)[0]
             aln = AlignIO.read(file, args.input_format)
             for taxon in aln:
-                name = taxon.id.replace(locus, '').lstrip('_')
+                name = taxon.id.replace(locus, '').replace("_R_", '').lstrip('_')
                 if name not in args.exclude:
                     try:
                         shortname = names[name]
@@ -151,7 +151,7 @@ def main():
             aln = AlignIO.read(file, args.input_format)
             count = 0
             for taxon in aln:
-                name = taxon.id.replace(locus, '').lstrip('_')
+                name = taxon.id.replace(locus, '').replace("_R_", '').lstrip('_')
                 if name not in args.exclude:
                     try:
                         shortname = names[name]

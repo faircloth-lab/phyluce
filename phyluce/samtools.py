@@ -16,7 +16,7 @@ import subprocess
 
 from phyluce.pth import get_user_path
 
-import pdb
+#import pdb
 
 
 def index(log, sample, sample_dir, bam):
@@ -47,18 +47,19 @@ def create_faidx(log, sample, sample_dir, fasta):
 
 def sort(log, sample, sample_dir, bam):
     log.info("Sorting BAM for {}".format(sample))
-    out_prefix = "{}.sorted".format(os.path.splitext(bam)[0])
+    out_prefix = "{}.sorted.bam".format(os.path.splitext(bam)[0])
     cmd = [
         get_user_path("binaries", "samtools"),
         "sort",
         bam,
+        "-o",
         out_prefix
     ]
     samtools_out_fname = '{}.samtools-sort-out.log'.format(sample_dir)
     with open(samtools_out_fname, 'a') as samtools_out:
         proc = subprocess.Popen(cmd, stdout=samtools_out, stderr=subprocess.STDOUT)
         proc.communicate()
-    return "{}.bam".format(out_prefix)
+    return out_prefix
 
 
 def call(log, sample, sample_dir, reference, bam, phase=None):
@@ -76,9 +77,8 @@ def call(log, sample, sample_dir, reference, bam, phase=None):
     ]
     cmd2 = [
         get_user_path("binaries", "bcftools"),
-        "view",
-        "-cg",
-        "-"
+        "call",
+        "-c",
     ]
     cmd3 = [
         get_user_path("binaries", "vcfutils"),
@@ -103,9 +103,19 @@ def call(log, sample, sample_dir, reference, bam, phase=None):
                     proc3.communicate()
     return vcfutils_fastq_fname
 
-def phase(log, sample, sample_dir, bam):
-    log.info("Phasing BAM file for {}".format(sample))
-    cmd = [
+def phase(log, sample, sample_dir, reference, bam):
+    log.info("Phasing BAM file with CALMD for {}".format(sample))
+    cmd1 = [
+        get_user_path("binaries", "samtools"),
+        "calmd",
+        "-A",
+        "-E",
+        "-u",
+        "-r",
+        bam,
+        reference
+    ]
+    cmd2 = [
         get_user_path("binaries", "samtools"),
         "phase",
         "-A",
@@ -114,10 +124,14 @@ def phase(log, sample, sample_dir, bam):
         "20",
         "-b",
         sample_dir,
-        bam
+        "-"
     ]
-    samtools_out_fname = '{}.samtools-phase-out.log'.format(sample_dir)
-    with open(samtools_out_fname, 'w') as samtools_out:
-        proc = subprocess.Popen(cmd, stdout=samtools_out, stderr=subprocess.STDOUT)
-        proc.communicate()
+    samtools_calmd_out_fname = '{}.samtools-calmd-phase-out.log'.format(sample_dir)
+    samtools_phase_out_fname = '{}.samtools-phase-out.log'.format(sample_dir)
+    with open(samtools_calmd_out_fname, 'w') as samtools_calmd_out:
+        with open(samtools_phase_out_fname, 'w') as samtools_phase_out:
+            proc1 = subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=samtools_calmd_out)
+            proc2 = subprocess.Popen(cmd2, stdin=proc1.stdout, stdout=samtools_phase_out, stderr=subprocess.STDOUT)
+            proc1.stdout.close()
+            proc2.communicate()
     return "{}.0.bam".format(sample_dir), "{}.1.bam".format(sample_dir)

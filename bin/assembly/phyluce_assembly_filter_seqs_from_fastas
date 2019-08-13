@@ -1,0 +1,149 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Author: Carl H. Oliveros
+(c) 2019 Carl H. Oliveros || http://faircloth-lab.org/
+All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+Created on 27 April 2014 17:37 PDT (-0700)
+"""
+
+import os
+import sys
+import glob
+import argparse
+from Bio import SeqIO
+from itertools import tee
+from multiprocessing import Pool
+from numpy import median
+
+from phyluce.helpers import get_file_extensions, is_dir, FullPaths, CreateDir
+from phyluce.log import setup_logging
+
+import pdb
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="""Removes sequences that are shorter than a specified proportion of the median length of sequences in an alignment.""")
+    parser.add_argument(
+            '--input',
+            required=True,
+            type=is_dir,
+            action=FullPaths,
+            help='The directory containing the FASTA sequences to filter.')
+    parser.add_argument(
+            '--output',
+            required=True,
+            action=CreateDir,
+            help='An output directory to hold the converted alignments.')
+    parser.add_argument(
+            '--filtered-sequences-file',
+            dest='short_sequences_file',
+            required=True,
+            type=str,
+            default=None,
+            help="""The file that will contain names of sequences (and loci) removed""")
+    parser.add_argument(
+            "--cores",
+            type=int,
+            default=1,
+            help="""The number of compute cores to use""")
+    parser.add_argument(
+            "--verbosity",
+            type=str,
+            choices=["INFO", "WARN", "CRITICAL"],
+            default="INFO",
+            help="""The logging level to use.""")
+    parser.add_argument(
+            "--log-path",
+            action=FullPaths,
+            type=is_dir,
+            default=None,
+            help="""The path to a directory to hold logs.""")
+    mut_ex_group = parser.add_mutually_exclusive_group(required=True)
+    mut_ex_group.add_argument("--trim-length", action="store_true")
+    mut_ex_group.add_argument('--trim-count', action="store_true")
+    parser.add_argument(
+            "--proportion",
+            type=float,
+            default=0.5,
+            help="""Proportion of the median length that will serve as cut off (default=0.5)"""
+        )
+    parser.add_argument(
+            "--count",
+            type=int,
+            default=4,
+            help="""Number of sequences per locus that will serve as cut off (default=4)."""
+        )
+    return parser.parse_args()
+
+
+def get_files(input_dir, input_format):
+    extensions = get_file_extensions(input_format)
+    files = []
+    for ext in extensions:
+        files.extend(glob.glob(os.path.join(os.path.expanduser(input_dir), '*{}*'.format(ext))))
+    # ensure we collapse duplicate filenames
+    return list(set(files))
+
+def filter_worker(params):
+    f, args = params
+    short_seqs = []
+    fasta_records_1, fasta_records_2 = tee(SeqIO.parse(open(f, 'rU'),'fasta'))
+    if args.trim_length:
+        seq_lengths = map(len, fasta_records_1)
+        cutoff = args.proportion * median(seq_lengths)
+        # minimum = min(seq_lengths)
+        with open(os.path.join(args.output, os.path.split(f)[1]), 'w') as outf:
+            for rec in fasta_records_2:
+                if len(rec) < cutoff:
+                    short_seqs.append(rec.id)
+                else: 
+                    SeqIO.write([rec], outf, 'fasta')
+    elif args.trim_count:
+        #pdb.set_trace()
+        if len(list(fasta_records_1)) > args.count:
+            SeqIO.write(fasta_records_2, os.path.join(args.output, os.path.split(f)[1]), "fasta")
+            seq_lengths = [1]
+        else:
+            short_seqs.append(os.path.split(f)[1])
+            seq_lengths = [1]
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    return (len(seq_lengths), short_seqs)
+    # return [f, minimum, cutoff]
+
+def main():
+    args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    files = get_files(args.input, 'fasta')
+    if len(files) == 0:
+        raise IOError("There are no fasta-formatted files in {}.".format(args.alignments))
+    params = [[f, args] for f in files]
+    sys.stdout.write('Filtering')
+    sys.stdout.flush()
+    if args.cores > 1:
+        pool = Pool(args.cores)
+        results = pool.map(filter_worker, params)
+    else:
+        results = map(filter_worker, params)
+    print ""
+    total_seqs = 0
+    num_shortseqs = 0
+    with open(args.short_sequences_file, 'w') as outf:
+        for r in results:
+            num_seqs, short_seqs = r
+            total_seqs += num_seqs
+            num_shortseqs += len(short_seqs)
+            for seqname in short_seqs:
+                outf.write('{}\n'.format(seqname))
+    outf.close()
+    log.info('Writing {} short sequences out of {} to file {}'.format(num_shortseqs, total_seqs, args.short_sequences_file))
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
+
+if __name__ == '__main__':
+    main()
