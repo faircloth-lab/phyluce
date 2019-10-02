@@ -12,7 +12,9 @@ Created on 0 March 2012 09:03 PST (-0800)
 """
 
 
+import logging
 import os
+import sys
 import tempfile
 import subprocess
 
@@ -33,6 +35,14 @@ class Align(GenericAlign):
     def __init__(self, input):
         """initialize, calling superclass __init__ also"""
         super(Align, self).__init__(input)
+        self.log = logging.getLogger(__name__)
+        console = logging.StreamHandler(sys.stdout)
+        self.log.setLevel(logging.INFO)
+        console.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console.setFormatter(formatter)
+        self.log.addHandler(console)
+
 
     def run_alignment(self, clean=True):
         # create results file
@@ -40,7 +50,16 @@ class Align(GenericAlign):
         os.close(fd)
         aln_stdout = open(aln, 'w')
         # run MAFFT on the temp file
-        cmd = [get_user_path("binaries", "mafft"), "--adjustdirection", "--maxiterate", "1000", self.input]
+        # Handle alternate mafft arguments
+        mafft_args_env = os.getenv("PHYLUCE_MAFFT_ARGS")
+        if mafft_args_env:
+            mafft_args = mafft_args_env.strip().split()
+            cmd = [get_user_path("binaries", "mafft")]
+            cmd.extend(mafft_args)
+            cmd.append(self.input)
+        else:
+            cmd = [get_user_path("binaries", "mafft"), "--adjustdirection", "--maxiterate", "1000", self.input]
+        self.log.info("MAFFT Command: {}".format(cmd))
         # just pass all ENV params
         proc = subprocess.Popen(cmd,
                 stderr=subprocess.PIPE,
