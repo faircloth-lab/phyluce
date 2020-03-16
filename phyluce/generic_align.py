@@ -46,13 +46,13 @@ class GenericAlign(object):
     def _get_ends(self, seq):
         """find the start and end of sequence data for a given alignment row"""
         f = re.compile("^([-]+)")
-        result = f.search(seq.seq.tostring())
+        result = f.search(str(seq.seq))
         if result:
             start_gap = len(result.groups()[0])
         else:
             start_gap = 0
         r = re.compile("([-]+)$")
-        result = r.search(seq.seq.tostring())
+        result = r.search(str(seq.seq))
         if result:
             end_gap = len(result.groups()[0])
         else:
