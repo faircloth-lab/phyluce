@@ -4,11 +4,7 @@
 import os
 import subprocess
 
-<<<<<<< HEAD
 __version__ = "1.7.0"
-=======
-__version__ = "1.6.6"
->>>>>>> 06161fdc23841ad252d6db1673d0ae27b311a903
 
 # get a dynamic version number, if possible.  if not running from git
 # should default to static version
