@@ -21,14 +21,12 @@ from phyluce.tests.common import get_contig_lengths_and_counts
 
 import pytest
 
-# import pdb
-
-ROOTDIR = pytest.config.rootdir
+import pdb
 
 
 @pytest.fixture(scope="module")
 def o_dir(request):
-    directory = os.path.join(ROOTDIR, "test")
+    directory = os.path.join(request.config.rootdir, "test")
     os.mkdir(directory)
 
     def clean():
@@ -40,19 +38,27 @@ def o_dir(request):
 
 @pytest.fixture(scope="module")
 def e_dir(request):
-    directory = os.path.join(ROOTDIR, "phyluce", "tests", "test-results")
+    directory = os.path.join(
+        request.config.rootdir, "phyluce", "tests", "test-results"
+    )
     return directory
 
 
 @pytest.fixture(scope="module")
 def a_conf(request):
-    return os.path.join(ROOTDIR, "phyluce", "tests", "test-conf", "assembly-short.conf")
+    return os.path.join(
+        request.config.rootdir,
+        "phyluce",
+        "tests",
+        "test-conf",
+        "assembly-short.conf",
+    )
 
 
-def test_spades_assembly(o_dir, a_conf, e_dir):
+def test_spades_assembly(o_dir, a_conf, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_spades"
     cmd = [
-        os.path.join(ROOTDIR, program),
+        os.path.join(request.config.rootdir, program),
         "--config",
         a_conf,
         "--cores",
@@ -62,27 +68,35 @@ def test_spades_assembly(o_dir, a_conf, e_dir):
         "--log-path",
         o_dir,
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout, stderr = proc.communicate()
     print(stderr)
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
-            o_dir, "spades", "contigs", "alligator_mississippiensis.contigs.fasta"
+            o_dir,
+            "spades",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
         os.path.join(
-            e_dir, "spades", "contigs", "alligator_mississippiensis.contigs.fasta"
+            e_dir,
+            "spades",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     assert observed_count == expected_count
     assert observed_length == expected_length
 
 
-def test_abyss_assembly(o_dir, a_conf, e_dir):
+def test_abyss_assembly(o_dir, a_conf, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_abyss"
     cmd = [
-        os.path.join(ROOTDIR, program),
+        os.path.join(request.config.rootdir, program),
         "--config",
         a_conf,
         "--cores",
@@ -93,26 +107,34 @@ def test_abyss_assembly(o_dir, a_conf, e_dir):
         "--log-path",
         o_dir,
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout, stderr = proc.communicate()
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
-            o_dir, "abyss", "contigs", "alligator_mississippiensis.contigs.fasta"
+            o_dir,
+            "abyss",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
         os.path.join(
-            e_dir, "abyss", "contigs", "alligator_mississippiensis.contigs.fasta"
+            e_dir,
+            "abyss",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     assert observed_count == expected_count
     assert observed_length == expected_length
 
 
-def test_velvet_assembly(o_dir, a_conf, e_dir):
+def test_velvet_assembly(o_dir, a_conf, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_velvet"
     cmd = [
-        os.path.join(ROOTDIR, program),
+        os.path.join(request.config.rootdir, program),
         "--config",
         a_conf,
         "--cores",
@@ -122,16 +144,24 @@ def test_velvet_assembly(o_dir, a_conf, e_dir):
         "--log-path",
         o_dir,
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout, stderr = proc.communicate()
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
-            o_dir, "velvet", "contigs", "alligator_mississippiensis.contigs.fasta"
+            o_dir,
+            "velvet",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
         os.path.join(
-            e_dir, "velvet", "contigs", "alligator_mississippiensis.contigs.fasta"
+            e_dir,
+            "velvet",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     assert observed_count == expected_count
@@ -141,10 +171,10 @@ def test_velvet_assembly(o_dir, a_conf, e_dir):
 
 
 @pytest.mark.skipif(platform.system() == "Darwin", reason="requires linux")
-def test_trinity_assembly(o_dir, a_conf, e_dir):
+def test_trinity_assembly(o_dir, a_conf, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_trinity"
     cmd = [
-        os.path.join(ROOTDIR, program),
+        os.path.join(request.config.rootdir, program),
         "--config",
         a_conf,
         "--cores",
@@ -154,16 +184,24 @@ def test_trinity_assembly(o_dir, a_conf, e_dir):
         "--log-path",
         o_dir,
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout, stderr = proc.communicate()
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
-            o_dir, "trinity", "contigs", "alligator_mississippiensis.contigs.fasta"
+            o_dir,
+            "trinity",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
         os.path.join(
-            e_dir, "trinity", "contigs", "alligator_mississippiensis.contigs.fasta"
+            e_dir,
+            "trinity",
+            "contigs",
+            "alligator_mississippiensis.contigs.fasta",
         )
     )
     assert observed_count == expected_count
