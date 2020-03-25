@@ -14,20 +14,19 @@ Created on 06 July 2018 15:37 CDT (-0500)
 
 import os
 import shutil
-import subprocess
 
-from phyluce.tests.common import get_contig_lengths_and_counts
+# import subprocess
+
+# from phyluce.tests.common import get_contig_lengths_and_counts
 
 import pytest
 
 # import pdb
 
-ROOTDIR = pytest.config.rootdir
-
 
 @pytest.fixture(scope="module")
 def o_dir(request):
-    directory = os.path.join(ROOTDIR, "test")
+    directory = os.path.join(request.config.rootdir, "test")
     os.mkdir(directory)
 
     def clean():
@@ -37,7 +36,7 @@ def o_dir(request):
     return directory
 
 
-'''
+"""
 def test_explode_get_fastas_file(o_dir):
     program = "bin/assembly/phyluce_assembly_explode_get_fastas_file"
     cmd = [
@@ -51,4 +50,4 @@ def test_explode_get_fastas_file(o_dir):
         "--log-path",
         o_dir,
     ]
-'''
+"""
