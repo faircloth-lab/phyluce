@@ -18,11 +18,12 @@ import shutil
 import platform
 import subprocess
 
-#from phyluce.tests.common import get_contig_lengths_and_counts
+# from phyluce.tests.common import get_contig_lengths_and_counts
 
 import pytest
 
 import pdb
+
 
 @pytest.fixture(scope="module")
 def o_dir(request):
@@ -38,12 +39,21 @@ def o_dir(request):
 
 @pytest.fixture(scope="module")
 def e_dir(request):
-    directory = os.path.join(request.config.rootdir, "phyluce", "tests", "test-results")
+    directory = os.path.join(
+        request.config.rootdir, "phyluce", "tests", "test-expected"
+    )
     return directory
+
 
 @pytest.fixture(scope="module")
 def bait_pth(request):
-    return os.path.join(request.config.rootdir, "phyluce", "tests", "probes", "uce-5k-probes.fasta")
+    return os.path.join(
+        request.config.rootdir,
+        "phyluce",
+        "tests",
+        "probes",
+        "uce-5k-probes.fasta",
+    )
 
 
 @pytest.fixture(scope="module")
@@ -52,19 +62,24 @@ def contig_pth(request, e_dir):
 
 
 def get_match_count_to_probes_results(pth):
-    with open(pth, 'r') as csvfile:
+    with open(pth, "r") as csvfile:
         reader = csv.reader(csvfile)
         # skip header
         next(reader)
-        result = {item[0]:[item[1], item[2], item[3], item[4], item[5]] for item in reader}
+        result = {
+            item[0]: [item[1], item[2], item[3], item[4], item[5]]
+            for item in reader
+        }
     return result
 
 
-def test_match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
+def match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
     out_pth = "{}".format(os.path.join(o_dir, "match_contigs"))
-    csv_pth = "{}".format(os.path.join(o_dir, "match_contigs", "match_contig_results.csv"))
+    csv_pth = "{}".format(
+        os.path.join(o_dir, "match_contigs", "match_contig_results.csv")
+    )
     program = "bin/assembly/phyluce_assembly_match_contigs_to_probes"
-    cmd =[
+    cmd = [
         os.path.join(request.config.rootdir, program),
         "--probes",
         bait_pth,
@@ -75,16 +90,33 @@ def test_match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
         "--log-path",
         o_dir,
         "--csv",
-        csv_pth
+        csv_pth,
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout, stderr = proc.communicate()
     print(stderr)
     observed_count = get_match_count_to_probes_results(csv_pth)
     expected_count = get_match_count_to_probes_results(
-        os.path.join(
-            e_dir, "probe-match", "probe_match_results.csv"
-        )
+        os.path.join(e_dir, "probe-match", "probe_match_results.csv")
     )
     for k in observed_count.keys():
-        assert(observed_count[k] == expected_count[k])
+        assert observed_count[k] == expected_count[k]
+
+
+def check_lastz_file(o_dir, e_dir):
+    observed = os.path.join(
+        o_dir, "match_contigs", "alligator_mississippiensis.contigs.lastz"
+    )
+    expected = os.path.join(
+        e_dir, "probe-match", "alligator_mississippiensis.contigs.lastz"
+    )
+    with open(observed) as f1, open(expected) as f2:
+        for ol, el in zip(f1, f2):
+            assert ol == el
+
+
+def test_match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
+    match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request)
+    check_lastz_file(o_dir, e_dir)
