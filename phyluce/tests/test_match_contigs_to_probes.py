@@ -27,7 +27,9 @@ import pdb
 
 @pytest.fixture(scope="module")
 def o_dir(request):
-    directory = os.path.join(request.config.rootdir, "test-observed")
+    directory = os.path.join(
+        request.config.rootdir, "phyluce", "tests", "test-observed"
+    )
     os.mkdir(directory)
 
     def clean():
