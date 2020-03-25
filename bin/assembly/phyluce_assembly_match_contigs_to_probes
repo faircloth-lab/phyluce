@@ -123,10 +123,10 @@ def create_probe_database(log, db, organisms, uces):
         all_uces = [(uce,) for uce in uces]
         c.executemany("INSERT INTO matches(uce) values (?)", all_uces)
         c.executemany("INSERT INTO match_map(uce) values (?)", all_uces)
-    except sqlite3.OperationalError, e:
+    except sqlite3.OperationalError as e:
         log.critical("Database already exists")
         if e[0] == 'table matches already exists':
-            answer = raw_input("Database already exists.  Overwrite [Y/n]? ")
+            answer = input("Database already exists.  Overwrite [Y/n]? ")
             if answer == "Y" or "YES":
                 os.remove(db)
                 conn, c = create_probe_database(db, organisms, uces)
@@ -140,7 +140,7 @@ def create_probe_database(log, db, organisms, uces):
 
 def store_lastz_results_in_db(c, matches, orientation, critter):
     """enter matched loci in database"""
-    for key, match in matches.iteritems():
+    for key, match in matches.items():
         # We should have dropped all duplicates at this point
         assert len(match) == 1, "More than one match"
         item = list(match)[0]
@@ -164,7 +164,7 @@ def get_dupes(log, lastz_file, regex):
         matches[target_name].append(query_name)
     # see if one probe matches any other probes
     # other than the children of the locus
-    for k, v in matches.iteritems():
+    for k, v in matches.items():
         # if the probe doesn't match itself, we have
         # problems
         if len(v) > 1:
@@ -201,7 +201,7 @@ def check_loci_for_dupes(revmatches):
     """Check for UCE probes that match more than one contig"""
     dupe_contigs = []
     dupe_uces = []
-    for uce, node in revmatches.iteritems():
+    for uce, node in revmatches.items():
         if len(node) > 1:
             dupe_contigs.extend(node)
             dupe_uces.append(uce)
@@ -212,7 +212,7 @@ def check_loci_for_dupes(revmatches):
 
 def pretty_log_output(log, csvwriter, critter, matches, contigs, pd, mc, uce_dupe_uces):
     """Write some nice output to the logfile/stdout"""
-    unique_matches = sum([1 for node, uce in matches.iteritems()])
+    unique_matches = sum([1 for node, uce in matches.items()])
     out = "{0}: {1} ({2:.2f}%) uniques of {3} contigs, {4} dupe probe matches, " + \
         "{5} UCE loci removed for matching multiple contigs, {6} contigs " + \
         "removed for matching multiple UCE loci"
@@ -330,7 +330,7 @@ def main():
         #pdb.set_trace()
         # remove dupe and/or dubious nodes/contigs
         match_copy = copy.deepcopy(matches)
-        for k in match_copy.keys():
+        for k in list(match_copy.keys()):
             if k in nodes_to_drop:
                 del matches[k]
         store_lastz_results_in_db(c, matches, orientation, critter)
