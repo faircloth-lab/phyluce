@@ -4,6 +4,7 @@
 *.bak
 *.log
 .pytest_cache
+.vscode
 tmp
 myhtmldocs
 test-out
