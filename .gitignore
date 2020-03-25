@@ -6,6 +6,7 @@
 .pytest_cache
 .vscode
 tmp
+tmp2
 myhtmldocs
 test-out
 docs/build
