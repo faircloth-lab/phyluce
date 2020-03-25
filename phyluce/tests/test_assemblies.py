@@ -39,7 +39,7 @@ def o_dir(request):
 @pytest.fixture(scope="module")
 def e_dir(request):
     directory = os.path.join(
-        request.config.rootdir, "phyluce", "tests", "test-results"
+        request.config.rootdir, "phyluce", "tests", "test-expected"
     )
     return directory
 
