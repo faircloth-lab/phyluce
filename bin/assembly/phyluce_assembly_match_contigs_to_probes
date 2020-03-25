@@ -11,6 +11,7 @@ Copyright 2011 Brant C. Faircloth. All rights reserved.
 import re
 import os
 import sys
+import csv
 import glob
 import copy
 import sqlite3
@@ -95,6 +96,12 @@ def get_args():
         type=str,
         default=None,
         help="""A optional output file in which to store those loci that appear to be duplicates.""",
+    )
+    parser.add_argument(
+        "--csv",
+        type=str,
+        default=None,
+        help="""A optional output file in which to store the search results.""",
     )
     args = parser.parse_args()
     return args
@@ -203,7 +210,7 @@ def check_loci_for_dupes(revmatches):
     return set(dupe_contigs), set(dupe_uces)
 
 
-def pretty_log_output(log, critter, matches, contigs, pd, mc, uce_dupe_uces):
+def pretty_log_output(log, csvwriter, critter, matches, contigs, pd, mc, uce_dupe_uces):
     """Write some nice output to the logfile/stdout"""
     unique_matches = sum([1 for node, uce in matches.iteritems()])
     out = "{0}: {1} ({2:.2f}%) uniques of {3} contigs, {4} dupe probe matches, " + \
@@ -220,6 +227,8 @@ def pretty_log_output(log, critter, matches, contigs, pd, mc, uce_dupe_uces):
             len(mc)
         )
     )
+    csvwriter.writerow([critter, unique_matches, contigs, len(pd), len(uce_dupe_uces), len(mc)])
+
 
 
 def get_contig_name(header):
@@ -262,6 +271,11 @@ def main():
     else:
         dupefile = None
     log.info("{}".format("-" * 65))
+    # open up a csv file for output
+    if args.csv:
+        csvfile = open(args.csv, 'w')
+        csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        csvwriter.writerow(['taxon', 'uce-contigs', 'total-contigs', 'dupe-probe-matches', 'loci-dropped', 'contigs-dropped'])
     for contig in sorted(fasta_files):
         critter = os.path.basename(contig).split('.')[0].replace('-', "_")
         output = os.path.join(
@@ -323,6 +337,7 @@ def main():
         conn.commit()
         pretty_log_output(
             log,
+            csvwriter,
             critter,
             matches,
             contigs,
@@ -332,6 +347,8 @@ def main():
         )
     if dupefile is not None:
         dupefile.close()
+    if args.csv:
+        csvfile.close()
     log.info("{}".format("-" * 65))
     log.info("The LASTZ alignments are in {}".format(args.output))
     log.info("The UCE match database is in {}".format(os.path.join(args.output, "probe.matches.sqlite")))
