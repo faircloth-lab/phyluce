@@ -194,7 +194,7 @@ def test_get_fastas_complete(o_dir, e_dir, request):
         assert v.seq == expected_sequences[k].seq
 
 
-def test_get_fastas_incomplete(o_dir, e_dir, conf_dir, request):
+def test_get_fastas_incomplete(o_dir, e_dir, request):
     o_file = os.path.join(o_dir, "taxon-set.incomplete.fasta")
     cmd = get_fastas_cmd(o_dir, e_dir, o_file, request, incomplete=True)
     proc = subprocess.Popen(
@@ -212,18 +212,76 @@ def test_get_fastas_incomplete(o_dir, e_dir, conf_dir, request):
         assert v.seq == expected_sequences[k].seq
 
 
-"""
-def test_explode_get_fastas_file(o_dir):
+def test_explode_get_fastas_file_by_taxon(o_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_explode_get_fastas_file"
+    output = os.path.join(o_dir, "exploded-by-taxa")
     cmd = [
-        os.path.join(ROOTDIR, program),
-        "--config",
-        a_conf,
-        "--cores",
-        "1",
+        os.path.join(request.config.rootdir, program),
+        "--input",
+        os.path.join(e_dir, "taxon-set.complete.fasta"),
         "--output",
-        "{}".format(os.path.join(o_dir, "spades")),
-        "--log-path",
-        o_dir,
+        output,
+        "--by-taxon",
     ]
-"""
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    # iterate over observed and expected data and get file stats
+    expected = os.path.join(e_dir, "exploded-by-taxa")
+    for taxon in [
+        "alligator-mississippiensis",
+        "gallus-gallus",
+        "peromyscus-maniculatus",
+        "rana-sphenocephafa",
+    ]:
+        fname = "{}.unaligned.fasta".format(taxon)
+        observed_sequences = SeqIO.to_dict(
+            SeqIO.parse(os.path.join(output, fname), "fasta")
+        )
+        expected_sequences = SeqIO.to_dict(
+            SeqIO.parse(os.path.join(expected, fname), "fasta")
+        )
+        for k, v in observed_sequences.items():
+            # assert all are one taxon
+            assert taxon.replace("-", "_") in k
+            # assert that obs == expected
+            assert v.seq == expected_sequences[k].seq
+
+
+def test_explode_get_fastas_file_by_locus(o_dir, e_dir, request):
+    program = "bin/assembly/phyluce_assembly_explode_get_fastas_file"
+    output = os.path.join(o_dir, "exploded-by-locus")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--input",
+        os.path.join(e_dir, "taxon-set.complete.fasta"),
+        "--output",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    # iterate over observed and expected data and get file stats
+    expected = os.path.join(e_dir, "exploded-by-locus")
+    for locus in [
+        "uce-1732",
+        "uce-2120",
+        "uce-3046",
+        "uce-4179",
+        "uce-553",
+        "uce-7014",
+    ]:
+        fname = "{}.unaligned.fasta".format(locus)
+        observed_sequences = SeqIO.to_dict(
+            SeqIO.parse(os.path.join(output, fname), "fasta")
+        )
+        expected_sequences = SeqIO.to_dict(
+            SeqIO.parse(os.path.join(expected, fname), "fasta")
+        )
+        for k, v in observed_sequences.items():
+            # assert all are one taxon
+            assert locus in k
+            # assert that obs == expected
+            assert v.seq == expected_sequences[k].seq
