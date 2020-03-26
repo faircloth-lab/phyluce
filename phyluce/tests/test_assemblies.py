@@ -47,6 +47,18 @@ def e_dir(request):
 
 
 @pytest.fixture(scope="module")
+def raw_dir(request):
+    directory = os.path.join(
+        request.config.rootdir,
+        "phyluce",
+        "tests",
+        "test-expected",
+        "raw-reads-short",
+    )
+    return directory
+
+
+@pytest.fixture(scope="module")
 def a_conf(request):
     return os.path.join(
         request.config.rootdir,
@@ -57,12 +69,12 @@ def a_conf(request):
     )
 
 
-def test_spades_assembly(o_dir, a_conf, e_dir, request):
+def test_spades_assembly(o_dir, raw_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_spades"
     cmd = [
         os.path.join(request.config.rootdir, program),
-        "--config",
-        a_conf,
+        "--dir",
+        raw_dir,
         "--cores",
         "1",
         "--output",
@@ -80,7 +92,7 @@ def test_spades_assembly(o_dir, a_conf, e_dir, request):
             o_dir,
             "spades",
             "contigs",
-            "alligator_mississippiensis.contigs.fasta",
+            "alligator-mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
@@ -95,12 +107,12 @@ def test_spades_assembly(o_dir, a_conf, e_dir, request):
     assert observed_length == expected_length
 
 
-def test_abyss_assembly(o_dir, a_conf, e_dir, request):
+def test_abyss_assembly(o_dir, raw_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_abyss"
     cmd = [
         os.path.join(request.config.rootdir, program),
-        "--config",
-        a_conf,
+        "--dir",
+        raw_dir,
         "--cores",
         "1",
         "--output",
@@ -118,7 +130,7 @@ def test_abyss_assembly(o_dir, a_conf, e_dir, request):
             o_dir,
             "abyss",
             "contigs",
-            "alligator_mississippiensis.contigs.fasta",
+            "alligator-mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
@@ -133,12 +145,12 @@ def test_abyss_assembly(o_dir, a_conf, e_dir, request):
     assert observed_length == expected_length
 
 
-def test_velvet_assembly(o_dir, a_conf, e_dir, request):
+def test_velvet_assembly(o_dir, raw_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_velvet"
     cmd = [
         os.path.join(request.config.rootdir, program),
-        "--config",
-        a_conf,
+        "--dir",
+        raw_dir,
         "--cores",
         "1",
         "--output",
@@ -155,7 +167,7 @@ def test_velvet_assembly(o_dir, a_conf, e_dir, request):
             o_dir,
             "velvet",
             "contigs",
-            "alligator_mississippiensis.contigs.fasta",
+            "alligator-mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
@@ -173,12 +185,12 @@ def test_velvet_assembly(o_dir, a_conf, e_dir, request):
 
 
 @pytest.mark.skipif(platform.system() == "Darwin", reason="requires linux")
-def test_trinity_assembly(o_dir, a_conf, e_dir, request):
+def test_trinity_assembly(o_dir, raw_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_trinity"
     cmd = [
         os.path.join(request.config.rootdir, program),
-        "--config",
-        a_conf,
+        "--dir",
+        raw_dir,
         "--cores",
         "1",
         "--output",
@@ -195,7 +207,7 @@ def test_trinity_assembly(o_dir, a_conf, e_dir, request):
             o_dir,
             "trinity",
             "contigs",
-            "alligator_mississippiensis.contigs.fasta",
+            "alligator-mississippiensis.contigs.fasta",
         )
     )
     expected_count, expected_length = get_contig_lengths_and_counts(
