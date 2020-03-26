@@ -20,6 +20,7 @@ import configparser
 # from phyluce.tests.common import get_contig_lengths_and_counts
 
 import pytest
+from Bio import SeqIO
 
 import pdb
 
@@ -67,7 +68,9 @@ def raw_dir(request):
     return directory
 
 
-def get_cmd(o_dir, e_dir, conf_dir, output_config, request, incomplete=False):
+def get_match_count_cmd(
+    o_dir, e_dir, conf_dir, output_config, request, incomplete=False
+):
     program = "bin/assembly/phyluce_assembly_get_match_counts"
     cmd = [
         os.path.join(request.config.rootdir, program),
@@ -110,7 +113,7 @@ def test_get_fastq_lengths(o_dir, e_dir, raw_dir, request):
 
 def test_get_match_counts_complete(o_dir, e_dir, conf_dir, request):
     output_config = os.path.join(o_dir, "taxon-set.conf")
-    cmd = get_cmd(o_dir, e_dir, conf_dir, output_config, request)
+    cmd = get_match_count_cmd(o_dir, e_dir, conf_dir, output_config, request)
     proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -127,7 +130,7 @@ def test_get_match_counts_complete(o_dir, e_dir, conf_dir, request):
 
 def test_get_match_counts_incomplete(o_dir, e_dir, conf_dir, request):
     output_config = os.path.join(o_dir, "taxon-set.conf")
-    cmd = get_cmd(
+    cmd = get_match_count_cmd(
         o_dir, e_dir, conf_dir, output_config, request, incomplete=True
     )
     proc = subprocess.Popen(
@@ -142,6 +145,71 @@ def test_get_match_counts_incomplete(o_dir, e_dir, conf_dir, request):
     exp_config.optionxform = str
     exp_config.read(expected_config)
     assert obs_config == exp_config
+
+
+def get_fastas_cmd(o_dir, e_dir, o_file, request, incomplete=False):
+    program = "bin/assembly/phyluce_assembly_get_fastas_from_match_counts"
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--locus-db",
+        os.path.join(e_dir, "probe-match", "probe.matches.sqlite"),
+        "--contigs",
+        os.path.join(e_dir, "spades", "contigs"),
+        "--locus-db",
+        os.path.join(e_dir, "probe-match", "probe.matches.sqlite"),
+        "--match-count-output",
+        os.path.join(e_dir, "taxon-set.complete.conf"),
+    ]
+    if not incomplete:
+        cmd.extend(["--output", o_file, "--log-path", o_dir])
+    else:
+        cmd.extend(
+            [
+                "--output",
+                o_file,
+                "--log-path",
+                o_dir,
+                "--incomplete-matrix",
+                os.path.join(o_dir, "taxon-set.incomplete"),
+            ]
+        )
+    return cmd
+
+
+def test_get_fastas_complete(o_dir, e_dir, request):
+    o_file = os.path.join(o_dir, "taxon-set.complete.fasta")
+    cmd = get_fastas_cmd(o_dir, e_dir, o_file, request, incomplete=False)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    # read in the new outfile
+    observed_sequences = SeqIO.to_dict(SeqIO.parse(o_file, "fasta"))
+    # read in the expected outfile
+    expected_sequences = SeqIO.to_dict(
+        SeqIO.parse(os.path.join(e_dir, "taxon-set.complete.fasta"), "fasta")
+    )
+    # compare
+    for k, v in observed_sequences.items():
+        assert v.seq == expected_sequences[k].seq
+
+
+def test_get_fastas_incomplete(o_dir, e_dir, conf_dir, request):
+    o_file = os.path.join(o_dir, "taxon-set.incomplete.fasta")
+    cmd = get_fastas_cmd(o_dir, e_dir, o_file, request, incomplete=True)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    # read in the new outfile
+    observed_sequences = SeqIO.to_dict(SeqIO.parse(o_file, "fasta"))
+    # read in the expected outfile
+    expected_sequences = SeqIO.to_dict(
+        SeqIO.parse(os.path.join(e_dir, "taxon-set.incomplete.fasta"), "fasta")
+    )
+    # compare
+    for k, v in observed_sequences.items():
+        assert v.seq == expected_sequences[k].seq
 
 
 """
