@@ -105,10 +105,10 @@ def test_get_fastq_lengths(o_dir, e_dir, raw_dir, request):
     )
     stdout, stderr = proc.communicate()
     stdout_str = stdout.decode("utf-8")
-    assert (
-        stdout_str
-        == "All files in dir with alligator-mississippiensis-READ2.fastq.gz,7404,677024,91.44030253916802,0.1993821226016458,40,100,100.0\n"
-    )
+    stdout_str_split = stdout_str.strip().split(",")[1:]
+    expected = "7404,677024,91.44030253916802,0.1993821226016458,40,100,100.0"
+    expected_str_split = expected.split(",")
+    assert stdout_str_split == expected_str_split
 
 
 def test_get_match_counts_complete(o_dir, e_dir, conf_dir, request):
