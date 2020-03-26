@@ -54,6 +54,19 @@ def conf_dir(request):
     return directory
 
 
+@pytest.fixture(scope="module")
+def raw_dir(request):
+    directory = os.path.join(
+        request.config.rootdir,
+        "phyluce",
+        "tests",
+        "test-expected",
+        "raw-reads-short",
+        "alligator-mississippiensis",
+    )
+    return directory
+
+
 def get_cmd(o_dir, e_dir, conf_dir, output_config, request, incomplete=False):
     program = "bin/assembly/phyluce_assembly_get_match_counts"
     cmd = [
@@ -74,6 +87,25 @@ def get_cmd(o_dir, e_dir, conf_dir, output_config, request, incomplete=False):
     else:
         cmd.append("--incomplete-matrix")
         return cmd
+
+
+def test_get_fastq_lengths(o_dir, e_dir, raw_dir, request):
+    program = "bin/assembly/phyluce_assembly_get_fastq_lengths"
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--input",
+        raw_dir,
+        "--csv",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    stdout_str = stdout.decode("utf-8")
+    assert (
+        stdout_str
+        == "All files in dir with alligator-mississippiensis-READ2.fastq.gz,7404,677024,91.44030253916802,0.1993821226016458,40,100,100.0\n"
+    )
 
 
 def test_get_match_counts_complete(o_dir, e_dir, conf_dir, request):
