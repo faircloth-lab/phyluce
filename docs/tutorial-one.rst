@@ -183,7 +183,7 @@ available on your machine.
 .. code-block:: bash
 
     # go to the directory containing our config file and data
-    cd my-analysis
+    cd uce-tutorial
 
     # run illumiprocessor
 
