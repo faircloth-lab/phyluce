@@ -420,6 +420,10 @@ the `phyluce_assembly_assemblo_trinity` program:
     system, and it is better to have much more.  If you use more CPU cores than
     you have or you specify more RAM than you have, bad things will happen.
 
+.. note:: Trinity is no longer supported on MacOS (generally, or in phyluce_), 
+    so substitute `phyluce_assembly_assemblo_trinity` for 
+    `phyluce_assembly_assemblo_trinity.
+
 As the assembly proceeds, you should see output similar to the following:
 
 .. code-block:: bash
