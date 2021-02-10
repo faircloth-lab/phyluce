@@ -422,7 +422,7 @@ the `phyluce_assembly_assemblo_trinity` program:
 
 .. note:: Trinity is no longer supported on MacOS (generally, or in phyluce_), 
     so substitute `phyluce_assembly_assemblo_trinity` for 
-    `phyluce_assembly_assemblo_trinity.
+    `phyluce_assembly_assemblo_trinity`.
 
 As the assembly proceeds, you should see output similar to the following:
 
