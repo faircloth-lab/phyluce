@@ -14,7 +14,7 @@ Created on 12 June 2014 10:21 PDT (-0700)
 import os
 import sys
 import argparse
-import ConfigParser
+import configparser
 from phyluce.helpers import FullPaths, is_file, is_dir
 from phyluce.log import setup_logging
 
@@ -80,7 +80,7 @@ def index(log, critter, pth, assembly):
 def main():
     args = get_args()
     log, my_name = setup_logging(args)
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.optionxform = str
     config.read(args.config)
     old_assembly = None
