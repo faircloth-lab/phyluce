@@ -16,8 +16,7 @@ import os
 import shutil
 import platform
 import subprocess
-
-from phyluce.tests.common import get_contig_lengths_and_counts
+from shared_funcs import get_contig_lengths_and_counts
 
 import pytest
 

@@ -19,7 +19,7 @@ def get_contig_lengths_and_counts(contigs):
     with open(contigs) as contig_file:
         contig_count = 0
         contig_length = 0
-        for seq in SeqIO.parse(contig_file, 'fasta'):
+        for seq in SeqIO.parse(contig_file, "fasta"):
             contig_count += 1
             contig_length += len(seq)
     return contig_count, contig_length
