@@ -13,6 +13,7 @@ Created on 06 July 2018 15:37 CDT (-0500)
 """
 
 import os
+import re
 import shutil
 import subprocess
 import configparser
@@ -285,3 +286,28 @@ def test_explode_get_fastas_file_by_locus(o_dir, e_dir, request):
             assert locus in k
             # assert that obs == expected
             assert v.seq == expected_sequences[k].seq
+
+
+def test_match_contigs_to_barcodes(o_dir, e_dir, request):
+    program = "bin/assembly/phyluce_assembly_match_contigs_to_barcodes"
+    output = os.path.join(o_dir, "barcode-check")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--contigs",
+        os.path.join(e_dir, "barcodes", "contigs"),
+        "--barcodes",
+        os.path.join(e_dir, "barcodes", "gallus.coi.fasta"),
+        "--output",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    observed = (
+        re.search("(Best.*\n)", stdout.decode("utf-8")).groups()[0].strip()
+    )
+    assert (
+        "Best BOLD systems match for locus comp17283_c0_seq1: Anas platyrhynchos"
+        in observed
+    )
