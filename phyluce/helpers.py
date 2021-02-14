@@ -27,7 +27,9 @@ class FullPaths(argparse.Action):
     """Expand user- and relative-paths"""
 
     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
+        setattr(
+            namespace, self.dest, os.path.abspath(os.path.expanduser(values))
+        )
 
 
 class CreateDir(argparse.Action):
@@ -109,7 +111,9 @@ def get_names_from_config(config, group):
 def run_checks(k, v, probes, verbose=True):
     try:
         assert probes[k] >= len(v)  # don't allow more matches than expected
-        assert len(set([i[0] for i in v])) == 1  # matches to more than one chromosome
+        assert (
+            len(set([i[0] for i in v])) == 1
+        )  # matches to more than one chromosome
         assert len(set([i[1] for i in v])) == 1  # multiple match directions
         return True
     except AssertionError:
@@ -154,97 +158,6 @@ def get_matches(lastz_file, splitchar, components, fish=False):
                 ]
             )
     return matches, probes
-
-
-def get_xml_data(xml, prnt=False):
-    xml = etree.parse(xml)
-    dbsnp = namedtuple(
-        "dbsnp",
-        "rsid,type,genotype,het_type,het_value,het_std_error,freq_allele,freq_freq,"
-        + "freq_sample_size,val_hapmap,val_other_pop,val_freq,val_2hit,val_cluster,"
-        + "val_1000G,val_suspect",
-    )
-    validity_terms = set(
-        [
-            "byHapMap",
-            "byOtherPop",
-            "suspect",
-            "byFrequency",
-            "by1000G",
-            "by2Hit2Allele",
-            "byCluster",
-        ]
-    )
-    if prnt:
-        print(
-            "rsid,type,genotype,het-type,het-value,het-std-error,freq-allele,freq-freq,"
-            + "freq-sample-size,val-hapmap,val-other-pop,val-freq,val-2hit,val-cluster,"
-            + "val-1000G,val-suspect"
-        )
-    snps = {}
-    for cnt, t in enumerate(
-        xml.getiterator("{http://www.ncbi.nlm.nih.gov/SNP/docsum}Rs")
-    ):
-        rsid = t.get("rsId")
-        typ = t.get("snpType")
-        geno = t.get("genotype")
-        h = t.find("{http://www.ncbi.nlm.nih.gov/SNP/docsum}Het")
-        if h is not None:
-            het = h.attrib
-        else:
-            het = {"type": None, "value": None, "stdError": None}
-        f = t.find("{http://www.ncbi.nlm.nih.gov/SNP/docsum}Frequency")
-        if f is not None:
-            freq = f.attrib
-        else:
-            freq = {"allele": None, "freq": None, "sampleSize": None}
-        validity = dict(
-            t.find("{http://www.ncbi.nlm.nih.gov/SNP/docsum}Validation").attrib
-        )
-        for missing in validity_terms.difference(set(validity.keys())):
-            validity[missing] = None
-        metadata = [
-            rsid,
-            typ,
-            geno,
-            het["type"],
-            het["value"],
-            het["stdError"],
-            freq["allele"],
-            freq["freq"],
-            freq["sampleSize"],
-            validity["byHapMap"],
-            validity["byOtherPop"],
-            validity["byFrequency"],
-            validity["by2Hit2Allele"],
-            validity["byCluster"],
-            validity["by1000G"],
-            validity["suspect"],
-        ]
-        if prnt:
-            print(
-                "rs{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}".format(
-                    rsid,
-                    typ,
-                    geno,
-                    het["type"],
-                    het["value"],
-                    het["stdError"],
-                    freq["allele"],
-                    freq["freq"],
-                    freq["sampleSize"],
-                    validity["byHapMap"],
-                    validity["byOtherPop"],
-                    validity["byFrequency"],
-                    validity["by2Hit2Allele"],
-                    validity["byCluster"],
-                    validity["by1000G"],
-                    validity["suspect"],
-                )
-            )
-        else:
-            snps[rsid] = dbsnp._make(metadata)
-    return snps
 
 
 def which(program):
@@ -332,20 +245,23 @@ def get_alignment_files(log, input_dir, input_format):
     log.info("Getting alignment files")
     alignments = []
     for ftype in get_file_extensions(input_format):
-        alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
+        alignments.extend(
+            glob.glob(os.path.join(input_dir, "*{}".format(ftype)))
+        )
     return alignments
 
 
-def write_alignments_to_outdir(log, outdir, alignments, format):
+def write_alignments_to_outdir(log, outdir, alignments, output_format):
     log.info("Writing output files")
     for tup in alignments:
         locus, aln = tup
         if aln.trimmed is not None:
             outname = "{}{}".format(
-                os.path.join(outdir, locus), get_file_extensions(format)[0]
+                os.path.join(outdir, locus),
+                get_file_extensions(output_format)[0],
             )
             with open(outname, "w") as outf:
-                outf.write(aln.trimmed.format(format))
+                outf.write(format(aln.trimmed, output_format))
         else:
             log.warn("DROPPED {0} from output".format(locus))
 

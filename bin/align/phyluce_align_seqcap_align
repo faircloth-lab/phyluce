@@ -21,41 +21,48 @@ import multiprocessing
 from Bio import SeqIO
 from collections import defaultdict
 
-from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file, write_alignments_to_outdir
+from phyluce.helpers import (
+    FullPaths,
+    CreateDir,
+    is_dir,
+    is_file,
+    write_alignments_to_outdir,
+)
 from phyluce.log import setup_logging
 
-#import pdb
+import pdb
+
 
 def get_args():
     parser = argparse.ArgumentParser(
         description="""Align and possibly trim records in a monolithic UCE FASTA file with MAFFT or MUSCLE""",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--fasta",
         required=True,
         action=FullPaths,
         type=is_file,
-        help="""The file containing FASTA reads associated with targted loci from """ +
-        """get_fastas_from_match_counts.py"""
+        help="""The file containing FASTA reads associated with targted loci from """
+        + """get_fastas_from_match_counts.py""",
     )
     parser.add_argument(
         "--output",
         required=True,
         action=CreateDir,
-        help="""The directory in which to store the resulting alignments."""
+        help="""The directory in which to store the resulting alignments.""",
     )
     parser.add_argument(
         "--taxa",
         required=True,
         type=int,
-        help="""Number of taxa expected in each alignment."""
+        help="""Number of taxa expected in each alignment.""",
     )
     parser.add_argument(
         "--aligner",
         choices=["muscle", "mafft"],
         default="mafft",
-        help="""The alignment engine to use."""
+        help="""The alignment engine to use.""",
     )
     parser.add_argument(
         "--output-format",
@@ -68,82 +75,84 @@ def get_args():
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--incomplete-matrix",
         dest="notstrict",
         action="store_true",
         default=False,
-        help="""Allow alignments that do not contain all --taxa."""
+        help="""Allow alignments that do not contain all --taxa.""",
     )
     parser.add_argument(
         "--no-trim",
         action="store_true",
         default=False,
-        help="""Align, but DO NOT trim alignments."""
+        help="""Align, but DO NOT trim alignments.""",
     )
     parser.add_argument(
         "--window",
         type=int,
         default=20,
-        help="""Sliding window size for trimming."""
+        help="""Sliding window size for trimming.""",
     )
     parser.add_argument(
         "--proportion",
         type=float,
         default=0.65,
-        help="""The proportion of taxa required to have sequence at alignment ends."""
+        help="""The proportion of taxa required to have sequence at alignment ends.""",
     )
     parser.add_argument(
         "--threshold",
         type=float,
         default=0.65,
-        help="""The proportion of residues required across the window in """ +
-        """proportion of taxa."""
+        help="""The proportion of residues required across the window in """
+        + """proportion of taxa.""",
     )
     parser.add_argument(
         "--max-divergence",
         type=float,
         default=0.20,
-        help="""The max proportion of sequence divergence allowed between any row """ +
-        """of the alignment and the alignment consensus."""
+        help="""The max proportion of sequence divergence allowed between any row """
+        + """of the alignment and the alignment consensus.""",
     )
     parser.add_argument(
         "--min-length",
         type=int,
         default=100,
-        help="""The minimum length of alignments to keep."""
+        help="""The minimum length of alignments to keep.""",
     )
     parser.add_argument(
         "--ambiguous",
         action="store_true",
         default=False,
-        help="""Allow reads in alignments containing N-bases."""
+        help="""Allow reads in alignments containing N-bases.""",
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""Process alignments in parallel using --cores for alignment. """ +
-        """This is the number of PHYSICAL CPUs."""
+        help="""Process alignments in parallel using --cores for alignment. """
+        + """This is the number of PHYSICAL CPUs.""",
     )
     return parser.parse_args()
 
 
 def build_locus_dict(log, loci, locus, record, ambiguous=False):
     if not ambiguous:
-        if not "N" in record.seq:
+        if "N" not in record.seq:
             loci[locus].append(record)
         else:
-            log.warn("Skipping {} because it contains ambiguous bases".format(locus))
+            log.warn(
+                "Skipping {} because it contains ambiguous bases".format(locus)
+            )
     else:
         loci[locus].append(record)
     return loci
@@ -152,7 +161,8 @@ def build_locus_dict(log, loci, locus, record, ambiguous=False):
 def create_locus_specific_fasta(sequences):
     fd, fasta_file = tempfile.mkstemp(suffix=".fasta")
     for seq in sequences:
-        os.write(fd, seq.format("fasta"))
+        # we need a bytes-like object
+        os.write(fd, seq.format("fasta").encode())
     os.close(fd)
     return fasta_file
 
@@ -166,18 +176,16 @@ def align(params):
     aln = Align(fasta)
     aln.run_alignment()
     if notrim:
-        aln.trim_alignment(
-                method="notrim"
-            )
+        aln.trim_alignment(method="notrim")
     else:
         aln.trim_alignment(
-                method="running",
-                window_size=window,
-                proportion=proportion,
-                threshold=threshold,
-                max_divergence=divergence,
-                min_len=min_len
-            )
+            method="running",
+            window_size=window,
+            proportion=proportion,
+            threshold=threshold,
+            max_divergence=divergence,
+            min_len=min_len,
+        )
     if aln.trimmed:
         sys.stdout.write(".")
     else:
@@ -200,15 +208,21 @@ def get_fasta_dict(log, args):
     # workon a copy so we can iterate and delete
     snapshot = copy.deepcopy(loci)
     # iterate over loci to check for all species at a locus
-    for locus, data in snapshot.iteritems():
+    for locus, data in list(snapshot.items()):
         if args.notstrict:
             if len(data) < 3:
                 del loci[locus]
-                log.warn("DROPPED locus {0}. Too few taxa (N < 3).".format(locus))
+                log.warn(
+                    "DROPPED locus {0}. Too few taxa (N < 3).".format(locus)
+                )
         else:
             if len(data) < args.taxa:
                 del loci[locus]
-                log.warn("DROPPED locus {0}. Alignment does not contain all {1} taxa.".format(locus, args.taxa))
+                log.warn(
+                    "DROPPED locus {0}. Alignment does not contain all {1} taxa.".format(
+                        locus, args.taxa
+                    )
+                )
     return loci
 
 
@@ -218,32 +232,47 @@ def main(args):
     # create the fasta dictionary
     loci = get_fasta_dict(log, args)
     log.info("Aligning with {}".format(str(args.aligner).upper()))
-    opts = [[args.window, args.threshold, args.no_trim, args.proportion, args.max_divergence, args.min_length] \
-            for i in range(len(loci))]
+    opts = [
+        [
+            args.window,
+            args.threshold,
+            args.no_trim,
+            args.proportion,
+            args.max_divergence,
+            args.min_length,
+        ]
+        for i in range(len(loci))
+    ]
     # combine loci and options
-    params = zip(loci.items(), opts)
-    log.info("Alignment begins. 'X' indicates dropped alignments (these are reported after alignment)")
+    params = list(zip(list(loci.items()), opts))
+    log.info(
+        "Alignment begins. 'X' indicates dropped alignments (these are reported after alignment)"
+    )
     # During alignment, drop into sys.stdout for progress indicator
     # because logging in multiprocessing is more painful than what
     # we really need.  Return to logging when alignment completes.
     if args.cores > 1:
-        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        assert (
+            args.cores <= multiprocessing.cpu_count()
+        ), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         alignments = pool.map(align, params)
     else:
-        alignments = map(align, params)
+        alignments = list(map(align, params))
     # kick the stdout down one line since we were using sys.stdout
     print("")
     # drop back into logging
     log.info("Alignment ends")
     # write the output files
-    write_alignments_to_outdir(log, args.output, alignments, args.output_format)
+    write_alignments_to_outdir(
+        log, args.output, alignments, args.output_format
+    )
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = get_args()
     # globally import Align method
     if args.aligner == "muscle":
