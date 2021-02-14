@@ -17,11 +17,26 @@ import glob
 import shutil
 import platform
 import subprocess
+import logging
 
 import pytest
 from Bio import AlignIO
 
 import pdb
+
+
+@pytest.fixture(autouse=True)
+def cleanup_files(request):
+    """cleanup extraneous log files"""
+
+    def clean():
+        log_files = os.path.join(
+            request.config.rootdir, "phyluce", "tests", "*.log"
+        )
+        for file in glob.glob(log_files):
+            os.remove(file)
+
+    request.addfinalizer(clean)
 
 
 @pytest.fixture(scope="module")
