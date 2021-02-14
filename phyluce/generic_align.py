@@ -143,9 +143,11 @@ class GenericAlign(object):
         # replace numpy convolve with trimming in from left then in from right
         for start_clip in range(good_alignment.size):
             # make sure we start on a "good" base
-            if good_alignment[start_clip] is not False:
+            if good_alignment[start_clip] != False:
                 # get successive window-sized slices
-                window = good_alignment[start_clip : start_clip + window_size]
+                window = good_alignment[
+                    start_clip : (start_clip + window_size)
+                ]
                 proportion = float(sum(window)) / len(window)
                 # stop if we hit a point where porportion of good bases > threshold
                 # this is he "good" start of an alignment
@@ -154,9 +156,9 @@ class GenericAlign(object):
         reverse_good_alignment = good_alignment[::-1]
         for end_clip in range(reverse_good_alignment.size):
             # make sure we start on a "good" base
-            if reverse_good_alignment[end_clip] is not False:
+            if reverse_good_alignment[end_clip] != False:
                 window = reverse_good_alignment[
-                    end_clip : end_clip + window_size
+                    end_clip : (end_clip + window_size)
                 ]
                 proportion = float(sum(window)) / len(window)
                 # stop if we hit a point where porportion of good bases > threshold

@@ -107,3 +107,35 @@ def test_align_trimal_trim(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_align_edge_trim(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_get_trimmed_alignments_from_untrimmed"
+    output = os.path.join(o_dir, "mafft-edge-trim")
+    # note that thus only uses alignemnts with an odd
+    # number of taxa so ties in base composition at a
+    # column do not cause random differences in expected output
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-for-edge-trim"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--output-format",
+        "nexus",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        print(name)
+        expected_file = os.path.join(e_dir, "mafft-edge-trim", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
