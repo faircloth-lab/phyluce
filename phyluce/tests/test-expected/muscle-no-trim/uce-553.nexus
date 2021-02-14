@@ -1,0 +1,97 @@
+#NEXUS
+begin data;
+dimensions ntax=4 nchar=1207;
+format datatype=dna missing=? gap=- interleave;
+matrix
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     ----------------------------------------------------------------------
+'uce-553_alligator_mississippiensis' ---------------------------------------------------------ATCTCCACATGC-
+'uce-553_gallus_gallus'              TTGCCTTTTGCTAACAGCACTGTAATTGTCTTTTGCTTACAAAACCATATCAATTTGATCTAAACATTTC
+
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     ---------------CATTTATATCTGTCACTTGCTGCATGTG---------------------------
+'uce-553_alligator_mississippiensis' ------------------TTATGTCTGTAAAATGAGGGGGGTGGGGAATCTAATATCT-------GCAGT
+'uce-553_gallus_gallus'              TTCCAATTTTTTATCATGTTTTGTCTGGAAAATGATAAAAGCT----ATCCAATAATTCATAAAAGCAAC
+
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     TATTCCTATAG----------------------------AAGTTTGATACGAGCCAGGAGCACAGGTACC
+'uce-553_alligator_mississippiensis' TGTTACTTTGGAATATGGCATTTATTGTATTTTTATTTAAAGTTTGAATATGAACAAAAAGACAATAACC
+'uce-553_gallus_gallus'              CATTATTACAGCAAGCTGCACTGATTTTATTTT------AAGTTTGAATGTGAACAACAAGATAATAACC
+
+'uce-553_rana_sphenocephafa'         -------------------------------CATG-----------------------------------
+'uce-553_peromyscus_maniculatus'     ACTCGCCC------GTGTCTGGAAACTCAT-TATGTGTGTACACAGTTCGGCAATGAGGAGATTCTGTTC
+'uce-553_alligator_mississippiensis' ATTAAACCGCTAATGTTTCTAGGAATCCATGAATGTTTATATACTGTTTTGAAATGATG-GATTCTATTA
+'uce-553_gallus_gallus'              ACGAAACCTTTAATGTTTCTAGGATTCTAC-AATGTTTGTACACAGTTTTGAGATGATG-GATTCTATTA
+
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     AAATTCATTACAACATTGCAGAAATTTTTTTTTTTTCAGATCTCTCCCTTTCTTAGCGATTAGCTTTTTT
+'uce-553_alligator_mississippiensis' AAATTCATTATACCATTGCTGAAA---TAATAAAAAAAAA----ATCTCTTTTTAGCTATTAGCTCTTTT
+'uce-553_gallus_gallus'              AAATTCATTATATCGTTGCTGGAA---TAATAAAAAAATATATCCTTTTTTCTTAGCTATTAGCTC-CTT
+
+'uce-553_rana_sphenocephafa'         ----------------------TTGTCACTGCATAACCTGACCCAGTCTGTGTAGCTACGAGTCAGCAGC
+'uce-553_peromyscus_maniculatus'     TTTTCCCTTTTCCTTTTTTTCCTTGCCA-TACTCAGCCTGACCCAGCCTGTGAAGCTGTAAGTTGGCAGC
+'uce-553_alligator_mississippiensis' TATT------------------TTGCCAGTACTCAGCCTGACCCAGTCTGTGAAGCTGCAAGTTGGCAGC
+'uce-553_gallus_gallus'              TATT------------------TTGCCAGTACTCAGTCTGACCCAGTCTGTGAAGCTGCAAGTTGGCAGC
+
+'uce-553_rana_sphenocephafa'         TGTGATTGCAGTAGAGATTTCACAGAGTGTAATTACTGCAGTGACACTAAGACTGAGAGGTACAAAGAAG
+'uce-553_peromyscus_maniculatus'     TGTGATTGCAGTACAGATTTCACACAGTGTAATTACTGCAGTGACACGCGGACTGAGAGGTACAAAGAAA
+'uce-553_alligator_mississippiensis' TGTGATTGCAGTACAGATTTCACACAGTGTAATTACTGCAGTGACACTAGGACTGAGAGGTACAAAGAA-
+'uce-553_gallus_gallus'              TGTGATTGCAGTACAGATTTCACACAGTGTAATTACTGCAGTGACACTAGGACTGAGAGGTACAAAGAA-
+
+'uce-553_rana_sphenocephafa'         GAAAGGAAAAAAAAAATAAAACGAGGCCCTACAGGTTATTAGCGCTAAACACTGGGAAAAAAAATGACAT
+'uce-553_peromyscus_maniculatus'     -----------------AAAAAGAGGCCCTACAGGTTATTAGCACTAAACACTGGG---AGAAATCAAAC
+'uce-553_alligator_mississippiensis' -----------------AAAAAGAGGCCCTACAGGTTATTAGCACTAAACACTGGG---AGAAATCAAAC
+'uce-553_gallus_gallus'              -----------------AAAAAGAGGCCCTACAGGTTATTAGCACTAAACACTGGG---AGAAATCAAAC
+
+'uce-553_rana_sphenocephafa'         GGAGAGTCAATGCGTAATTTCGAGGCTTATCAAGCCTCATCAGAAGCAGCAGGAGAGAGAGCCATGCACT
+'uce-553_peromyscus_maniculatus'     GAGGAGTCAATGCGTAATTTCGAGGCCTATCAAGCCTCATCAGGAACAGCAGGGAGGGAAGTGCCTCACT
+'uce-553_alligator_mississippiensis' GGAGAGTCAATGCGTAATTTCGAGGCCTATCAAGCCTCATCAGGAACAGCAGGGAGGAAAGTGCTTCACT
+'uce-553_gallus_gallus'              GGAGAGTCAATGCGTAATTTCGAGGCCTATCAAGCCTCATCAGGAACAGCAGGGAGGAAAGTGCTTCACT
+
+'uce-553_rana_sphenocephafa'         TCATCATCTCACTCTCTGACTCTTGTTGAAAATTACAGTAATTAAAAGAGAGCTAAGTACATTTCAGGCA
+'uce-553_peromyscus_maniculatus'     TCATCATCTCACTCTCTGACTTTTGTTGAAAATTACAGTAATTAAAAAAGAGCTAAGTACTTCTCAGGCA
+'uce-553_alligator_mississippiensis' TCATCATCTCACTCTCTGACTTTTGTTGAAAATTACAGTAATTAAAAAAGAGCTAAGTACTTCTCAGGCA
+'uce-553_gallus_gallus'              TCATCATCTCACTCTCTGACTTTTGTTGAAAATTACAGTAATTAAAAAAGAGCTAAGTACTTCTCAGGCA
+
+'uce-553_rana_sphenocephafa'         CGGGGTCCTTTTCTTTACCCACCACCTTTTAGTTGACTGCTGATTTTGTCTGACCTTTTCCTTGGCTCTG
+'uce-553_peromyscus_maniculatus'     AGGGGT-CTTTTCTTTACCCATCACCTTTTAGTTGGCTGCTGACTCTGTGTGACCTTTTCCTTGGCTCTG
+'uce-553_alligator_mississippiensis' AGGGGT-CTTTTCTTTACCCATCACCTTTTAGTTGGCTGCTGATTTTGTGTGACCTTTTTCTTGGCTCTG
+'uce-553_gallus_gallus'              AGGGGT-CTTTTCTTTACCCATCACCTTTTAGTTGGCTGCTGATTTTGTGTGACCTTTTTCTTGGCTCTG
+
+'uce-553_rana_sphenocephafa'         TCTGTTGCAGTCAACACAGATTCCTCCTGAATGGCTCTCTCCAACCTAATTACTATCTACTGGGTGATGT
+'uce-553_peromyscus_maniculatus'     TCTATCGCAGTCAACACAGATCTTTGTTGAACGGCTCTCTGAAACCTAATTACTATCTGCTGGGTGATGT
+'uce-553_alligator_mississippiensis' TCTATCGCAGTCAACACAGATCTTTGTTGAATGGCTCTCTAAAACCTAATTACTATCTGCTGGGTGATTT
+'uce-553_gallus_gallus'              TCTATCGCAGTCAACACAGATCTTTGTTGAATAGCTCTCTAAAACCTAATTACTATCTGCTGGGTGATTC
+
+'uce-553_rana_sphenocephafa'         AGTATTGATCA-AAAAGGTGGCATAGCAAAACAAGAGTACCGACACTGTGGCCCCAG-------------
+'uce-553_peromyscus_maniculatus'     AGTATTGATCAGAAAAGGTGGCACAGCAAAATAAGAGTACCAACACTGTGGCCCCAGCAATCGAAAAGTA
+'uce-553_alligator_mississippiensis' GGTATTGATCAGAAAAGGTGGCACAGCAAAATAAGAGTACCAGCACTGTGGCCCCAGCAATCGAAAAGTA
+'uce-553_gallus_gallus'              AGTATTGATCAGAAAAGGTGGCACAGCAAAATAAGAGTACCAGCACTGTGGCCTCAGCAATCGAAAAGTA
+
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     ATTCCAGCCCCATAGAAACGGCCCTTCCATTCCACTTATTAGAGGCAGCTGTGATGTTGCCAGATCGATA
+'uce-553_alligator_mississippiensis' ATTCCAGCCCCATAGAAACGTCCCTTCCATCCCACTTATTAGAAGCAGCTGTGATGTTGCCAAATCGATA
+'uce-553_gallus_gallus'              ATTCTAGCCCCATAGAAATGTCCCTTCCATCCCACTTATTAGAAGCAGCTGTGATGTTGCCAAATCGATA
+
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     CACCACACCGGAT---------------------------------------------------------
+'uce-553_alligator_mississippiensis' CACAACATTGAATTGCTTCTTTGACTAAAAAGCTTTTTTT---TCCCCCCAGAAGTCAGGTACAATCAGT
+'uce-553_gallus_gallus'              CACAACATTGAATTGCTTCTTTGACTAAAAAGCTCTTTTTTTATTTCTCCAGAAGTCGGGCACAATCAGT
+
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     ----------------------------------------------------------------------
+'uce-553_alligator_mississippiensis' GGCCTCTGACTTCAAAGGACTTTGCCCTACTGCTGTATTTAAGTGAATAAATTCTCCACTGGCAAATATC
+'uce-553_gallus_gallus'              GGCCTCTGACTTCAAAAGACTTTGCCCTAATGCTATATTTGAGTGAATAAATTCCCTGTTGGCAAATATT
+
+'uce-553_rana_sphenocephafa'         ----------------------------------------------------------------------
+'uce-553_peromyscus_maniculatus'     ----------------------------------------------------------------------
+'uce-553_alligator_mississippiensis' CCTTATGCCAGAGAATTAAGATTAAAAATC----------------------------------------
+'uce-553_gallus_gallus'              TCCCAGATCGGAAGGTTAAGATTAAAAATCACTATTTTTATGTAGACATTGTAATTTCACCTCTCCGCAG
+
+'uce-553_rana_sphenocephafa'         -----------------
+'uce-553_peromyscus_maniculatus'     -----------------
+'uce-553_alligator_mississippiensis' -----------------
+'uce-553_gallus_gallus'              CATTAAATATTGTTCTT
+
+;
+end;

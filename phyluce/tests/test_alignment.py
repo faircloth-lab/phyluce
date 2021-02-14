@@ -73,3 +73,34 @@ def test_seqcap_align_mafft_untrim(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_seqcap_align_muscle_untrim(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_seqcap_align"
+    output = os.path.join(o_dir, "muscle")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--fasta",
+        os.path.join(e_dir, "taxon-set.incomplete.fasta"),
+        "--output",
+        output,
+        "--taxa",
+        "4",
+        "--aligner",
+        "muscle",
+        "--output-format",
+        "nexus",
+        "--no-trim",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "muscle-no-trim", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
