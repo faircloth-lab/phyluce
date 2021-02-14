@@ -28,7 +28,9 @@ from phyluce.pth import get_user_path
 
 def get_args():
     """Get arguments from CLI"""
-    parser = argparse.ArgumentParser(description="""Assemble raw reads using ABySS""")
+    parser = argparse.ArgumentParser(
+        description="""Assemble raw reads using ABySS"""
+    )
     parser.add_argument(
         "--output",
         required=True,
@@ -72,7 +74,10 @@ def get_args():
         help="""Cleanup all intermediate Trinity files""",
     )
     parser.add_argument(
-        "--abyss-se", action="store_true", default=False, help="""Only use abyss-se"""
+        "--abyss-se",
+        action="store_true",
+        default=False,
+        help="""Only use abyss-se""",
     )
     # one of these is required.  The other will be set to None.
     input_data = parser.add_mutually_exclusive_group(required=True)
@@ -112,7 +117,9 @@ def run_abyss_pe(kmer, reads, cores, output, log):
     ]
     if reads.singleton:
         cmd.append(
-            "se={}".format(os.path.join(reads.singleton.dir, reads.singleton.file))
+            "se={}".format(
+                os.path.join(reads.singleton.dir, reads.singleton.file)
+            )
         )
     try:
         stdpth = "abyss-k{}.out.log".format(kmer)
@@ -253,7 +260,7 @@ def convert_abyss_contigs_to_velvet(contigs_file):
                 seq.description = ""
                 for degen in iupac:
                     if degen in seq.seq:
-                        seqstring = seq.seq.tostring()
+                        seqstring = str(seq.seq)
                         seqstring = seqstring.replace(degen, "N")
                         seq.seq = Seq(seqstring)
                 if len(seq) > 100:
@@ -269,7 +276,9 @@ def generate_symlinks(contig_dir, sample, contigs_file, log):
         contig_lname = os.path.join(contig_dir, sample)
         os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
     except:
-        log.warn("Unable to symlink {} to {}".format(contigs_file, contig_lname))
+        log.warn(
+            "Unable to symlink {} to {}".format(contigs_file, contig_lname)
+        )
 
 
 def main():
@@ -306,15 +315,21 @@ def main():
         # copy the read data over, combine singletons with read 1
         # and run the assembly for PE data.
         if not args.abyss_se and reads.r1 and reads.r2:
-            output = run_abyss_pe(args.kmer, reads, args.cores, sample_dir, log)
+            output = run_abyss_pe(
+                args.kmer, reads, args.cores, sample_dir, log
+            )
             if args.clean:
                 cleanup_abyss_assembly_folder(output, log)
         elif args.abyss_se:
-            output = run_abyss_se(args.kmer, reads, sample_dir, log, args.abyss_se)
+            output = run_abyss_se(
+                args.kmer, reads, sample_dir, log, args.abyss_se
+            )
             if args.clean:
                 cleanup_abyss_assembly_folder(output, log, single_end=True)
         elif reads.r1 and not reads.r2:
-            output = run_abyss_se(args.kmer, reads, sample_dir, log, args.abyss_se)
+            output = run_abyss_se(
+                args.kmer, reads, sample_dir, log, args.abyss_se
+            )
             if args.clean:
                 cleanup_abyss_assembly_folder(output, log, single_end=True)
         contigs_file = get_contigs_file_from_output(output)
