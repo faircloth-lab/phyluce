@@ -62,7 +62,7 @@ def e_dir(request):
 
 
 @pytest.mark.skipif(
-    platform.processor() == "arm64", reason="Wont run on arm64"
+    platform.processor() == "arm64", reason="Won't run on arm64"
 )
 def test_align_gblocks_trim(o_dir, e_dir, request):
     program = (
@@ -130,6 +130,7 @@ def test_align_edge_trim(o_dir, e_dir, request):
     # note that thus only uses alignemnts with an odd
     # number of taxa so ties in base composition at a
     # column do not cause random differences in expected output
+    # this also completes testing of generic_align and seqalign
     cmd = [
         os.path.join(request.config.rootdir, program),
         "--alignments",
@@ -157,11 +158,8 @@ def test_align_edge_trim(o_dir, e_dir, request):
 
 
 def test_align_missing_data_designators(o_dir, e_dir, request):
-    program = "bin/align//phyluce_align_add_missing_data_designators"
+    program = "bin/align/phyluce_align_add_missing_data_designators"
     output = os.path.join(o_dir, "mafft-missing-data-designators")
-    # note that thus only uses alignemnts with an odd
-    # number of taxa so ties in base composition at a
-    # column do not cause random differences in expected output
     cmd = [
         os.path.join(request.config.rootdir, program),
         "--alignments",
@@ -188,6 +186,37 @@ def test_align_missing_data_designators(o_dir, e_dir, request):
         print(name)
         expected_file = os.path.join(
             e_dir, "mafft-missing-data-designators", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_convert_degen_bases(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_convert_degen_bases"
+    output = os.path.join(o_dir, "mafft-degen-bases-converted")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-degen-bases"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--output-format",
+        "nexus",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        print(name)
+        expected_file = os.path.join(
+            e_dir, "mafft-degen-bases-converted", name
         )
         observed = open(output_file).read()
         expected = open(expected_file).read()

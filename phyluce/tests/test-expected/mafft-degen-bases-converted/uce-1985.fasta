@@ -1,0 +1,67 @@
+#NEXUS
+begin data;
+dimensions ntax=3 nchar=1013;
+format datatype=dna missing=? gap=- interleave;
+matrix
+'uce-1985_alligator_mississippiensis' NNNN---------------------aaaatccttggaatctaagccttttaaaatgttactgcatacaat
+'uce-1985_gallus_gallus'              NNNNgacagacatattaacccctcggaaatccgcaggatctaagcctttt-aagtgttgccgcacgcgat
+'uce-1985_peromyscus_maniculatus'     NNNN--------------------agaaagattccaattccaagtttctt--------------------
+
+'uce-1985_alligator_mississippiensis' tcccccataaaaagaggcatata-gcattaaagctctatatcacaagtggctttaatattgaaagtcggc
+'uce-1985_gallus_gallus'              tcttccataaaaagaggcatata-gcattaaagctctctatcacaagtggctttaatattgaaagccg--
+'uce-1985_peromyscus_maniculatus'     ----tcatggaaagaagagcgagcccaagaaaacgctatagaaaaggatgtgccaaaggcagagttctag
+
+'uce-1985_alligator_mississippiensis' actatagacagactaagatgacg---------ggcttgggaggagagacatctccgtatgtatcatagat
+'uce-1985_gallus_gallus'              ----tagacagacagaggtggagtggggggaagaaggaggagaagagacatc--------tatcctgtat
+'uce-1985_peromyscus_maniculatus'     aacaccagcag-----------------------------------gacaccatgctaggtctcatac--
+
+'uce-1985_alligator_mississippiensis' ggatttattgtattatgatcatattattattattatttttacttgaggcttgcatttctgtttgcaagtg
+'uce-1985_gallus_gallus'              gtatttatattattccagtc---agattattattatttttactccaggctt-cccctccgcttgcaagcg
+'uce-1985_peromyscus_maniculatus'     -----------------------cacctgctgtggccctgactggggacac-cctgtctgtgtggaag--
+
+'uce-1985_alligator_mississippiensis' aatcagtttttgtttctagcttttctcagggcatatactcagacctctgtggtacattgggctctattaa
+'uce-1985_gallus_gallus'              aatcaggttttgtgcgcagcttttctcagggcaccggcgcacggacctcggttacacagggctctattaa
+'uce-1985_peromyscus_maniculatus'     --------------------------------------------------------cctgactccattag
+
+'uce-1985_alligator_mississippiensis' gctgctgttcaatagtttggtgatattcagacaatattgaaacattcccaaatgaactttgcagggagac
+'uce-1985_gallus_gallus'              gccgctgttcaatagtttggtgatattcagacaatattgaaacattcccaaatgaactttgcagggagac
+'uce-1985_peromyscus_maniculatus'     ggc-ctcatcaatagttgggagatatccaggcgatattgaaacattttcaaatgaactttgcatagagac
+
+'uce-1985_alligator_mississippiensis' attttcattcgctgcctccctcctcatgcatattaacaaatggtatgcaaggcctcatttaattcactga
+'uce-1985_gallus_gallus'              attttcattcgctgcctccctcctcatgcatattaacaaatggtatgcaaggcctcatttaattcactga
+'uce-1985_peromyscus_maniculatus'     agtttcattcgctgcctccctcctcatgcatattaacaaatggtatgcgcggcctcatttaattcactga
+
+'uce-1985_alligator_mississippiensis' ttttacattcggatcactttctcttttacagctatttttaccgggcttcattaatctttgttgaatacaa
+'uce-1985_gallus_gallus'              ttttacattcggatcactttctcttttacagctatttttaccaggcttcattaatctttgttgaatacaa
+'uce-1985_peromyscus_maniculatus'     ttttacattcggatcactttctcttttacagctatttttaccgggcttcattaatctttgttgaatacaa
+
+'uce-1985_alligator_mississippiensis' tggcatacatctttaatgcggccgctgtcaagtcatatttcagtaagagctgcaaactgaatgacagcaa
+'uce-1985_gallus_gallus'              tggcatacatctttaatgcggccgctgtcaagtcatatttcagtaagagctgcaaactgaatgacagcaa
+'uce-1985_peromyscus_maniculatus'     tggcatacatctttaatgcggccgctgtcaagtcatatttcagcaggagctgcaaactgaatgacagcaa
+
+'uce-1985_alligator_mississippiensis' gcaatattaataaatttaacatagactatatcaatttttaacagaatgaatgtggaaagctaaatgtatt
+'uce-1985_gallus_gallus'              gcaatattaataaatttaacatagactatatcaatttttaacagaatgaatgtggaaagctaaatgtatt
+'uce-1985_peromyscus_maniculatus'     gcaatattaataaatttaacatagactatatcaatttttaacagaatgagtgtggaaagctaaatgtatt
+
+'uce-1985_alligator_mississippiensis' atttttcgtttaaatcatagggtttatcaccggttaagtagcagcgat--------------ttcgggaa
+'uce-1985_gallus_gallus'              atttttcgtttaaatcatagggtttatcaccggttaagtagcagcgat--------------ttcgggaa
+'uce-1985_peromyscus_maniculatus'     atttttcatttaaatcatagggtttatcaccggttaagtagtagcagtgatttgggggtgggtgggggag
+
+'uce-1985_alligator_mississippiensis' acttgtgacgtgccgtacaaatagatttacatctcattaataagtaaattaggcaaatgcctttcaagtt
+'uce-1985_gallus_gallus'              acttgtgacgtgccgtacaaatagatttacatctcattaataagtaaattaggcaaatgcctttcaagtt
+'uce-1985_peromyscus_maniculatus'     gcttgtgacgtgccacacaaatagattta-----------------------------------------
+
+'uce-1985_alligator_mississippiensis' cagacaagtacataagtgtaatctccat------------------------------------------
+'uce-1985_gallus_gallus'              cagacaagtacataagtgtaatctccatattaaaggagtagtctttgataaaccaccgaggaattgcagc
+'uce-1985_peromyscus_maniculatus'     ----------------------------------------------------------------------
+
+'uce-1985_alligator_mississippiensis' ----------------------------------------------------------------------
+'uce-1985_gallus_gallus'              agccaactatgtgacatgttgccagtgcctgaactcttccacattcccacctttaattacactggttcat
+'uce-1985_peromyscus_maniculatus'     ----------------------------------------------------------------------
+
+'uce-1985_alligator_mississippiensis' ---------------------------------
+'uce-1985_gallus_gallus'              tactaaagagataagtgtctctccagttaagat
+'uce-1985_peromyscus_maniculatus'     ---------------------------------
+
+;
+end;
