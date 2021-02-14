@@ -31,10 +31,10 @@ def o_dir(request):
     )
     os.mkdir(directory)
 
-    # def clean():
-    #    shutil.rmtree(directory)
+    def clean():
+        shutil.rmtree(directory)
 
-    # request.addfinalizer(clean)
+    request.addfinalizer(clean)
     return directory
 
 
@@ -67,7 +67,6 @@ def test_align_gblocks_trim(o_dir, e_dir, request):
         "--cores",
         "1",
     ]
-    pdb.set_trace()
     proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -75,6 +74,36 @@ def test_align_gblocks_trim(o_dir, e_dir, request):
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-gblocks", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_trimal_trim(o_dir, e_dir, request):
+    program = (
+        "bin/align/phyluce_align_get_trimal_trimmed_alignments_from_untrimmed"
+    )
+    output = os.path.join(o_dir, "mafft-trimal")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--output-format",
+        "nexus",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "mafft-trimal", name)
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
