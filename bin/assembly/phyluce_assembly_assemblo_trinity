@@ -21,6 +21,9 @@ import platform
 import textwrap
 import subprocess
 import configparser
+
+import colorful as cf
+
 from phyluce.helpers import FullPaths, is_dir, is_file
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
@@ -31,7 +34,9 @@ from phyluce.pth import get_user_path, get_user_param
 
 def get_args():
     """Get arguments from CLI"""
-    parser = argparse.ArgumentParser(description="""Assemble raw reads using trinity""")
+    parser = argparse.ArgumentParser(
+        description="""Assemble raw reads using trinity"""
+    )
     parser.add_argument(
         "--output",
         required=True,
@@ -186,7 +191,9 @@ def run_trinity_pe(trinity, reads, cores, min_kmer, log):
             for f in [r1, r2]:
                 os.remove(f)
     except:
-        log.warn("Did not clean all fastq/fasta files from {}".format(reads.r1.dir))
+        log.warn(
+            "Did not clean all fastq/fasta files from {}".format(reads.r1.dir)
+        )
     return reads.r1.dir
 
 
@@ -246,7 +253,9 @@ def run_trinity_se(trinity, reads, cores, min_kmer, log):
             for f in [r1]:
                 os.remove(f)
     except:
-        log.warn("Did not clean all fastq/fasta files from {}".format(reads.r1.dir))
+        log.warn(
+            "Did not clean all fastq/fasta files from {}".format(reads.r1.dir)
+        )
     return reads.r1.dir
 
 
@@ -263,7 +272,9 @@ def generate_symlinks(contig_dir, sample, reads, log):
         contig_lname = os.path.join(contig_dir, sample)
         os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
     except:
-        log.warn("Unable to symlink {} to {}".format(trinity_fname, contig_lname))
+        log.warn(
+            "Unable to symlink {} to {}".format(trinity_fname, contig_lname)
+        )
 
 
 def cleanup_trinity_assembly_folder(pth, log):
@@ -275,7 +286,9 @@ def cleanup_trinity_assembly_folder(pth, log):
         assert "Trinity.fasta" in names
         assert "trinity.log" in names
     except:
-        raise IOError("Neither Trinity.fasta nor trinity.log were found in output.")
+        raise IOError(
+            "Neither Trinity.fasta nor trinity.log were found in output."
+        )
     for file in files:
         if not os.path.basename(file) in ("Trinity.fasta", "trinity.log"):
             if os.path.isfile(file) or os.path.islink(file):
@@ -286,14 +299,10 @@ def cleanup_trinity_assembly_folder(pth, log):
 
 def main():
     if platform.system() == "Darwin":
-        text = (
-            "NOTE: assemblo_trinity and Trinity are no longer supported "
-            "on Mac OS. Trinity has been consistently hard to build on Mac OS "
-            "and we will no longer be supporting it (unless it becomes"
-            + " easier to build).  We suggest you use Trinity on Linux "
-            + "_OR_ ABYSS, itero, or spades on Mac OS."
-        )
-        print(textwrap.fill(text))
+        print(cf.bold_coral(" NOTICE ".center(65, "!")))
+        print(cf.bold_coral(" Trinity is not supported on MacOS ".center(65)))
+        print(cf.bold_coral(" Use spades, velvet, or abyss ".center(65)))
+        print(cf.bold_coral(".".center(65, ".")))
         sys.exit()
     # get args and options
     args = get_args()
