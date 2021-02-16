@@ -493,3 +493,39 @@ def test_align_extract_taxon_fasta_from_alignments(o_dir, e_dir, request):
     expected = SeqIO.to_dict(SeqIO.parse(expected_file, "fasta"))
     for name, observed in observed.items():
         assert expected[name].seq == observed.seq
+
+
+def test_align_filter_alignments(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_filter_alignments"
+    output = os.path.join(o_dir, "mafft-gblocks-filtered-alignments")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--output",
+        output,
+        "--input-format",
+        "nexus",
+        "--containing-data-for",
+        "gallus_gallus",
+        "--min-length",
+        "600",
+        "--min-taxa",
+        "3",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = [
+        os.path.basename(i) for i in glob.glob(os.path.join(output, "*"))
+    ]
+    assert output_files, "There are no output files"
+    expected_files = [
+        os.path.basename(i)
+        for i in glob.glob(
+            os.path.join(e_dir, "mafft-gblocks-filtered-alignments", "*")
+        )
+    ]
+    assert set(output_files) == set(expected_files)
