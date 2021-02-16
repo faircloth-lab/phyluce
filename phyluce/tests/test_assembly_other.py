@@ -13,7 +13,7 @@ Created on 06 July 2018 15:37 CDT (-0500)
 """
 
 import os
-import re
+import glob
 import shutil
 import subprocess
 import configparser
@@ -24,6 +24,20 @@ import pytest
 from Bio import SeqIO
 
 import pdb
+
+
+@pytest.fixture(autouse=True)
+def cleanup_files(request):
+    """cleanup extraneous log files"""
+
+    def clean():
+        log_files = os.path.join(
+            request.config.rootdir, "phyluce", "tests", "*.log"
+        )
+        for file in glob.glob(log_files):
+            os.remove(file)
+
+    request.addfinalizer(clean)
 
 
 @pytest.fixture(scope="module")
@@ -105,6 +119,7 @@ def test_get_fastq_lengths(o_dir, e_dir, raw_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     stdout_str = stdout.decode("utf-8")
     stdout_str_split = stdout_str.strip().split(",")[1:]
     expected = "7404,677024,91.44030253916802,0.1993821226016458,40,100,100.0"
@@ -119,6 +134,7 @@ def test_get_match_counts_complete(o_dir, e_dir, conf_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     obs_config = configparser.RawConfigParser(allow_no_value=True)
     obs_config.optionxform = str
     obs_config.read(output_config)
@@ -138,6 +154,7 @@ def test_get_match_counts_incomplete(o_dir, e_dir, conf_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     obs_config = configparser.RawConfigParser(allow_no_value=True)
     obs_config.optionxform = str
     obs_config.read(output_config)
@@ -184,6 +201,7 @@ def test_get_fastas_complete(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     # read in the new outfile
     observed_sequences = SeqIO.to_dict(SeqIO.parse(o_file, "fasta"))
     # read in the expected outfile
@@ -202,6 +220,7 @@ def test_get_fastas_incomplete(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     # read in the new outfile
     observed_sequences = SeqIO.to_dict(SeqIO.parse(o_file, "fasta"))
     # read in the expected outfile
@@ -228,6 +247,7 @@ def test_explode_get_fastas_file_by_taxon(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     # iterate over observed and expected data and get file stats
     expected = os.path.join(e_dir, "exploded-by-taxa")
     for taxon in [
@@ -264,6 +284,7 @@ def test_explode_get_fastas_file_by_locus(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     # iterate over observed and expected data and get file stats
     expected = os.path.join(e_dir, "exploded-by-locus")
     for locus in [
@@ -286,28 +307,3 @@ def test_explode_get_fastas_file_by_locus(o_dir, e_dir, request):
             assert locus in k
             # assert that obs == expected
             assert v.seq == expected_sequences[k].seq
-
-
-def test_match_contigs_to_barcodes(o_dir, e_dir, request):
-    program = "bin/assembly/phyluce_assembly_match_contigs_to_barcodes"
-    output = os.path.join(o_dir, "barcode-check")
-    cmd = [
-        os.path.join(request.config.rootdir, program),
-        "--contigs",
-        os.path.join(e_dir, "barcodes", "contigs"),
-        "--barcodes",
-        os.path.join(e_dir, "barcodes", "gallus.coi.fasta"),
-        "--output",
-        output,
-    ]
-    proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    stdout, stderr = proc.communicate()
-    observed = (
-        re.search("(Best.*\n)", stdout.decode("utf-8")).groups()[0].strip()
-    )
-    assert (
-        "Best BOLD systems match for locus comp17283_c0_seq1: Anas platyrhynchos"
-        in observed
-    )

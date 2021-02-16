@@ -13,7 +13,9 @@ Created on 25 March 2020 10:24 CDT (-0500)
 """
 
 import os
+import re
 import csv
+import glob
 import shutil
 import platform
 import subprocess
@@ -23,6 +25,20 @@ import subprocess
 import pytest
 
 import pdb
+
+
+@pytest.fixture(autouse=True)
+def cleanup_files(request):
+    """cleanup extraneous log files"""
+
+    def clean():
+        log_files = os.path.join(
+            request.config.rootdir, "phyluce", "tests", "*.log"
+        )
+        for file in glob.glob(log_files):
+            os.remove(file)
+
+    request.addfinalizer(clean)
 
 
 @pytest.fixture(scope="module")
@@ -98,6 +114,7 @@ def match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     print(stderr)
     observed_count = get_match_count_to_probes_results(csv_pth)
     expected_count = get_match_count_to_probes_results(
@@ -122,3 +139,29 @@ def check_lastz_file(o_dir, e_dir):
 def test_match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
     match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request)
     check_lastz_file(o_dir, e_dir)
+
+
+def test_match_contigs_to_barcodes(o_dir, e_dir, request):
+    program = "bin/assembly/phyluce_assembly_match_contigs_to_barcodes"
+    output = os.path.join(o_dir, "barcode-check")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--contigs",
+        os.path.join(e_dir, "barcodes", "contigs"),
+        "--barcodes",
+        os.path.join(e_dir, "barcodes", "gallus.coi.fasta"),
+        "--output",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    observed = (
+        re.search("(Best.*\n)", stdout.decode("utf-8")).groups()[0].strip()
+    )
+    assert (
+        "Best BOLD systems match for locus comp17283_c0_seq1: Anas platyrhynchos"
+        in observed
+    )

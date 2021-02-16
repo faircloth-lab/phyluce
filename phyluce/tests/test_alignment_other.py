@@ -46,10 +46,10 @@ def o_dir(request):
     )
     os.mkdir(directory)
 
-    # def clean():
-    #    shutil.rmtree(directory)
+    def clean():
+        shutil.rmtree(directory)
 
-    # request.addfinalizer(clean)
+    request.addfinalizer(clean)
     return directory
 
 
@@ -86,6 +86,7 @@ def test_align_gblocks_trim(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-gblocks", name)
@@ -116,6 +117,7 @@ def test_align_trimal_trim(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-trimal", name)
@@ -148,6 +150,7 @@ def test_align_edge_trim(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         print(name)
@@ -181,6 +184,7 @@ def test_align_missing_data_designators(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         print(name)
@@ -212,6 +216,7 @@ def test_align_convert_degen_bases(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         print(name)

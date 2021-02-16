@@ -13,6 +13,8 @@ Created on 06 July 2018 15:27 CDT (-0500)
 """
 
 import os
+import re
+import glob
 import shutil
 import platform
 import subprocess
@@ -21,6 +23,20 @@ from shared_funcs import get_contig_lengths_and_counts
 import pytest
 
 import pdb
+
+
+@pytest.fixture(autouse=True)
+def cleanup_files(request):
+    """cleanup extraneous log files"""
+
+    def clean():
+        log_files = os.path.join(
+            request.config.rootdir, "phyluce", "tests", "*.log"
+        )
+        for file in glob.glob(log_files):
+            os.remove(file)
+
+    request.addfinalizer(clean)
 
 
 @pytest.fixture(scope="module")
@@ -85,6 +101,7 @@ def test_spades_assembly(o_dir, raw_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     print(stderr)
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
@@ -124,6 +141,7 @@ def test_abyss_assembly(o_dir, raw_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
             o_dir,
@@ -161,6 +179,7 @@ def test_velvet_assembly(o_dir, raw_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
             o_dir,
@@ -183,7 +202,9 @@ def test_velvet_assembly(o_dir, raw_dir, e_dir, request):
     assert abs(observed_length - expected_length) < 2000
 
 
-@pytest.mark.skipif(platform.system() == "Darwin", reason="requires linux")
+@pytest.mark.skipif(
+    platform.system() == "Darwin", reason="Not support on MacOS"
+)
 def test_trinity_assembly(o_dir, raw_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_assemblo_trinity"
     cmd = [
@@ -201,6 +222,7 @@ def test_trinity_assembly(o_dir, raw_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     observed_count, observed_length = get_contig_lengths_and_counts(
         os.path.join(
             o_dir,

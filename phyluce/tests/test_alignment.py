@@ -67,6 +67,7 @@ def test_seqcap_align_mafft_untrim(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-no-trim", name)
@@ -98,6 +99,7 @@ def test_seqcap_align_muscle_untrim(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "muscle-no-trim", name)
