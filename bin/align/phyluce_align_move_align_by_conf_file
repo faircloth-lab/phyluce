@@ -16,7 +16,7 @@ import os
 import glob
 import shutil
 import argparse
-import ConfigParser
+import configparser
 from phyluce.helpers import is_dir, FullPaths, is_file, CreateDir
 
 import pdb
@@ -25,62 +25,65 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Move alignment files as denoted by config file (or do not move if using --opposite)""")
+        description="""Move alignment files as denoted by config file (or do not move if using --opposite)"""
+    )
     parser.add_argument(
-            "--conf",
-            required=True,
-            action=FullPaths,
-            type=is_file,
-            help="""The configuration file giving locus names"""
-        )
+        "--conf",
+        required=True,
+        action=FullPaths,
+        type=is_file,
+        help="""The configuration file giving locus names""",
+    )
     parser.add_argument(
-            "--alignments",
-            required=True,
-            action=FullPaths,
-            type=is_dir,
-            help="""The input directory for the alignments"""
-        )
+        "--alignments",
+        required=True,
+        action=FullPaths,
+        type=is_dir,
+        help="""The input directory for the alignments""",
+    )
     parser.add_argument(
-            "--output",
-            required=True,
-            action=CreateDir,
-            help="""The output directory for the alignments"""
-        )
+        "--output",
+        required=True,
+        action=CreateDir,
+        help="""The output directory for the alignments""",
+    )
     parser.add_argument(
-            "--sections",
-            nargs='+',
-            default=None,
-            help="""The sections of files to use as a filter (defaults to all)""",
-        )
+        "--sections",
+        nargs="+",
+        default=None,
+        help="""The sections of files to use as a filter (defaults to all)""",
+    )
     parser.add_argument(
-            "--opposite",
-            action="store_true",
-            default=False,
-            help="""Move alignments based on what is NOT in the conf file""",
-        )
+        "--opposite",
+        action="store_true",
+        default=False,
+        help="""Move alignments based on what is NOT in the conf file""",
+    )
     parser.add_argument(
-            "--extension",
-            type=str,
-            default="nex",
-            help="""The extension of the files to move""",
-        )
+        "--extension",
+        type=str,
+        default="nex",
+        help="""The extension of the files to move""",
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
-    conf = ConfigParser.RawConfigParser(allow_no_value=True)
-    #conf = ConfigParser.ConfigParser()
+    conf = configparser.RawConfigParser(allow_no_value=True)
+    # conf = ConfigParser.ConfigParser()
     conf.read(args.conf)
     if not args.sections:
         args.sections = conf.sections()
-    #pdb.set_trace()
+    # pdb.set_trace()
     temp_items = []
     for section in args.sections:
         temp_items.extend([i[0] for i in conf.items(section)])
     items = set(temp_items)
-    #pdb.set_trace()
-    for src in glob.glob(os.path.join(args.alignments, '*.{}*'.format(args.extension))):
+    # pdb.set_trace()
+    for src in glob.glob(
+        os.path.join(args.alignments, "*.{}*".format(args.extension))
+    ):
         basename = os.path.basename(src)
         if not args.opposite:
             if basename in items:
@@ -93,5 +96,6 @@ def main():
             else:
                 pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
