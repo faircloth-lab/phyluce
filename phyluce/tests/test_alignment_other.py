@@ -50,7 +50,7 @@ def o_dir(request):
     def clean():
         shutil.rmtree(directory)
 
-    # request.addfinalizer(clean)
+    request.addfinalizer(clean)
     return directory
 
 
@@ -466,3 +466,31 @@ def test_align_extract_taxa_from_alignments_include(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_align_extract_taxon_fasta_from_alignments(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_extract_taxon_fasta_from_alignments"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-gallus.fasta")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--output",
+        output,
+        "--input-format",
+        "nexus",
+        "--taxon",
+        "gallus_gallus",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    assert output, "There are is no output"
+    expected_file = os.path.join(e_dir, "mafft-gblocks-clean-gallus.fasta")
+    pdb.set_trace()
+    observed = SeqIO.to_dict(SeqIO.parse(output, "fasta"))
+    expected = SeqIO.to_dict(SeqIO.parse(expected_file, "fasta"))
+    for name, observed in observed.items():
+        assert expected[name].seq == observed.seq
