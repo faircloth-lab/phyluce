@@ -88,7 +88,9 @@ def test_align_gblocks_trim(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-gblocks", name)
         observed = open(output_file).read()
@@ -119,7 +121,9 @@ def test_align_trimal_trim(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-trimal", name)
         observed = open(output_file).read()
@@ -152,7 +156,9 @@ def test_align_edge_trim(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         print(name)
         expected_file = os.path.join(e_dir, "mafft-edge-trim", name)
@@ -186,7 +192,9 @@ def test_align_missing_data_designators(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         print(name)
         expected_file = os.path.join(
@@ -218,7 +226,9 @@ def test_align_convert_degen_bases(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         print(name)
         expected_file = os.path.join(
@@ -250,7 +260,9 @@ def test_align_convert_align_mafft_fasta_to_nexus(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-fasta-to-nexus", name)
         observed = open(output_file).read()
@@ -281,7 +293,9 @@ def test_align_convert_align_mafft_fasta_to_phylip_relaxed(
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(
             e_dir, "mafft-fasta-to-phylip-relaxed", name
@@ -312,7 +326,9 @@ def test_align_convert_align_mafft_nexus_to_fasta(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-nexus-to-fasta", name)
         observed = open(output_file).read()
@@ -338,7 +354,9 @@ def test_align_explode_alignments_by_taxon(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-exploded-by-taxon", name)
         observed = SeqIO.to_dict(SeqIO.parse(output_file, "fasta"))
@@ -357,7 +375,7 @@ def test_align_remove_locus_name(o_dir, e_dir, request):
         "--output",
         output,
         "--input-format",
-        "fasta",
+        "nexus",
         "--output-format",
         "nexus",
         "--cores",
@@ -368,7 +386,9 @@ def test_align_remove_locus_name(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-gblocks-clean", name)
         observed = open(output_file).read()
@@ -399,7 +419,9 @@ def test_align_extract_taxa_from_alignments_exclude(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(
             e_dir, "mafft-gblocks-clean-drop-gallus-gallus", name
@@ -434,7 +456,9 @@ def test_align_extract_taxa_from_alignments_include(o_dir, e_dir, request):
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     # pdb.set_trace()
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(
             e_dir, "mafft-gblocks-clean-keep-gallus-and-peromyscus", name
