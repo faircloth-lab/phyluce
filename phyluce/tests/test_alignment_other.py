@@ -615,3 +615,36 @@ def test_align_concatenate_fasta_to_phylip(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_align_get_align_summary_data(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_get_align_summary_data"
+    output = os.path.join(o_dir, "gblocks-clean-align-summary.csv")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--input-format",
+        "nexus",
+        "--output-stats",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    assert output, "There are no output files"
+    output_dict = {}
+    with (open(output)) as output_file:
+        for line in output_file:
+            ls = line.strip().split(",")
+            output_dict[ls[0]] = ",".join(ls[1:])
+    expected = os.path.join(e_dir, "gblocks-clean-align-summary.csv")
+    expected_dict = {}
+    with (open(expected)) as expected_file:
+        for line in expected_file:
+            ls = line.strip().split(",")
+            expected_dict[ls[0]] = ",".join(ls[1:])
+    for k, v in output_dict.items():
+        assert expected_dict[k] == v

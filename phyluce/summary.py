@@ -51,12 +51,16 @@ def get_stats(work):
     meta.taxa = len(aln)
     meta.characters, meta.percent_missing = get_characters(aln, nucleotides)
     meta.nucleotides = Counter()
-    for k, v in meta.characters.iteritems():
+    for k, v in meta.characters.items():
         if k in nucleotides:
-            meta.nucleotides.update({k:v})
+            meta.nucleotides.update({k: v})
     meta.gaps = meta.characters["-"]
     meta.missing = meta.characters["?"]
-    meta.sum_informative_sites, meta.sum_differences, meta.sum_counted_sites = sites.compute_informative_sites(aln)
+    (
+        meta.sum_informative_sites,
+        meta.sum_differences,
+        meta.sum_counted_sites,
+    ) = sites.compute_informative_sites(aln)
     return meta
 
 
@@ -64,7 +68,7 @@ def get_lengths(summary):
     lengths = numpy.array([aln.length for aln in summary])
     total = numpy.sum(lengths)
     mean = numpy.mean(lengths)
-    ci  = 1.96 * (numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths)))
+    ci = 1.96 * (numpy.std(lengths, ddof=1) / numpy.sqrt(len(lengths)))
     min = numpy.min(lengths)
     max = numpy.max(lengths)
     return total, mean, ci, min, max
@@ -74,7 +78,7 @@ def get_sites(summary):
     sites = numpy.array([aln.sum_informative_sites for aln in summary])
     total = numpy.sum(sites)
     mean = numpy.mean(sites)
-    ci  = 1.96 * (numpy.std(sites, ddof=1) / numpy.sqrt(len(sites)))
+    ci = 1.96 * (numpy.std(sites, ddof=1) / numpy.sqrt(len(sites)))
     min = numpy.min(sites)
     max = numpy.max(sites)
     return total, mean, ci, min, max
@@ -83,7 +87,7 @@ def get_sites(summary):
 def get_taxa(summary):
     taxa = numpy.array([aln.taxa for aln in summary])
     mean = numpy.mean(taxa)
-    ci  = 1.96 * (numpy.std(taxa, ddof=1) / numpy.sqrt(len(taxa)))
+    ci = 1.96 * (numpy.std(taxa, ddof=1) / numpy.sqrt(len(taxa)))
     min = numpy.min(taxa)
     max = numpy.max(taxa)
     cnt = Counter(taxa)
@@ -93,7 +97,7 @@ def get_taxa(summary):
 def get_percent_missing(summary):
     missing = numpy.array([aln.percent_missing for aln in summary])
     mean = numpy.mean(missing)
-    ci  = 1.96 * (numpy.std(missing, ddof=1) / numpy.sqrt(len(missing)))
+    ci = 1.96 * (numpy.std(missing, ddof=1) / numpy.sqrt(len(missing)))
     min = numpy.min(missing)
     max = numpy.max(missing)
     return mean, ci, min, max
@@ -122,9 +126,9 @@ def get_matrix_percentages(t_cnt):
         # add a little fudge factor to deal with floats
         stops[i] = math.ceil((i - 0.01) * mx)
     percentages = {}
-    for percent, stop in stops.iteritems():
+    for percent, stop in stops.items():
         total = 0
-        for cnt, aln in t_cnt.iteritems():
+        for cnt, aln in t_cnt.items():
             if cnt >= stop:
                 total += aln
         percentages[percent] = total
@@ -186,10 +190,12 @@ def log_matrix_summary(log, percentages):
     text = " Data matrix completeness summary "
     log.info(text.center(65, "-"))
     for k in sorted(percentages.keys()):
-        log.info("[Matrix {0}%]\t\t{1} alignments".format(
-            int(k * 100),
-            percentages[k],
-        ))
+        log.info(
+            "[Matrix {0}%]\t\t{1} alignments".format(
+                int(k * 100),
+                percentages[k],
+            )
+        )
 
 
 def log_taxa_dist(log, show_taxon_counts, t_cnt):
@@ -197,23 +203,29 @@ def log_taxa_dist(log, show_taxon_counts, t_cnt):
         text = " Alignment counts by taxa present "
         log.info(text.center(65, "-"))
         for k in sorted(t_cnt.keys()):
-            log.info("[Taxa] {0} alignments contain {1:,} taxa".format(
-                t_cnt[k],
-                k,
-            ))
+            log.info(
+                "[Taxa] {0} alignments contain {1:,} taxa".format(
+                    t_cnt[k],
+                    k,
+                )
+            )
 
 
 def log_character_dist(log, all_bases):
     text = " Character counts "
     log.info(text.center(65, "-"))
     for k in sorted(all_bases.keys()):
-        if k in ['A','C','G','T','a','c','g','t', '-', '?']:
-            log.info("[Characters] '{0}' is present {1:,} times".format(
-                k,
-                all_bases[k],
-            ))
+        if k in ["A", "C", "G", "T", "a", "c", "g", "t", "-", "?"]:
+            log.info(
+                "[Characters] '{0}' is present {1:,} times".format(
+                    k,
+                    all_bases[k],
+                )
+            )
         else:
-            log.warn("[Characters] '{0}' is present {1:,} times".format(
-                k,
-                all_bases[k],
-            ))
+            log.warn(
+                "[Characters] '{0}' is present {1:,} times".format(
+                    k,
+                    all_bases[k],
+                )
+            )

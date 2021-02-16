@@ -12,13 +12,14 @@ of alignments having more than "--percent" of "--taxa" taxa.
 """
 
 
-#import os
-#import math
-#import numpy
+# import os
+# import math
+# import numpy
 import argparse
 import multiprocessing
-#from Bio import AlignIO
-#from collections import Counter
+
+# from Bio import AlignIO
+# from collections import Counter
 
 from phyluce import summary
 from phyluce.helpers import is_dir, FullPaths, get_alignment_files
@@ -30,19 +31,27 @@ import pdb
 def get_args():
     parser = argparse.ArgumentParser(
         description="""Compute summary statistics for alignments in parallel""",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--alignments",
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="""The directory containing alignments to be summarized."""
+        help="""The directory containing alignments to be summarized.""",
     )
     parser.add_argument(
         "--input-format",
         dest="input_format",
-        choices=["fasta", "nexus", "phylip", "phylip-relaxed", "clustal", "emboss", "stockholm"],
+        choices=[
+            "fasta",
+            "nexus",
+            "phylip",
+            "phylip-relaxed",
+            "clustal",
+            "emboss",
+            "stockholm",
+        ],
         default="nexus",
         help="""The input alignment format.""",
     )
@@ -57,21 +66,21 @@ def get_args():
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""Process alignments in parallel using --cores for alignment. """ +
-        """This is the number of PHYSICAL CPUs."""
+        help="""Process alignments in parallel using --cores for alignment. """
+        + """This is the number of PHYSICAL CPUs.""",
     )
     parser.add_argument(
         "--output-stats",
@@ -86,22 +95,37 @@ def write_summary_info(log, summary_data, output):
     text = " Output Stats "
     log.info(text.center(65, "-"))
     log.info("Writing locus info to {}".format(output))
-    with open(output, 'w') as outfile:
-        outfile.write("aln,length,sites,differences,characters,gc content,gaps,a count, c count, g count, t count\n")
+    with open(output, "w") as outfile:
+        outfile.write(
+            "aln,length,sites,differences,characters,gc content,gaps,a count, c count, g count, t count\n"
+        )
         for aln in summary_data:
-            outfile.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(
-                aln.name,
-                aln.length,
-                aln.sum_informative_sites,
-                aln.sum_differences,
-                aln.sum_counted_sites,
-                round(float(sum([aln.characters["G"], aln.characters["C"]])) / sum([count for char,count in aln.characters.iteritems() if char != '-']) * 100, 2),
-                aln.characters["-"],
-                aln.characters["A"],
-                aln.characters["C"],
-                aln.characters["G"],
-                aln.characters["T"]
-            ))
+            outfile.write(
+                "{},{},{},{},{},{},{},{},{},{},{}\n".format(
+                    aln.name,
+                    aln.length,
+                    aln.sum_informative_sites,
+                    aln.sum_differences,
+                    aln.sum_counted_sites,
+                    round(
+                        float(sum([aln.characters["G"], aln.characters["C"]]))
+                        / sum(
+                            [
+                                count
+                                for char, count in aln.characters.items()
+                                if char != "-"
+                            ]
+                        )
+                        * 100,
+                        2,
+                    ),
+                    aln.characters["-"],
+                    aln.characters["A"],
+                    aln.characters["C"],
+                    aln.characters["G"],
+                    aln.characters["T"],
+                )
+            )
 
 
 def main():
@@ -113,11 +137,13 @@ def main():
     work = [[file, args.input_format] for file in files]
     log.info("Computing summary statistics using {} cores".format(args.cores))
     if args.cores > 1:
-        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        assert (
+            args.cores <= multiprocessing.cpu_count()
+        ), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         summary_data = pool.map(summary.get_stats, work)
     else:
-        summary_data = map(summary.get_stats, work)
+        summary_data = list(map(summary.get_stats, work))
     # alignments
     a_vars = summary.get_lengths(summary_data)
     summary.log_length_summary(log, len(summary_data), a_vars)
@@ -148,5 +174,5 @@ def main():
     log.info(text.center(65, "="))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -15,14 +15,14 @@ from collections import Counter
 
 def get_informative_sites(count):
     # remove gaps
-    del count['-']
+    del count["-"]
     # remove N
-    del count['N']
+    del count["N"]
     # remove ?
-    del count['?']
+    del count["?"]
     sufficient_sites = len(count)
     if sufficient_sites >= 2:
-        sufficient_sequences = sum([1 for i in count.values() if i >= 2])
+        sufficient_sequences = sum([1 for i in list(count.values()) if i >= 2])
         if sufficient_sequences >= 2:
             return True
     return False
@@ -30,13 +30,13 @@ def get_informative_sites(count):
 
 def get_differences(count):
     # remove gaps
-    del count['-']
+    del count["-"]
     # remove N
-    del count['N']
+    del count["N"]
     # remove ?
-    del count['?']
+    del count["?"]
     # remove X
-    del count['X']
+    del count["X"]
     sufficient_sites = len(count)
     # counted, different = (1,1)
     if sufficient_sites >= 2:
@@ -52,8 +52,8 @@ def get_differences(count):
 def compute_informative_sites(align):
     informative_sites = []
     differences = []
-    counted_sites =  []
-    for idx in xrange(align.get_alignment_length()):
+    counted_sites = []
+    for idx in range(align.get_alignment_length()):
         col = align[:, idx].upper()
         count = Counter(col)
         if get_informative_sites(count):
