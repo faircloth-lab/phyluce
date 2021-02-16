@@ -489,7 +489,6 @@ def test_align_extract_taxon_fasta_from_alignments(o_dir, e_dir, request):
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     assert output, "There are is no output"
     expected_file = os.path.join(e_dir, "mafft-gblocks-clean-gallus.fasta")
-    pdb.set_trace()
     observed = SeqIO.to_dict(SeqIO.parse(output, "fasta"))
     expected = SeqIO.to_dict(SeqIO.parse(expected_file, "fasta"))
     for name, observed in observed.items():
