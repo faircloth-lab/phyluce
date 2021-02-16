@@ -20,14 +20,14 @@ like this:
 
 import string
 import argparse
-import ConfigParser
+import configparser
 
 from Bio import AlignIO
 
 from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, is_file, is_dir
 
-#import pdb
+# import pdb
 
 
 def get_args():
@@ -40,34 +40,34 @@ def get_args():
         action=FullPaths,
         type=is_file,
         required=True,
-        help="""The PATH to a PHYLIP-formatted alignment"""
+        help="""The PATH to a PHYLIP-formatted alignment""",
     )
     parser.add_argument(
         "--config",
         action=FullPaths,
         type=is_file,
         required=True,
-        help="""The PATH to a config file containing partition information  (RAxML-formatted)"""
+        help="""The PATH to a config file containing partition information  (RAxML-formatted)""",
     )
     parser.add_argument(
         "--output",
         action=FullPaths,
         required=True,
-        help="""The PATH to an output file (will be PHYLIP formatted)"""
+        help="""The PATH to an output file (will be PHYLIP formatted)""",
     )
     parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     return parser.parse_args()
 
@@ -76,7 +76,7 @@ def get_args():
 class FakeSecHead(object):
     def __init__(self, fp):
         self.fp = fp
-        self.sechead = '[section]\n'
+        self.sechead = "[section]\n"
 
     def readline(self):
         if self.sechead:
@@ -90,6 +90,7 @@ class FakeSecHead(object):
 
 class RelaxedSequentialPhylipWriter(AlignIO.PhylipIO.SequentialPhylipWriter):
     """Modify the phylip writer format to output interleaved, relaxed format"""
+
     def write_alignment(self, alignment):
         """
         Write a relaxed phylip alignment
@@ -97,8 +98,9 @@ class RelaxedSequentialPhylipWriter(AlignIO.PhylipIO.SequentialPhylipWriter):
         # Check inputs
         for name in (s.id.strip() for s in alignment):
             if any(c in name for c in string.whitespace):
-                raise ValueError("Whitespace not allowed in identifier: %s"
-                         % name)
+                raise ValueError(
+                    "Whitespace not allowed in identifier: %s" % name
+                )
         # Calculate a truncation length - maximum length of sequence ID plus a
         # single character for padding
         # If no sequences, set id_width to 1. super(...) call will raise a
@@ -107,7 +109,9 @@ class RelaxedSequentialPhylipWriter(AlignIO.PhylipIO.SequentialPhylipWriter):
             id_width = 2
         else:
             id_width = max((len(s.id.strip()) for s in alignment)) + 2
-        AlignIO.PhylipIO.SequentialPhylipWriter.write_alignment(self, alignment, id_width=id_width)
+        AlignIO.PhylipIO.SequentialPhylipWriter.write_alignment(
+            self, alignment, id_width=id_width
+        )
 
 
 def main():
@@ -115,23 +119,25 @@ def main():
     # setup logging
     log, my_name = setup_logging(args)
     aln = AlignIO.read(args.phylip_alignment, "phylip-relaxed")
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.readfp(FakeSecHead(open(args.config)))
     # get alignment length
-    #aln_length = aln.get_alignment_length() - 1
-    with open(args.output, 'w') as outf:
+    # aln_length = aln.get_alignment_length() - 1
+    with open(args.output, "w") as outf:
         pwriter = RelaxedSequentialPhylipWriter(outf)
         for partition in config.items("section"):
             # split the coordinate string
-            segments = [segment.strip() for segment in partition[1].split(',')]
+            segments = [segment.strip() for segment in partition[1].split(",")]
             # integerify the min and max values and make then zero based
-            coordinates = [[int(i) for i in segment.split("-")] for segment in segments]
+            coordinates = [
+                [int(i) for i in segment.split("-")] for segment in segments
+            ]
             # open an outfile:
             for k, coord in enumerate(coordinates):
                 if k == 0:
-                    new_align = aln[:, coord[0] - 1:coord[1]]
+                    new_align = aln[:, coord[0] - 1 : coord[1]]
                 else:
-                    new_align += aln[:, coord[0] - 1:coord[1]]
+                    new_align += aln[:, coord[0] - 1 : coord[1]]
             pwriter.write_alignment(new_align)
             outf.write("\n")
             log.info("Writing partition {}".format(partition))
@@ -140,6 +146,5 @@ def main():
     log.info(text.center(65, "="))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
