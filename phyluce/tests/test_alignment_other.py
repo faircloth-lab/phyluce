@@ -21,6 +21,7 @@ import logging
 
 import pytest
 from Bio import AlignIO
+from Bio import SeqIO
 
 import pdb
 
@@ -317,3 +318,30 @@ def test_align_convert_align_mafft_nexus_to_fasta(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_align_explode_alignments_by_taxon(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_explode_alignments"
+    output = os.path.join(o_dir, "mafft-exploded-by-taxon")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--by-taxon",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "mafft-exploded-by-taxon", name)
+        observed = SeqIO.to_dict(SeqIO.parse(output_file, "fasta"))
+        expected = SeqIO.to_dict(SeqIO.parse(expected_file, "fasta"))
+        for name, observed in observed.items():
+            assert expected[name].seq == observed.seq
