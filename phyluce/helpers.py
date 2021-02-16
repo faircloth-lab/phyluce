@@ -17,6 +17,8 @@ import shutil
 import configparser
 from collections import defaultdict
 
+import colorful as cf
+
 from phyluce import lastz
 from phyluce.pth import get_all_user_params
 
@@ -38,7 +40,11 @@ class CreateDir(argparse.Action):
         d = os.path.abspath(os.path.expanduser(values))
         # check to see if directory exists
         if os.path.exists(d):
-            answer = input("[WARNING] Output directory exists, REMOVE [Y/n]? ")
+            answer = input(
+                cf.bold_coral(
+                    "[WARNING] Output directory exists, REMOVE [Y/n]? "
+                )
+            )
             if answer == "Y":
                 shutil.rmtree(d)
             else:
@@ -48,6 +54,23 @@ class CreateDir(argparse.Action):
         os.makedirs(d)
         # return the full path
         setattr(namespace, self.dest, d)
+
+
+class CreateFile(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        # get the full path
+        f = os.path.abspath(os.path.expanduser(values))
+        # check to see if directory exists
+        if os.path.exists(f):
+            answer = input(
+                cf.bold_coral("[WARNING] Output file exists, REMOVE [Y/n]? ")
+            )
+            if answer == "Y":
+                os.remove(f)
+            else:
+                print("[QUIT]")
+                sys.exit()
+        setattr(namespace, self.dest, f)
 
 
 def is_dir(dirname):
