@@ -345,3 +345,32 @@ def test_align_explode_alignments_by_taxon(o_dir, e_dir, request):
         expected = SeqIO.to_dict(SeqIO.parse(expected_file, "fasta"))
         for name, observed in observed.items():
             assert expected[name].seq == observed.seq
+
+
+def test_align_remove_locus_name(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_remove_locus_name_from_nexus_lines"
+    output = os.path.join(o_dir, "mafft-gblocks-clean")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--input-format",
+        "nexus",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "mafft-gblocks-clean", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
