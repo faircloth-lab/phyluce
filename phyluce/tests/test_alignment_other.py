@@ -358,7 +358,7 @@ def test_align_remove_locus_name(o_dir, e_dir, request):
         output,
         "--input-format",
         "fasta",
-        "--input-format",
+        "--output-format",
         "nexus",
         "--cores",
         "1",
