@@ -50,7 +50,7 @@ def o_dir(request):
     def clean():
         shutil.rmtree(directory)
 
-    request.addfinalizer(clean)
+    # request.addfinalizer(clean)
     return directory
 
 
@@ -371,6 +371,39 @@ def test_align_remove_locus_name(o_dir, e_dir, request):
     for output_file in glob.glob(os.path.join(output, "*")):
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-gblocks-clean", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_extract_taxa_from_alignments(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_extract_taxa_from_alignments"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-drop-gallus-gallus")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--output",
+        output,
+        "--input-format",
+        "nexus",
+        "--output-format",
+        "nexus",
+        "--exclude",
+        "gallus_gallus",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-gblocks-clean-drop-gallus-gallus", name
+        )
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected

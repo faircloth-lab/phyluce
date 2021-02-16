@@ -1,0 +1,9 @@
+#NEXUS
+begin data;
+dimensions ntax=2 nchar=796;
+format datatype=dna missing=? gap=-;
+matrix
+alligator_mississippiensis ggcctccataatctttgcttactgtttcatttttagcagtgcagaacacaaatattattttagaagttacttcaaagaatttaaactttacaattcctaatatagactgtaaaacagatatggaattgcttatgattccatgctccacaatctcgtgtttcaattaaaagaaaaattattgcattctttagttcctgcaatttttgatagaatagtacatttatatgttaattttgctaagatcaactttatttatctacaggaagctattccaagattgttgtacattttcttcgcttctgaaatgttatcacatttaattgcctgatcttatttgggttgcaatcatagtcattaattagcaggaaggtgagggacagcatcatatctaactatctgttatggctgctttaatgaggaaaatacctgccatcattttaaaggcatcctgtatacttcacaaatacagcttgctgtagcattctcatttagactgtgaacatcaaaggaaattgatgtcaggtgtgaacagaagctgttgaatatatctgttgaagaagctgagtggtatgtctggatgggagagatgaagggcagcttaaaacattaacaaaactacaggtaattagtgtaaactttcaaggctaaggtatgcttgaggaataaaaatgttgtttatagctattccctgtagtgccactatagctaagggtctgtcaatgttttcatttataaagctctatttttatgggattgtacactagtaataaaaaaagtgcttggagctaaaagttga
+peromyscus_maniculatus     ggcaac----------------------------------------------------------------------------------------tcataacattttaatttaatgggatatgtaa--------------------------ctcatgtttcaattaaaagtaaaattattacgttccttcatttgcgtgatttttgatagaatagtacatttatatggtaattttccaaagatcaactttatttatcggtaaagagctattctgtgattgttgtatattttctttgcttctgaaatgttatcacatttaattgcctgatcttatttgggttgcaatcatagtcattaattagcaggaaggtgagggacagcatcatatctaactatctgttatggctgctttaatgaggaaaatacctgccatcattttaaaggcatcctggatacttggcaaatgcagcttgctgtagcgttctcatttaggctgtgaacatcaaaggaaattgatgtcaggtgtgaacagaagctgttgaatatatcggctgaggaaactgagtggtgtgtctgggtaggagagatgaagggcagctcataacattaacggaactacaggtaattagtgtaaactttcagtgcc-tggtgtgtctgtggaacaagaacattatttatatttatccactatggcatcac---------------------------------------------------------------------------------------agaagttta
+;
+end;
