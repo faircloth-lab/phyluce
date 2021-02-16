@@ -2138,10 +2138,10 @@ Setup the PHYLIP-formatted files for raxml:
 
 .. code-block:: python
 
-    phyluce_align_format_nexus_files_for_raxml \
+    phyluce_align_concatenate_alignments \
         --alignments mafft-gblocks-70p \
         --output mafft-gblocks-70p-raxml \
-        --log-path log --charsets
+        --log-path log --phylip
 
 Now, run raxml against this phylip file
 

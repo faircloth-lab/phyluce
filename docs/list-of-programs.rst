@@ -37,14 +37,13 @@ align
 
 * phyluce_align_add_missing_data_designators
 * phyluce_align_convert_one_align_to_another
+* phyluce_align_concatenate_alignments
 * phyluce_align_explode_alignments
 * phyluce_align_extract_taxa_from_alignments
 * phyluce_align_extract_taxon_fasta_from_alignments
 * phyluce_align_filter_alignments
 * phyluce_align_filter_characters_from_alignments
 * phyluce_align_format_concatenated_phylip_for_paml
-* phyluce_align_format_nexus_files_for_mrbayes
-* phyluce_align_format_nexus_files_for_raxml
 * phyluce_align_get_align_summary_data
 * phyluce_align_get_bed_from_lastz
 * phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed

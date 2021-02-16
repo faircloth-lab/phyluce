@@ -1436,29 +1436,29 @@ a phylip file for these programs is rather easy.  To do that, run:
     cd uce-tutorial/taxon-sets/all
 
     # build the concatenated data matrix
-    phyluce_align_format_nexus_files_for_raxml \
+    phyluce_align_concatenate_alignments \
         --alignments mafft-nexus-internal-trimmed-gblocks-clean-75p \
         --output mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml \
-        --charsets \
+        --phylip \
         --log-path log
 
 The output from this program will look like:
 
 .. code-block:: bash
 
-    2015-04-12 14:40:52,276 - phyluce_align_format_nexus_files_for_raxml - INFO - ====== Starting phyluce_align_format_nexus_files_for_raxml ======
-    2015-04-12 14:40:52,276 - phyluce_align_format_nexus_files_for_raxml - INFO - Version: git a6a957a
-    2015-04-12 14:40:52,276 - phyluce_align_format_nexus_files_for_raxml - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p
-    2015-04-12 14:40:52,277 - phyluce_align_format_nexus_files_for_raxml - INFO - Argument --charsets: True
-    2015-04-12 14:40:52,277 - phyluce_align_format_nexus_files_for_raxml - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 14:40:52,277 - phyluce_align_format_nexus_files_for_raxml - INFO - Argument --nexus: False
-    2015-04-12 14:40:52,277 - phyluce_align_format_nexus_files_for_raxml - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml
-    2015-04-12 14:40:52,277 - phyluce_align_format_nexus_files_for_raxml - INFO - Argument --verbosity: INFO
-    2015-04-12 14:40:52,277 - phyluce_align_format_nexus_files_for_raxml - INFO - Reading input alignments in NEXUS format
-    2015-04-12 14:40:53,291 - phyluce_align_format_nexus_files_for_raxml - INFO - Concatenating files
-    2015-04-12 14:40:54,242 - phyluce_align_format_nexus_files_for_raxml - INFO - Writing charsets to /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml/mafft-nexus-internal-trimmed-gblocks-clean-75p.charsets
-    2015-04-12 14:40:54,242 - phyluce_align_format_nexus_files_for_raxml - INFO - Writing concatenated PHYLIP alignment to /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml/mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip
-    2015-04-12 14:40:54,245 - phyluce_align_format_nexus_files_for_raxml - INFO - ====== Completed phyluce_align_format_nexus_files_for_raxml =====
+    2015-04-12 14:40:52,276 - phyluce_align_concatenate_alignments - INFO - ====== Starting phyluce_align_concatenate_alignments ======
+    2015-04-12 14:40:52,276 - phyluce_align_concatenate_alignments - INFO - Version: git a6a957a
+    2015-04-12 14:40:52,276 - phyluce_align_concatenate_alignments - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p
+    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --charsets: True
+    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
+    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --phylip: True
+    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml
+    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --verbosity: INFO
+    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Reading input alignments in NEXUS format
+    2015-04-12 14:40:53,291 - phyluce_align_concatenate_alignments - INFO - Concatenating files
+    2015-04-12 14:40:54,242 - phyluce_align_concatenate_alignments - INFO - Writing charsets to /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml/mafft-nexus-internal-trimmed-gblocks-clean-75p.charsets
+    2015-04-12 14:40:54,242 - phyluce_align_concatenate_alignments - INFO - Writing concatenated PHYLIP alignment to /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml/mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip
+    2015-04-12 14:40:54,245 - phyluce_align_concatenate_alignments - INFO - ====== Completed phyluce_align_concatenate_alignments =====
 
 .. attention:: Notice that using the `--charsets` flag will output the charsets
     as well as the concatenated PHYLIP file.  You generally want these and the

@@ -532,7 +532,7 @@ def test_align_filter_alignments(o_dir, e_dir, request):
 
 
 def test_align_concatenate_to_nexus(o_dir, e_dir, request):
-    program = "bin/align/phyluce_align_format_nexus_files_for_raxml"
+    program = "bin/align/phyluce_align_concatenate_alignments"
     output = os.path.join(o_dir, "mafft-gblocks-clean-concat-nexus")
     cmd = [
         os.path.join(request.config.rootdir, program),
@@ -560,7 +560,7 @@ def test_align_concatenate_to_nexus(o_dir, e_dir, request):
 
 
 def test_align_concatenate_to_phylip(o_dir, e_dir, request):
-    program = "bin/align/phyluce_align_format_nexus_files_for_raxml"
+    program = "bin/align/phyluce_align_concatenate_alignments"
     output = os.path.join(o_dir, "mafft-gblocks-clean-concat-phylip")
     cmd = [
         os.path.join(request.config.rootdir, program),
@@ -588,7 +588,7 @@ def test_align_concatenate_to_phylip(o_dir, e_dir, request):
 
 
 def test_align_concatenate_fasta_to_phylip(o_dir, e_dir, request):
-    program = "bin/align/phyluce_align_format_nexus_files_for_raxml"
+    program = "bin/align/phyluce_align_concatenate_alignments"
     output = os.path.join(o_dir, "mafft-gblocks-clean-fasta-concat")
     cmd = [
         os.path.join(request.config.rootdir, program),

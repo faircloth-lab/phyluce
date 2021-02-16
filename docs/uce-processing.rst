@@ -1053,9 +1053,10 @@ phylip file from run:
 
 .. code-block:: bash
 
-    phyluce_align_format_nexus_files_for_raxml \
+    phyluce_align_concanatenate_alignments \
         --alignments /path/to/uce/taxon-set1/mafft-nexus \
-        --output /path/to/uce/taxon-set1/mafft-raxml
+        --output /path/to/uce/taxon-set1/mafft-raxml \
+        --phylip
 
 This will output a concatenated file named ``mafft-raxml.phylip`` in
 ``/path/to/uce/taxon-set1/mafft-raxml``.
