@@ -1,0 +1,19 @@
+
+begin sets;
+charset 'uce-7014.fasta' = 1-440;
+charset 'uce-7542.fasta' = 441-1236;
+charset 'uce-6095.fasta' = 1237-1746;
+charset 'uce-3046.fasta' = 1747-2424;
+charset 'uce-553.fasta' = 2425-3196;
+charset 'uce-1484.fasta' = 3197-3655;
+charset 'uce-865.fasta' = 3656-4286;
+charset 'uce-2120.fasta' = 4287-4884;
+charset 'uce-4179.fasta' = 4885-5453;
+charset 'uce-6187.fasta' = 5454-6044;
+charset 'uce-6550.fasta' = 6045-6723;
+charset 'uce-2539.fasta' = 6724-7280;
+charset 'uce-2349.fasta' = 7281-7932;
+charset 'uce-1985.fasta' = 7933-8648;
+charset 'uce-1732.fasta' = 8649-9257;
+charpartition combined = uce-7014.fasta: 1-440, uce-7542.fasta: 441-1236, uce-6095.fasta: 1237-1746, uce-3046.fasta: 1747-2424, uce-553.fasta: 2425-3196, uce-1484.fasta: 3197-3655, uce-865.fasta: 3656-4286, uce-2120.fasta: 4287-4884, uce-4179.fasta: 4885-5453, uce-6187.fasta: 5454-6044, uce-6550.fasta: 6045-6723, uce-2539.fasta: 6724-7280, uce-2349.fasta: 7281-7932, uce-1985.fasta: 7933-8648, uce-1732.fasta: 8649-9257;
+end;

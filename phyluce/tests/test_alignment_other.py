@@ -529,3 +529,89 @@ def test_align_filter_alignments(o_dir, e_dir, request):
         )
     ]
     assert set(output_files) == set(expected_files)
+
+
+def test_align_concatenate_to_nexus(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_format_nexus_files_for_raxml"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-concat-nexus")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--output",
+        output,
+        "--nexus",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-gblocks-clean-concat-nexus", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_concatenate_to_phylip(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_format_nexus_files_for_raxml"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-concat-phylip")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--output",
+        output,
+        "--phylip",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-gblocks-clean-concat-phylip", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_concatenate_fasta_to_phylip(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_format_nexus_files_for_raxml"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-fasta-concat")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean-fasta"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--phylip",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-gblocks-clean-fasta-concat", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected

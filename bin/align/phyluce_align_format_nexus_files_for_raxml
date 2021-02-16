@@ -14,25 +14,36 @@ Description: Convert individual files to a large concantenated phylip file
 import os
 import glob
 import argparse
-from Bio.Nexus import Nexus
+import tempfile
 
-from phyluce.helpers import FullPaths, CreateDir, is_dir
+from phyluce.helpers import FullPaths, CreateDir, is_dir, get_alignment_files
 from phyluce.log import setup_logging
 
-#import pdb
+from Bio.Nexus import Nexus
+from Bio import AlignIO
+
+import pdb
+
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
         description="""Convert individual nexus files to concatenated phylip format""",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--alignments",
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="""The directory containing alignments to concatenate (NEXUS-ONLY)."""
+        help="""The directory containing alignments to concatenate (NEXUS-ONLY).""",
+    )
+    parser.add_argument(
+        "--input-format",
+        dest="input_format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The input alignment format""",
     )
     parser.add_argument(
         "--output",
@@ -41,30 +52,31 @@ def get_args():
         help="""The output file for the concatenated phylip data""",
     )
     parser.add_argument(
-        "--nexus",
-        action="store_true",
-        default=False,
-        help="""Export as NEXUS format""",
-    )
-    parser.add_argument(
-        "--charsets",
-        action="store_true",
-        default=False,
-        help="""Add charsets to phylip file""",
-    )
-    parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
+    )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--nexus",
+        action="store_true",
+        default=False,
+        help="Output concatenated file in NEXUS format",
+    )
+    group.add_argument(
+        "--phylip",
+        action="store_true",
+        default=False,
+        help="Output concatenated file in PHYLIP format",
     )
     return parser.parse_args()
 
@@ -75,34 +87,59 @@ def main():
     log, my_name = setup_logging(args)
     # read alignments
     log.info("Reading input alignments in NEXUS format")
-    nexus_files = glob.glob(os.path.join(args.alignments, '*.nex*'))
-    data = [(os.path.basename(fname), Nexus.Nexus(fname)) for fname in nexus_files]
+    alignment_files = get_alignment_files(
+        log, args.alignments, args.input_format
+    )
+    if args.input_format == "nexus":
+        data = [
+            (os.path.basename(fname), Nexus.Nexus(fname))
+            for fname in alignment_files
+        ]
+    else:
+        # convert alignments from existing format to Nexus place in temp location
+        temp_files = []
+        temp_dir = tempfile.TemporaryDirectory()
+        for fname in alignment_files:
+            temp_name = os.path.join(temp_dir.name, os.path.basename(fname))
+            AlignIO.convert(
+                fname, args.input_format, temp_name, "nexus", "DNA"
+            )
+            temp_files.append(temp_name)
+        data = [
+            (os.path.basename(fname), Nexus.Nexus(fname))
+            for fname in temp_files
+        ]
+        temp_dir.cleanup()
+        # read those alignments into Nexus format
     log.info("Concatenating files")
     concatenated = Nexus.combine(data)
-    if not args.nexus:
-        concat_file = os.path.join(args.output, os.path.basename(args.alignments) + ".phylip")
-        if args.charsets:
-            sets = concatenated.append_sets()
-            charset_file = os.path.join(args.output, os.path.basename(args.alignments) + ".charsets")
-            log.info("Writing charsets to {}".format(
-                charset_file
-            ))
-            with open(charset_file, 'w') as outf:
-                outf.write(sets)
-        log.info("Writing concatenated PHYLIP alignment to {}".format(concat_file))
+    if args.phylip:
+        concat_file = os.path.join(
+            args.output, os.path.basename(args.output) + ".phylip"
+        )
+        sets = concatenated.append_sets()
+        charset_file = os.path.join(
+            args.output, os.path.basename(args.output) + ".charsets"
+        )
+        log.info(
+            "Writing concatenated alignment to PHYLIP format (with charsets)"
+        )
+        with open(charset_file, "w") as outf:
+            outf.write(sets)
         concatenated.export_phylip(concat_file)
-    else:
-        concat_file = os.path.join(args.output, os.path.basename(args.alignments) + ".nexus")
-        if args.charsets:
-            log.info("Writing concatenated alignment to NEXUS format (with charsets)")
-            concatenated.write_nexus_data(concat_file)
-        else:
-            log.info("Writing concatenated alignment to NEXUS format (without charsets)")
-            concatenated.write_nexus_data(concat_file, append_sets=False)
+    elif args.nexus:
+        concat_file = os.path.join(
+            args.output, os.path.basename(args.output) + ".nexus"
+        )
+        log.info(
+            "Writing concatenated alignment to NEXUS format (with charsets)"
+        )
+        concatenated.write_nexus_data(concat_file)
+
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
