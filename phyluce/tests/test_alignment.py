@@ -68,7 +68,9 @@ def test_seqcap_align_mafft_untrim(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "mafft-no-trim", name)
         observed = open(output_file).read()
@@ -100,7 +102,9 @@ def test_seqcap_align_muscle_untrim(o_dir, e_dir, request):
     )
     stdout, stderr = proc.communicate()
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
-    for output_file in glob.glob(os.path.join(output, "*")):
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
         name = os.path.basename(output_file)
         expected_file = os.path.join(e_dir, "muscle-no-trim", name)
         observed = open(output_file).read()
