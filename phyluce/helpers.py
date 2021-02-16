@@ -273,7 +273,7 @@ def get_alignment_files(log, input_dir, input_format):
         )
     if not alignments:
         log.critical(
-            "No aligment files found.  Check --input-format argument."
+            "No alignment files found.  Check --input-format argument."
         )
     return alignments
 
