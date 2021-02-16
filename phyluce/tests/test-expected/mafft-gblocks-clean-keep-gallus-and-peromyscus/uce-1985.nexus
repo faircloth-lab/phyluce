@@ -1,0 +1,9 @@
+#NEXUS
+begin data;
+dimensions ntax=2 nchar=716;
+format datatype=dna missing=? gap=-;
+matrix
+gallus_gallus          aaatccgcaggatctaagccttttaagtgttgccgcacgcgattcttccataaaaagaggcatatagcattaaagctctctatcacaagtggctttaatattgaaagccg------tagacaggacatc--------tatcctgtatgtatttatattattccagtcattattattatttttactccaggcttcccctccgcttgcaagcgaatcaggttttgtgcgcagcttttctcagggcaccggcgcacggacctcggttacacagggctctattaagccgctgttcaatagtttggtgatattcagacaatattgaaacattcccaaatgaactttgcagggagacattttcattcgctgcctccctcctcatgcatattaacaaatggtatgcaaggcctcatttaattcactgattttacattcggatcactttctcttttacagctatttttaccaggcttcattaatctttgttgaatacaatggcatacatctttaatgcggccgctgtcaagtcatatttcagtaagagctgcaaactgaatgacagcaagcaatattaataaatttaacatagactatatcaatttttaacagaatgaatgtggaaagctaaatgtattatttttcgtttaaatcatagggtttatcaccggttaagtagcagcgatttcgggaaacttgtgacgtgccgtacaaatagattta
+peromyscus_maniculatus aaagattccaattccaagtttctt-----------------------tcatggaaagaagagcgagccaagaaaacgctatagaaaaggatgtgccaaaggcagagttctagaacaccagcaggacaccatgctaggtctcatac----------------------cctgctgtggccctgactggggacaccctgtctgtgtggaag----------------------------------------------------------cctgactccattagggc-ctcatcaatagttgggagatatccaggcgatattgaaacattttcaaatgaactttgcatagagacagtttcattcgctgcctccctcctcatgcatattaacaaatggtatgcgcggcctcatttaattcactgattttacattcggatcactttctcttttacagctatttttaccgggcttcattaatctttgttgaatacaatggcatacatctttaatgcggccgctgtcaagtcatatttcagcaggagctgcaaactgaatgacagcaagcaatattaataaatttaacatagactatatcaatttttaacagaatgagtgtggaaagctaaatgtattatttttcatttaaatcatagggtttatcaccggttaagtagtagcagttgggggaggcttgtgacgtgccacacaaatagattta
+;
+end;

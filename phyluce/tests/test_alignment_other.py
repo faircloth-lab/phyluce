@@ -376,7 +376,7 @@ def test_align_remove_locus_name(o_dir, e_dir, request):
         assert observed == expected
 
 
-def test_align_extract_taxa_from_alignments(o_dir, e_dir, request):
+def test_align_extract_taxa_from_alignments_exclude(o_dir, e_dir, request):
     program = "bin/align/phyluce_align_extract_taxa_from_alignments"
     output = os.path.join(o_dir, "mafft-gblocks-clean-drop-gallus-gallus")
     cmd = [
@@ -403,6 +403,41 @@ def test_align_extract_taxa_from_alignments(o_dir, e_dir, request):
         name = os.path.basename(output_file)
         expected_file = os.path.join(
             e_dir, "mafft-gblocks-clean-drop-gallus-gallus", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_extract_taxa_from_alignments_include(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_extract_taxa_from_alignments"
+    output = os.path.join(
+        o_dir, "mafft-gblocks-clean-keep-gallus-and-peromyscus"
+    )
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--output",
+        output,
+        "--input-format",
+        "nexus",
+        "--output-format",
+        "nexus",
+        "--include",
+        "gallus_gallus",
+        "peromyscus_maniculatus",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    # pdb.set_trace()
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-gblocks-clean-keep-gallus-and-peromyscus", name
         )
         observed = open(output_file).read()
         expected = open(expected_file).read()

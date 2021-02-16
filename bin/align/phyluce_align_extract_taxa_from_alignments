@@ -13,7 +13,6 @@ files.
 
 """
 
-import pdb
 import os
 import sys
 import glob
@@ -25,6 +24,8 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from phyluce.log import setup_logging
 from phyluce.helpers import is_dir, FullPaths, get_alignment_files, CreateDir
+
+# import pdb
 
 
 def get_args():
@@ -131,10 +132,12 @@ def record_formatter(seq, name):
 
 
 def worker(work):
+    # pdb.set_trace()
     args, taxa_to_keep, align_file = work
     new_align = MultipleSeqAlignment([])
     for align in AlignIO.parse(align_file, args.input_format):
         for taxon in list(align):
+            taxon.annotations = {"molecule_type": "DNA"}
             if taxon.name in taxa_to_keep:
                 new_align.append(taxon)
     if len(new_align) > 1:
