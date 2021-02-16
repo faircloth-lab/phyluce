@@ -221,3 +221,94 @@ def test_align_convert_degen_bases(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_align_convert_align_mafft_fasta_to_nexus(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_convert_one_align_to_another"
+    output = os.path.join(o_dir, "mafft-fasta-to-nexus")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--output-format",
+        "nexus",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "mafft-fasta-to-nexus", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_convert_align_mafft_fasta_to_phylip_relaxed(
+    o_dir, e_dir, request
+):
+    program = "bin/align/phyluce_align_convert_one_align_to_another"
+    output = os.path.join(o_dir, "mafft-fasta-to-phylip-relaxed")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft"),
+        "--output",
+        output,
+        "--input-format",
+        "fasta",
+        "--output-format",
+        "phylip-relaxed",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-fasta-to-phylip-relaxed", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_convert_align_mafft_nexus_to_fasta(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_convert_one_align_to_another"
+    output = os.path.join(o_dir, "mafft-nexus-to-fasta")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-fasta-to-nexus"),
+        "--output",
+        output,
+        "--input-format",
+        "nexus",
+        "--output-format",
+        "fasta",
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    for output_file in glob.glob(os.path.join(output, "*")):
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "mafft-nexus-to-fasta", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected

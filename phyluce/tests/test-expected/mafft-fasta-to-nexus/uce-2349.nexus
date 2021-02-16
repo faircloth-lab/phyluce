@@ -1,0 +1,67 @@
+#NEXUS
+begin data;
+dimensions ntax=3 nchar=1026;
+format datatype=dna missing=? gap=- interleave;
+matrix
+'uce-2349_alligator_mississippiensis' -------------------atcttgccagt-----atgacag----------------------------
+'uce-2349_gallus_gallus'              cccagactgaagtgagggaatcttaccaactaaaaatggcagtagactgccactagtgtttttgtcactt
+'uce-2349_peromyscus_maniculatus'     ----------------------------------------------------------------------
+
+'uce-2349_alligator_mississippiensis' ----------------------------------------------------------------------
+'uce-2349_gallus_gallus'              ccaaaggtaaagtgtttaatctggtcttccactgttgctttacctgatggctgctgctctagtcactgaa
+'uce-2349_peromyscus_maniculatus'     ----------------------------------------------------------------------
+
+'uce-2349_alligator_mississippiensis' --------------------------------------------------------------------ga
+'uce-2349_gallus_gallus'              gtcatctggatggcaatatgggggtgaaaagcacagtagccacaccataagcactgtggatttgtggagg
+'uce-2349_peromyscus_maniculatus'     ----------------------------------------------------------------------
+
+'uce-2349_alligator_mississippiensis' aagaagaagctgcttctgcaaagcctccttttcatactttatatcactaaaagtagccggttcattagat
+'uce-2349_gallus_gallus'              aagaagaaattgtttctgcactgcctccttttcatactttgtatcatgaaaagtagtcagctaattacct
+'uce-2349_peromyscus_maniculatus'     ----------------------------------------------------------------------
+
+'uce-2349_alligator_mississippiensis' tccatggttactgctattgtaatatgtgcttatttgaagtgcaaagataatcatcaattgtacactcttg
+'uce-2349_gallus_gallus'              tccatggttactgctattgtaatatgtgcctgtttgaagtgcagagataatcatcgattgtacactcttg
+'uce-2349_peromyscus_maniculatus'     ---------------attgttgtatctgcttacttgaagtgtaaagataatcatcaattgtacactcttg
+
+'uce-2349_alligator_mississippiensis' actacactattaatggtttcaatacccacattgtgtttaca-ttctgcattataacgaacacttagccat
+'uce-2349_gallus_gallus'              actacactattaatggtttcaatacccacattgtgtttacatttttgctttat----aacacttagctat
+'uce-2349_peromyscus_maniculatus'     actgtgccattaatggctttaatacccccattgtgtttaca-cttggaattgtaaggaacacttagctat
+
+'uce-2349_alligator_mississippiensis' tgtgg-tttttaacatgtagtaattcagtgaatactgtctccatgtaatgcccttgccatttcattctgc
+'uce-2349_gallus_gallus'              tgtgg--ttttaacacatagtaattcagtgaatactgtctccatgcaatgcccttgccatttcactctgc
+'uce-2349_peromyscus_maniculatus'     tgtggtttttttactcatagtaactcggcgaaggctgcctctctctgaagcttttgccatttcatcctgc
+
+'uce-2349_alligator_mississippiensis' ggtattaagtgttgtttttcctagcaaggtcttgaaatgtggggcattatgtatgagttatgctaatttg
+'uce-2349_gallus_gallus'              ggtattaagtgttgttttt-ctgggaaggtcttgaaatgtggggcattatgtatgagttatgctaatttg
+'uce-2349_peromyscus_maniculatus'     agtattgagtgttgtttct-ctggtgaggtcttgaaatgtggggcattatgtatgagttatgctaatttg
+
+'uce-2349_alligator_mississippiensis' ttagggcaatgaatacattaatttcattagtaaatggcctcaaagcaataattaccagtgtaggtgtgtc
+'uce-2349_gallus_gallus'              ttagggcaatgaatacattaatttcattagtaaatggcctcaaagcaataattaccagtgtaggtgtgtc
+'uce-2349_peromyscus_maniculatus'     ttagggcaatgaatacattaatttcattagtaaatggcctcaaagcaataattaccagtgtaggtgtgtc
+
+'uce-2349_alligator_mississippiensis' agaaacgatcatgttcagttttgccagttaattattaagattttgttctgagggacccagatttgacatc
+'uce-2349_gallus_gallus'              agaaatgatcatgttcagttttgccagttaattattaagattttgttctaagggaccaagatttgacatc
+'uce-2349_peromyscus_maniculatus'     aaaagcgatcatgctcagctct-tcagttaattattaagattttgttctgaggggcccagatttgacatc
+
+'uce-2349_alligator_mississippiensis' cagcttcaatttagccataaataaaactcagaagcatatagggatgaagaaatcaagccaagaacttgtt
+'uce-2349_gallus_gallus'              cagcttcaatttagccataaataaaagtctgaagtatatcaggctgaagcaatctagccaagaacttgtt
+'uce-2349_peromyscus_maniculatus'     cagcttcatggtagccataaataaaaccctgaaatatgcagggatgaggaaatgaagccagaatcctgtt
+
+'uce-2349_alligator_mississippiensis' ttgctcatacacgttactactttttgtccaattgtgactgccaataacatgccaaaataat--tagtgtt
+'uce-2349_gallus_gallus'              ttgctcttagaaatttttacattttgtccaattgtgcctgccaataaaatgccaaaataat--tactgtc
+'uce-2349_peromyscus_maniculatus'     ttgtgctcacatacatccccctcttgtccaattgttactgccaacaagatgccaaaataatcacagggtc
+
+'uce-2349_alligator_mississippiensis' ggtgatatgaggtttttgctataccccccaaaaaggcacatcataacgaaaatagcaattgcactttctc
+'uce-2349_gallus_gallus'              agtgatatgaggcttatactatacctccgaaaaaggcacatcataatgaaaatagcaattgcactttcta
+'uce-2349_peromyscus_maniculatus'     agtgacataaagttttag----------------------------------------------------
+
+'uce-2349_alligator_mississippiensis' attcttcaca-tcttgccttatgctacaatatgttgaattattcaatggttgcttttcttgctagcatgg
+'uce-2349_gallus_gallus'              attcctctcatttttgccttgtgttacagaatgttgaattactcaatgatagatttacttgctagtgcag
+'uce-2349_peromyscus_maniculatus'     -------------------tgctctacaaaagacacaattatt---------------------------
+
+'uce-2349_alligator_mississippiensis' tattaaatttgaaatggcta--------------------------
+'uce-2349_gallus_gallus'              t-----acttgaaatggcttcagtttatcattaaagctggaggttt
+'uce-2349_peromyscus_maniculatus'     ----------------------------------------------
+
+;
+end;
