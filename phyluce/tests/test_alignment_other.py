@@ -669,7 +669,6 @@ def test_align_get_informative_sites(o_dir, e_dir, request):
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     assert output, "There are no output files"
     output_dict = {}
-    pdb.set_trace()
     with (open(output)) as output_file:
         for line in output_file:
             ls = line.strip().split(",")
@@ -682,3 +681,34 @@ def test_align_get_informative_sites(o_dir, e_dir, request):
             expected_dict[ls[0]] = ",".join(ls[1:])
     for k, v in output_dict.items():
         assert expected_dict[k] == v
+
+
+def test_align_get_only_loci_with_min_taxa(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_get_only_loci_with_min_taxa"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-75p")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--input-format",
+        "nexus",
+        "--output",
+        output,
+        "--taxa",
+        "4",
+        "--percent",
+        "0.75",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = [
+        os.path.basename(i) for i in glob.glob(os.path.join(output, "*"))
+    ]
+    expected_files = [
+        os.path.basename(i)
+        for i in glob.glob(os.path.join(e_dir, "mafft-gblocks-clean-75p", "*"))
+    ]
+    assert set(output_files) == set(expected_files)

@@ -21,37 +21,38 @@ from Bio import AlignIO
 from phyluce.helpers import FullPaths, CreateDir, is_dir, get_alignment_files
 from phyluce.log import setup_logging
 
-#import pdb
+# import pdb
+
 
 def get_args():
     parser = argparse.ArgumentParser(
         description="Screen a directory of alignments, only returning those containing >= --percent of taxa",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--alignments",
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="The directory containing alignments to screen."
+        help="The directory containing alignments to screen.",
     )
     parser.add_argument(
         "--taxa",
         required=True,
         type=int,
-        help="The total number of taxa in all alignments."
+        help="The total number of taxa in all alignments.",
     )
     parser.add_argument(
         "--output",
         required=True,
         action=CreateDir,
-        help="The output dir in which to store copies of the alignments"
+        help="The output dir in which to store copies of the alignments",
     )
     parser.add_argument(
         "--percent",
         type=float,
         default=0.75,
-        help="The percent of taxa to require"
+        help="The percent of taxa to require",
     )
     parser.add_argument(
         "--input-format",
@@ -65,23 +66,24 @@ def get_args():
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""Process alignments in parallel using --cores for alignment. """ +
-        """This is the number of PHYSICAL CPUs."""
+        help="""Process alignments in parallel using --cores for alignment. """
+        + """This is the number of PHYSICAL CPUs.""",
     )
     return parser.parse_args()
+
 
 def copy_over_files(work):
     file, format, min_count, output = work
@@ -92,6 +94,7 @@ def copy_over_files(work):
     else:
         return 0
 
+
 def main():
     args = get_args()
     # setup logging
@@ -100,22 +103,26 @@ def main():
     files = get_alignment_files(log, args.alignments, args.input_format)
     # determine the minimum count of taxa needed in each alignment, given --percent
     min_count = int(math.floor(args.percent * args.taxa))
-    work = [[file, args.input_format, min_count, args.output] for file in files]
+    work = [
+        [file, args.input_format, min_count, args.output] for file in files
+    ]
     if args.cores > 1:
-        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        assert (
+            args.cores <= multiprocessing.cpu_count()
+        ), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         results = pool.map(copy_over_files, work)
     else:
-        results = map(copy_over_files, work)
-    log.info("Copied {0} alignments of {1} total containing ≥ {2} proportion of taxa (n = {3})".format(
-        sum(results),
-        len(results),
-        args.percent,
-        min_count
-    ))
+        results = list(map(copy_over_files, work))
+    log.info(
+        "Copied {0} alignments of {1} total containing ≥ {2} proportion of taxa (n = {3})".format(
+            sum(results), len(results), args.percent, min_count
+        )
+    )
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
