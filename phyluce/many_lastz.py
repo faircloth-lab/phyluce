@@ -90,7 +90,9 @@ def chunk_scaffolds(target, size):
             sequence = tb[seq][0:]
             sequence_length += len(sequence)
             # write it to the outfile
-            temp_out_handle.write(">{0}\n{1}\n".format(seq, sequence))
+            temp_out_handle.write(
+                ">{0}\n{1}\n".format(seq.decode("utf-8"), sequence)
+            )
             if sequence_length > size:
                 temp_out_handle.close()
                 # put tempfile name on stack
