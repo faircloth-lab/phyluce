@@ -27,26 +27,26 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Randomly sample a directory of NEXUS files, concatenate, and output"""
+        description="""Randomly sample a directory of NEXUS files, concatenate, and output"""
     )
     parser.add_argument(
         "--alignments",
         required=True,
         action=FullPaths,
         type=is_dir,
-        help="""The directory containing NEXUS alignments to sample and concatenate"""
+        help="""The directory containing NEXUS alignments to sample and concatenate""",
     )
     parser.add_argument(
         "--output",
         required=True,
         action=CreateDir,
-        help="""The output directory to hold concatenated files"""
+        help="""The output directory to hold concatenated files""",
     )
     parser.add_argument(
         "--sample-size",
         type=int,
         default=100,
-        help="""The number of loci to sample"""
+        help="""The number of loci to sample""",
     )
     parser.add_argument(
         "--replicates",
@@ -59,14 +59,14 @@ def get_args():
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     return parser.parse_args()
 
@@ -77,36 +77,37 @@ def main():
     log, my_name = setup_logging(args)
     log.info("Reading input alignments in NEXUS format")
     # get filenames in directory and convert to array
-    files = numpy.array(glob.glob(os.path.join(args.alignments, '*.nex*')))
+    files = numpy.array(glob.glob(os.path.join(args.alignments, "*.nex*")))
     try:
         # make sure we have enough
         assert len(files) >= args.sample_size
     except AssertionError:
-        log.exception("You have requested a larger sample size than your population of alignments")
-    log.info("Creating {} replicates of size {} from {} alignments".format(
-        args.replicates,
-        args.sample_size,
-        len(files)
-    ))
-    for i in xrange(args.replicates):
-        log.info("Sampling replicate {}".format(i+1))
+        log.exception(
+            "You have requested a larger sample size than your population of alignments"
+        )
+    log.info(
+        "Creating {} replicates of size {} from {} alignments".format(
+            args.replicates, args.sample_size, len(files)
+        )
+    )
+    for i in range(args.replicates):
+        log.info("Sampling replicate {}".format(i + 1))
         # choose args.sample_size files randomly
         random_sample = numpy.random.choice(
-            files,
-            size=args.sample_size,
-            replace=False
+            files, size=args.sample_size, replace=False
         )
         # concatenate and output
         random_files_to_combine = [(f, Nexus.Nexus(f)) for f in random_sample]
         random_combined = Nexus.combine(random_files_to_combine)
         align_name = "random-sample-{}_{}-loci.nex".format(i, args.sample_size)
         random_combined.write_nexus_data(
-            filename=open(os.path.join(args.output, align_name), 'w'),
-            append_sets=True
-            )
+            filename=open(os.path.join(args.output, align_name), "w"),
+            append_sets=True,
+        )
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
