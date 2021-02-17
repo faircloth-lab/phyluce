@@ -17,7 +17,7 @@ import sys
 import copy
 import logging
 import argparse
-import ConfigParser
+import configparser
 from collections import defaultdict
 
 from Bio.Seq import Seq
@@ -30,53 +30,55 @@ from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 
 import pdb
 
+
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-        description="""Given a LASTZ input directory, find matches, add flank, and return a FASTA file of sequences""")
+        description="""Given a LASTZ input directory, find matches, add flank, and return a FASTA file of sequences"""
+    )
     parser.add_argument(
         "--conf",
         required=True,
         action=FullPaths,
         type=is_file,
-        help="""Path to the configuration file"""
+        help="""Path to the configuration file""",
     )
     parser.add_argument(
         "--lastz",
         required=True,
         action=FullPaths,
         type=is_dir,
-        help="""Path to the directory containing LASTZ results"""
+        help="""Path to the directory containing LASTZ results""",
     )
     parser.add_argument(
         "--output",
         required=True,
         action=CreateDir,
-        help="""Path to the output directory for storing FASTA files"""
+        help="""Path to the output directory for storing FASTA files""",
     )
     parser.add_argument(
         "--name-pattern",
         dest="pattern",
         type=str,
         default=None,
-        help="An alternate name pattern to transform the conf entry into"
+        help="An alternate name pattern to transform the conf entry into",
     )
     parser.add_argument(
-        '--probe-prefix',
+        "--probe-prefix",
         type=str,
         default="uce-",
-        help='The prefix (e.g. "uce-") added to all probes designed'
+        help='The prefix (e.g. "uce-") added to all probes designed',
     )
     parser.add_argument(
-        '--probe-regex',
+        "--probe-regex",
         type=str,
-        default='^({}\d+)(?:_p\d+.*)',
-        help='The regular expression to use for matching probes'
+        default="^({}\d+)(?:_p\d+.*)",
+        help="The regular expression to use for matching probes",
     )
     parser.add_argument(
         "--exclude",
         type=str,
-        nargs='+',
+        nargs="+",
         default=None,
         help="""Species to exclude from genome slicing""",
     )
@@ -85,7 +87,7 @@ def get_args():
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use"""
+        help="""The logging level to use""",
     )
     parser.add_argument(
         "--contig_orient",
@@ -129,7 +131,9 @@ def new_get_probe_name(header, regex):
 
 def check_loci_for_dupes(matches):
     """Check for UCE loci that match more than one contig"""
-    dupe_set = set([uce for uce, contigs in matches.iteritems() if len(contigs) > 1])
+    dupe_set = set(
+        [uce for uce, contigs in matches.items() if len(contigs) > 1]
+    )
     return dupe_set
 
 
@@ -173,7 +177,7 @@ def remove_ambiguous_ends(ss, se, sequence):
         se = se - new_end
     else:
         new_end = 0
-    return ss, se, sequence[new_start:len(sequence) - new_end]
+    return ss, se, sequence[new_start : len(sequence) - new_end]
 
 
 def remove_repetitive_ends(ss, se, sequence):
@@ -189,10 +193,22 @@ def remove_repetitive_ends(ss, se, sequence):
         se = se - new_end
     else:
         new_end = 0
-    return ss, se, sequence[new_start:len(sequence) - new_end]
+    return ss, se, sequence[new_start : len(sequence) - new_end]
 
 
-def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_positions, sequence, probes):
+def build_sequence_object(
+    cnt,
+    contig,
+    ss,
+    se,
+    uce,
+    min,
+    max,
+    orient,
+    sorted_positions,
+    sequence,
+    probes,
+):
     # turn of the clipping if we're using these data for probes
     if not probes:
         ss, se, sequence = remove_ambiguous_ends(ss, se, sequence)
@@ -213,12 +229,17 @@ def build_sequence_object(cnt, contig, ss, se, uce, min, max, orient, sorted_pos
         min,
         max,
         orient,
-        len(sorted_positions)
+        len(sorted_positions),
     )
     if orient == "revcomp":
-        return SeqRecord(Seq(sequence).reverse_complement(), id=name, name='', description='')
+        return SeqRecord(
+            Seq(sequence).reverse_complement(),
+            id=name,
+            name="",
+            description="",
+        )
     else:
-        return SeqRecord(Seq(sequence), id=name, name='', description='')
+        return SeqRecord(Seq(sequence), id=name, name="", description="")
 
 
 def parse_lastz_file(lz, contig_orient, regex):
@@ -255,7 +276,9 @@ def setup_logging(level):
     if level == "CRITICAL":
         log.setLevel(logging.CRITICAL)
         console.setLevel(logging.CRITICAL)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     console.setFormatter(formatter)
     log.addHandler(console)
     return log
@@ -265,9 +288,11 @@ def main():
     args = get_args()
     # setup logger
     log = setup_logging(args.verbosity)
-    log.info("=================== Starting Phyluce: Slice Sequence ===================")
+    log.info(
+        "=================== Starting Phyluce: Slice Sequence ==================="
+    )
     # parse config file of genome locations (genomes in 2bit format)
-    conf = ConfigParser.ConfigParser()
+    conf = configparser.ConfigParser()
     conf.optionxform = str
     conf.read(args.conf)
     # get the files associated with the config entries
@@ -277,34 +302,42 @@ def main():
         text = " Working on {} genome ".format(short_name)
         log.info(text.center(65, "-"))
         if not args.exclude or (short_name not in args.exclude):
-            out_name = os.path.join(args.output, "{}.fasta".format(short_name.lower()))
-            with open(out_name, 'w') as outf:
+            out_name = os.path.join(
+                args.output, "{}.fasta".format(short_name.lower())
+            )
+            with open(out_name, "w") as outf:
                 log.info("Reading {} genome".format(short_name))
-                tb = twobit.TwoBitFile(file(twobit_name))
+                tb = twobit.TwoBitFile(twobit_name)
                 # parse the lastz results of the alignment
                 lz = os.path.join(args.lastz, long_name)
                 regex = args.probe_regex.format(args.probe_prefix)
-                all_uce_names, uce_matches, orientation = parse_lastz_file(lz, args.contig_orient, regex)
+                all_uce_names, uce_matches, orientation = parse_lastz_file(
+                    lz, args.contig_orient, regex
+                )
                 # we need to check nodes for dupe matches to the same probes
-                uce_loci_matching_mult_contigs = check_loci_for_dupes(uce_matches)
+                uce_loci_matching_mult_contigs = check_loci_for_dupes(
+                    uce_matches
+                )
                 # delete those loci that hit multiple probes or had multiple probes hit them
                 # this does not filter out contigs hitting multiple loci for the simple
                 # reason that many loci will hit the same "contig" in circumstances where
                 # the contig is large/chromosome sized.  These will get filtered out in
                 # the next step of the matching process after we've created fasta sequences
                 # representing each UCE locus
-                for k in uce_matches.keys():
+                for k in list(uce_matches.keys()):
                     if k in uce_loci_matching_mult_contigs:
                         del uce_matches[k]
                 # QC contig matches
                 node_count = 0
                 orient_drop = set()
                 length_drop = set()
-                for uce_name, matches in uce_matches.iteritems():
+                for uce_name, matches in uce_matches.items():
                     bad = False
                     # make sure there is only one UCE match
-                    assert len(matches.keys()) == 1, "There are multiple UCE matches"
-                    for contig_name, positions in matches.iteritems():
+                    assert (
+                        len(list(matches.keys())) == 1
+                    ), "There are multiple UCE matches"
+                    for contig_name, positions in matches.items():
                         # remove any probes with mixed orientation
                         orient = orientation[uce_name][contig_name]
                         if len(orient) > 1:
@@ -316,7 +349,11 @@ def main():
                             if len(sorted_positions) > 1:
                                 for i in range(1, len(sorted_positions)):
                                     # drop those contigs where probes fall > 500 bp apart
-                                    if sorted_positions[i][0] - sorted_positions[i-1][1] > 500:
+                                    if (
+                                        sorted_positions[i][0]
+                                        - sorted_positions[i - 1][1]
+                                        > 500
+                                    ):
                                         bad = True
                                         length_drop.add(uce_name)
                                         break
@@ -325,24 +362,43 @@ def main():
                         if not bad:
                             min = sorted_positions[0][0]
                             max = sorted_positions[-1][-1]
-                            ss, se, sequence = slice_and_return_fasta(tb, contig_name, min, max, args.flank, args.probes)
-                            seq = build_sequence_object(node_count, contig_name, ss, se, uce_name, min, max, orient, sorted_positions, sequence, args.probes)
+                            ss, se, sequence = slice_and_return_fasta(
+                                tb,
+                                contig_name,
+                                min,
+                                max,
+                                args.flank,
+                                args.probes,
+                            )
+                            seq = build_sequence_object(
+                                node_count,
+                                contig_name,
+                                ss,
+                                se,
+                                uce_name,
+                                min,
+                                max,
+                                orient,
+                                sorted_positions,
+                                sequence,
+                                args.probes,
+                            )
                             if args.probes and len(seq) < args.probes:
                                 pass
                             else:
-                                outf.write(seq.format('fasta'))
+                                outf.write(seq.format("fasta"))
                                 node_count += 1
             output = "{}: {} uces, {} dupes, {} non-dupes, {} orient drop, {} length drop, {} written".format(
                 short_name,
                 len(all_uce_names),
                 len(uce_loci_matching_mult_contigs),
-                len(uce_matches.keys()),
+                len(list(uce_matches.keys())),
                 len(orient_drop),
                 len(length_drop),
-                node_count
+                node_count,
             )
             log.info(output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

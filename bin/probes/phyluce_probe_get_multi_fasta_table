@@ -25,6 +25,7 @@ from bx.intervals.intersection import Interval, IntervalTree
 
 import pdb
 
+
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
@@ -35,18 +36,18 @@ def get_args():
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="""A folder of fasta files."""
+        help="""A folder of fasta files.""",
     )
     parser.add_argument(
         "--output",
         required=True,
-        help="""A SQLite database to create during integration."""
+        help="""A SQLite database to create during integration.""",
     )
     parser.add_argument(
         "--base-taxon",
         required=True,
         type=str,
-        help="""The base taxon to use."""
+        help="""The base taxon to use.""",
     )
     return parser.parse_args()
 
@@ -57,20 +58,22 @@ def create_match_database(db, organisms, base):
     c = conn.cursor()
     c.execute("PRAGMA foreign_keys = ON")
     try:
-        create_string = [org + ' integer DEFAULT 0' for org in organisms]
-        query = "CREATE TABLE {0} (locus text primary key, {1})".format(base, ', '.join(create_string))
+        create_string = [org + " integer DEFAULT 0" for org in organisms]
+        query = "CREATE TABLE {0} (locus text primary key, {1})".format(
+            base, ", ".join(create_string)
+        )
         c.execute(query)
-    except sqlite3.OperationalError, e:
-        #log.critical("Database already exists")
+    except sqlite3.OperationalError as e:
+        # log.critical("Database already exists")
         if e[0].endswith("already exists"):
-            answer = raw_input("Database already exists.  Overwrite [Y/n]? ")
+            answer = input("Database already exists.  Overwrite [Y/n]? ")
             if answer == "Y" or "YES":
                 os.remove(db)
                 conn, c = create_match_database(db, organisms, base)
             else:
                 sys.exit(2)
         else:
-            #log.critical("Cannot create database")
+            # log.critical("Cannot create database")
             raise sqlite3.OperationalError("Cannot create database")
     return conn, c
 
@@ -93,24 +96,21 @@ def main():
                 ids = seq.id.split("|")
                 locus = ids[3].split(":")[1]
                 conserved[locus].append(taxon_name)
-        print ""
+        print("")
     # create database
-    print "Creating database"
+    print("Creating database")
     conn, c = create_match_database(args.output, organisms, args.base_taxon)
-    print "Inserting results"
-    for locus, taxa in conserved.iteritems():
+    print("Inserting results")
+    for locus, taxa in conserved.items():
         names = ", ".join([i for i in taxa])
-        ones = ", ".join(['1'] * len(taxa))
+        ones = ", ".join(["1"] * len(taxa))
         query = "INSERT INTO {} (locus, {}) values ('{}', {})".format(
-            args.base_taxon,
-            names,
-            locus,
-            ones
+            args.base_taxon, names, locus, ones
         )
         c.execute(query)
     conn.commit()
     conn.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

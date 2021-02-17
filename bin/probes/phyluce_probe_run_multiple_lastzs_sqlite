@@ -30,82 +30,83 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Align a set of probes against genome sequence(s) in scaffolds or chromosomes""")
+        description="""Align a set of probes against genome sequence(s) in scaffolds or chromosomes"""
+    )
     parser.add_argument(
-            "--db",
-            required=True,
-            type=str,
-            help="""The database in which to store results (also use --append if adding results to an existing database)"""
-        )
+        "--db",
+        required=True,
+        type=str,
+        help="""The database in which to store results (also use --append if adding results to an existing database)""",
+    )
     parser.add_argument(
-            "--output",
-            required=True,
-            action=CreateDir,
-            help="""The directory in which to store the LASTZ files"""
-        )
+        "--output",
+        required=True,
+        action=CreateDir,
+        help="""The directory in which to store the LASTZ files""",
+    )
     parser.add_argument(
-            "--probefile",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""The probe file to align against the sequences"""
-        )
+        "--probefile",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The probe file to align against the sequences""",
+    )
     parser.add_argument(
-            "--chromolist",
-            type=str,
-            nargs='+',
-            default=[],
-            help="""The list of organisms with genome sequences in chromosomes"""
-        )
+        "--chromolist",
+        type=str,
+        nargs="+",
+        default=[],
+        help="""The list of organisms with genome sequences in chromosomes""",
+    )
     parser.add_argument(
-            "--scaffoldlist",
-            type=str,
-            nargs='+',
-            default=[],
-            help="""The list of organisms with genome sequences in scaffolds/contigs"""
-        )
+        "--scaffoldlist",
+        type=str,
+        nargs="+",
+        default=[],
+        help="""The list of organisms with genome sequences in scaffolds/contigs""",
+    )
     parser.add_argument(
-            "--append",
-            action="store_true",
-            default=False,
-            help="""Insert results to an existing database""",
-        )
+        "--append",
+        action="store_true",
+        default=False,
+        help="""Insert results to an existing database""",
+    )
     parser.add_argument(
-            "--no-dir",
-            action="store_true",
-            default=False,
-            help="""If genome sequences are not in their own abbr. directory""",
-        )
+        "--no-dir",
+        action="store_true",
+        default=False,
+        help="""If genome sequences are not in their own abbr. directory""",
+    )
     parser.add_argument(
-            "--cores",
-            type=int,
-            default=1,
-            help="""The number of compute cores to use""",
-        )
+        "--cores",
+        type=int,
+        default=1,
+        help="""The number of compute cores to use""",
+    )
     parser.add_argument(
-            "--genome-base-path",
-            dest="base_path",
-            type=str,
-            default=None,
-            help="""The base path to a directory containing genomes sequences""",
-        )
+        "--genome-base-path",
+        dest="base_path",
+        type=str,
+        default=None,
+        help="""The base path to a directory containing genomes sequences""",
+    )
     parser.add_argument(
-            "--coverage",
-            type=float,
-            default=83.0,
-            help="""The default coverage to search for using lastz""",
-        )
+        "--coverage",
+        type=float,
+        default=83.0,
+        help="""The default coverage to search for using lastz""",
+    )
     parser.add_argument(
-            "--identity",
-            type=float,
-            default=92.5,
-            help="""The default percent identity to search for using lastz""",
-        )
+        "--identity",
+        type=float,
+        default=92.5,
+        help="""The default percent identity to search for using lastz""",
+    )
     return parser.parse_args()
 
 
 def create_species_lastz_tables(cur, g):
-    print "Creating {0} table".format(g)
+    print("Creating {0} table".format(g))
     query = """CREATE TABLE {0} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             score INTEGER NOT NULL,
@@ -126,10 +127,12 @@ def create_species_lastz_tables(cur, g):
             continuity TEXT NOT NULL,
             percent_continuity FLOAT NOT NULL,
             coverage TEXT NOT NULL,
-            percent_coverage FLOAT NOT NULL)""".format(g)
+            percent_coverage FLOAT NOT NULL)""".format(
+        g
+    )
     try:
         cur.execute(query)
-    except sqlite3.OperationalError, msg:
+    except sqlite3.OperationalError as msg:
         if "table {0} already exists".format(g) in msg.message:
             cur.execute("DROP TABLE {0}".format(g))
             cur.execute(query)
@@ -141,20 +144,22 @@ def create_species_lastz_tables(cur, g):
 
 
 def insert_species_to_lastz_tables(cur, g, input):
-    print "Inserting data to {0} table".format(g)
-    with open(input, 'rU') as data:
+    print("Inserting data to {0} table".format(g))
+    with open(input, "rU") as data:
         rows = [tuple(line.strip().split("\t")) for line in data]
     query = """INSERT INTO {0} (score, name1, strand1, zstart1, end1,
             length1, name2, strand2, zstart2, end2, length2, diff, cigar,
             identity, percent_identity, continuity, percent_continuity,
             coverage, percent_coverage) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,
-            ?,?,?,?,?,?,?)""".format(g)
+            ?,?,?,?,?,?,?)""".format(
+        g
+    )
     cur.executemany(query, rows)
 
 
 def clean_lastz_data(dirty):
-    print "Cleaning {0}".format(dirty)
-    clean = dirty + '.clean'
+    print("Cleaning {0}".format(dirty))
+    clean = dirty + ".clean"
     with open(dirty, "r") as source:
         with open(clean, "w") as target:
             data = source.read()
@@ -167,16 +172,18 @@ def clean_lastz_data(dirty):
 def create_species_table(conn, cur, append):
     if not append:
         try:
-            cur.execute("""CREATE TABLE species (
+            cur.execute(
+                """CREATE TABLE species (
                 name TEXT PRIMARY KEY,
                 description TEXT NULL,
                 version TEXT NULL
                 )
-            """)
+            """
+            )
             conn.commit()
-        except sqlite3.OperationalError, msg:
+        except sqlite3.OperationalError as msg:
             if "table species already exists" in msg.message:
-                inpt = raw_input("Species table already exists. Replace [Y/n]? ")
+                inpt = input("Species table already exists. Replace [Y/n]? ")
                 if inpt == "Y":
                     cur.execute("DROP TABLE species")
                     create_species_table(conn, cur, append)
@@ -186,44 +193,78 @@ def create_species_table(conn, cur, append):
 
 def align_against_scaffolds(cur, args, path):
     for g in args.scaffoldlist:
-        output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
+        output = os.path.abspath(
+            os.path.join(
+                args.output,
+                "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g),
+            )
+        )
         target = path.format(g)
         prefab = False
-        if os.path.isfile(output + '.clean'):
-            inpt = raw_input("The output file {0} exists.  Do you want to use it [Y/n]? ".format(g))
-            if inpt == 'Y' or inpt == 'Yes':
+        if os.path.isfile(output + ".clean"):
+            inpt = input(
+                "The output file {0} exists.  Do you want to use it [Y/n]? ".format(
+                    g
+                )
+            )
+            if inpt == "Y" or inpt == "Yes":
                 prefab = True
-                clean = output + '.clean'
+                clean = output + ".clean"
             else:
                 prefab = False
         if not prefab:
-            multi_lastz_runner(output, args.cores, target, args.probefile, True, args.coverage, args.identity)
+            multi_lastz_runner(
+                output,
+                args.cores,
+                target,
+                args.probefile,
+                True,
+                args.coverage,
+                args.identity,
+            )
             clean = clean_lastz_data(output)
         if args.db:
             create_species_lastz_tables(cur, g)
             insert_species_to_lastz_tables(cur, g, clean)
-            cur.execute('INSERT INTO species (name) VALUES (?)', (g,))
+            cur.execute("INSERT INTO species (name) VALUES (?)", (g,))
 
 
 def align_against_genomes(cur, args, path):
     for g in args.chromolist:
-        output = os.path.abspath(os.path.join(args.output, "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g)))
+        output = os.path.abspath(
+            os.path.join(
+                args.output,
+                "{0}_v_{1}.lastz".format(os.path.basename(args.probefile), g),
+            )
+        )
         target = path.format(g)
         prefab = False
-        if os.path.isfile(output + '.clean'):
-            inpt = raw_input("The output file {0} exists.  Do you want to use it [Y/n]? ".format(g))
-            if inpt == 'Y' or inpt == 'Yes':
+        if os.path.isfile(output + ".clean"):
+            inpt = input(
+                "The output file {0} exists.  Do you want to use it [Y/n]? ".format(
+                    g
+                )
+            )
+            if inpt == "Y" or inpt == "Yes":
                 prefab = True
-                clean = output + '.clean'
+                clean = output + ".clean"
             else:
                 prefab = False
         if not prefab:
-            multi_lastz_runner(output, args.cores, target, args.probefile, False, args.coverage, args.identity)
+            multi_lastz_runner(
+                output,
+                args.cores,
+                target,
+                args.probefile,
+                False,
+                args.coverage,
+                args.identity,
+            )
             clean = clean_lastz_data(output)
         if args.db:
             create_species_lastz_tables(cur, g)
             insert_species_to_lastz_tables(cur, g, clean)
-            cur.execute('INSERT INTO species (name) VALUES (?)', (g,))
+            cur.execute("INSERT INTO species (name) VALUES (?)", (g,))
 
 
 def check_for_all_genome_sequences(chromo, scaffold, path):
@@ -253,5 +294,6 @@ def main():
     cur.close()
     conn.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
