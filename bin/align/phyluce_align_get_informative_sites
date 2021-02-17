@@ -22,52 +22,49 @@ from phyluce import sites
 from phyluce.helpers import is_dir, FullPaths, get_alignment_files
 from phyluce.log import setup_logging
 
-#import pdb
+# import pdb
 
 
 def get_args():
     parser = argparse.ArgumentParser(
-            description="""Count the number of informative sites in a given set of alignment"""
-        )
+        description="""Count the number of informative sites in a given set of alignment"""
+    )
     parser.add_argument(
-            '--alignments',
-            required=True,
-            type=is_dir,
-            action=FullPaths,
-            help="""The directory containing the alignment files"""
-        )
+        "--alignments",
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The directory containing the alignment files""",
+    )
     parser.add_argument(
-            '--output',
-            type=str,
-            default=None,
-            help="""The output filename"""
-        )
+        "--output", type=str, default=None, help="""The output filename"""
+    )
     parser.add_argument(
-            "--input-format",
-            dest="input_format",
-            choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-            default='nexus',
-            help="""The input alignment format""",
-        )
+        "--input-format",
+        dest="input_format",
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="nexus",
+        help="""The input alignment format""",
+    )
     parser.add_argument(
-            "--cores",
-            type=int,
-            default=1,
-            help="""The number of cores to use.""",
-        )
+        "--cores",
+        type=int,
+        default=1,
+        help="""The number of cores to use.""",
+    )
     parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     return parser.parse_args()
 
@@ -76,8 +73,18 @@ def worker(work):
     args, f = work
     align = AlignIO.read(f, args.input_format)
     name = os.path.basename(f)
-    sum_informative_sites, sum_differences, sum_counted_sites = sites.compute_informative_sites(align)
-    return (name, align.get_alignment_length(), sum_informative_sites, sum_differences, sum_counted_sites)
+    (
+        sum_informative_sites,
+        sum_differences,
+        sum_counted_sites,
+    ) = sites.compute_informative_sites(align)
+    return (
+        name,
+        align.get_alignment_length(),
+        sum_informative_sites,
+        sum_differences,
+        sum_counted_sites,
+    )
 
 
 def main():
@@ -88,15 +95,17 @@ def main():
     files = get_alignment_files(log, args.alignments, args.input_format)
     work = [(args, f) for f in files]
     if args.cores <= 1:
-        results = map(worker, work)
+        results = list(map(worker, work))
     elif args.cores > 1:
         pool = multiprocessing.Pool(args.cores)
         results = pool.map(worker, work)
     if args.output:
-        outf = open(args.output, 'w')
-        outf.write("locus,length,informative_sites,differences,counted-bases\n")
+        outf = open(args.output, "w")
+        outf.write(
+            "locus,length,informative_sites,differences,counted-bases\n"
+        )
     else:
-        print "locus\tlength\tinformative_sites\tdifferences\tcounted-bases"
+        print("locus\tlength\tinformative_sites\tdifferences\tcounted-bases")
     total_sites = []
     total_differences = []
     all_counted_sites = []
@@ -105,19 +114,30 @@ def main():
         total_differences.append(locus[3])
         all_counted_sites.append(locus[4])
         if not args.output:
-            print "{0}\t{1}\t{2}\t{3}\t{4}".format(locus[0], locus[1], locus[2], locus[3], locus[4])
+            print(
+                "{0}\t{1}\t{2}\t{3}\t{4}".format(
+                    locus[0], locus[1], locus[2], locus[3], locus[4]
+                )
+            )
         else:
-            outf.write("{0},{1},{2},{3},{4}\n".format(locus[0], locus[1], locus[2], locus[3], locus[4]))
-    log.info("Total sites = {0}; Sites per locus = {1:.2f}; Total differences = {2}; Differences per locus = {3:.2f}; All sites checked for differences = {4}".format(
-        sum(total_sites),
-        sum(total_sites) / float(len(total_sites)),
-        sum(total_differences),
-        sum(total_differences) / float(len(total_differences)),
-        sum(all_counted_sites)
-    ))
+            outf.write(
+                "{0},{1},{2},{3},{4}\n".format(
+                    locus[0], locus[1], locus[2], locus[3], locus[4]
+                )
+            )
+    log.info(
+        "Total sites = {0}; Sites per locus = {1:.2f}; Total differences = {2}; Differences per locus = {3:.2f}; All sites checked for differences = {4}".format(
+            sum(total_sites),
+            sum(total_sites) / float(len(total_sites)),
+            sum(total_differences),
+            sum(total_differences) / float(len(total_differences)),
+            sum(all_counted_sites),
+        )
+    )
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

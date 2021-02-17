@@ -648,3 +648,37 @@ def test_align_get_align_summary_data(o_dir, e_dir, request):
             expected_dict[ls[0]] = ",".join(ls[1:])
     for k, v in output_dict.items():
         assert expected_dict[k] == v
+
+
+def test_align_get_informative_sites(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_get_informative_sites"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-informative-sites.csv")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--input-format",
+        "nexus",
+        "--output",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    assert output, "There are no output files"
+    output_dict = {}
+    pdb.set_trace()
+    with (open(output)) as output_file:
+        for line in output_file:
+            ls = line.strip().split(",")
+            output_dict[ls[0]] = ",".join(ls[1:])
+    expected = os.path.join(e_dir, "mafft-gblocks-clean-informative-sites.csv")
+    expected_dict = {}
+    with (open(expected)) as expected_file:
+        for line in expected_file:
+            ls = line.strip().split(",")
+            expected_dict[ls[0]] = ",".join(ls[1:])
+    for k, v in output_dict.items():
+        assert expected_dict[k] == v
