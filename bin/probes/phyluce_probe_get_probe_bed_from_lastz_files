@@ -18,6 +18,8 @@ import glob
 import logging
 import argparse
 from collections import defaultdict
+
+from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, is_dir, CreateDir
 from phyluce import lastz
 
@@ -30,11 +32,11 @@ def get_args():
         description="""get_locus_bed_from_lastz"""
     )
     parser.add_argument(
-        "--input",
+        "--alignments",
         required=True,
         type=is_dir,
         action=FullPaths,
-        help="""The input directory containing lastz files""",
+        help="""The input directory containing LASTZ files""",
     )
     parser.add_argument(
         "--output",
@@ -42,20 +44,21 @@ def get_args():
         action=CreateDir,
         help="""The output directory to hold BED-formatted files""",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
-
-
-def setup_logger():
-    # get a logger and give it a name
-    logger = logging.getLogger("PHYLUCE")
-    formatter = logging.Formatter("%(name)-5s: %(levelname)-8s %(message)s")
-    # setup handler
-    hdlr = logging.StreamHandler()
-    hdlr.setFormatter(formatter)
-    # add handlder and set logging level
-    logger.addHandler(hdlr)
-    logger.setLevel(logging.INFO)
-    return logger
 
 
 def write_bed_file(outf, chromo, start, end, probe):
@@ -68,8 +71,9 @@ def write_bed_file(outf, chromo, start, end, probe):
 
 def main():
     args = get_args()
-    log = setup_logger()
-    for file in glob.glob(os.path.join(args.input, "*lastz*")):
+    # setup logging
+    log, my_name = setup_logging(args)
+    for file in glob.glob(os.path.join(args.alignments, "*lastz*")):
         lz = lastz.Reader(file, long_format=True)
         probes = defaultdict(list)
         # get output file name
@@ -101,7 +105,9 @@ def main():
                     written.add(probe)
                 write_bed_file(outf, chromo, start, end, probe)
         outf.close()
-        # pdb.set_trace()
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
