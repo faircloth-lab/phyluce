@@ -18,48 +18,46 @@ import argparse
 from collections import defaultdict
 from phyluce.helpers import FullPaths, is_file
 
-#import pdb
+# import pdb
+
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Query a probes.matches.sqlite db for matrix completeness""")
+        description="""Query a probes.matches.sqlite db for matrix completeness"""
+    )
     parser.add_argument(
-            "--db",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""The probe.matches.sqlite database to query"""
-        )
+        "--db",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The probe.matches.sqlite database to query""",
+    )
     parser.add_argument(
-            "--min",
-            type=check_min_value,
-            default=0,
-            help="""The minimum of the range to evaluate"""
-        )
+        "--min",
+        type=check_min_value,
+        default=0,
+        help="""The minimum of the range to evaluate""",
+    )
     parser.add_argument(
-            "--max",
-            type=check_max_value,
-            default=1,
-            help="""The maximum of the range to evaluate"""
-        )
+        "--max",
+        type=check_max_value,
+        default=1,
+        help="""The maximum of the range to evaluate""",
+    )
     parser.add_argument(
-            "--step",
-            type=check_max_value,
-            default=0.1,
-            help="""The step of the range to evaluate"""
-        )
+        "--step",
+        type=check_max_value,
+        default=0.1,
+        help="""The step of the range to evaluate""",
+    )
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--exclude',
-        type=str,
-        default=None,
-        nargs='+',
-        help='Taxa to exclude')
-    group.add_argument('--include',
-        type=str,
-        default=None,
-        nargs='+',
-        help='Taxa to include')
+    group.add_argument(
+        "--exclude", type=str, default=None, nargs="+", help="Taxa to exclude"
+    )
+    group.add_argument(
+        "--include", type=str, default=None, nargs="+", help="Taxa to include"
+    )
     return parser.parse_args()
 
 
@@ -75,7 +73,9 @@ def check_max_value(value):
     """ensure max/step values for range/step are sane"""
     value = float(value)
     if not 0 <= value <= 1:
-        raise argparse.ArgumentTypeError("The max value must be 0 <= value <= 1")
+        raise argparse.ArgumentTypeError(
+            "The max value must be 0 <= value <= 1"
+        )
     return value
 
 
@@ -97,10 +97,10 @@ def get_number_of_taxa_in_db(args, cur):
 def get_counts_of_hits_by_locus(cur, taxa):
     """Across the desired taxa, tally the locus matches"""
     locus_counts = {}
-    query = "SELECT uce,{} FROM matches".format(','.join(taxa))
+    query = "SELECT uce,{} FROM matches".format(",".join(taxa))
     for row in cur.execute(query):
         locus = row[0]
-        counts = [int(i) if i=='1' else 0 for i in row[1:]]
+        counts = [int(i) if i == "1" else 0 for i in row[1:]]
         locus_counts[locus] = sum(counts)
     return locus_counts
 
@@ -116,7 +116,7 @@ def get_bins_of_counts(args, num_taxa, locus_counts):
     # get cut points
     fracs, cuts = get_cut_points(args, num_taxa)
     frac_dict = defaultdict(list)
-    for k, v in locus_counts.iteritems():
+    for k, v in locus_counts.items():
         bool_test = v < cuts
         positions = numpy.where(bool_test == True)[0]
         if positions.size == 0:
@@ -134,13 +134,13 @@ def main():
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
     taxa = get_number_of_taxa_in_db(args, cur)
-    print "There are {} taxa.".format(len(taxa))
+    print("There are {} taxa.".format(len(taxa)))
     locus_counts = get_counts_of_hits_by_locus(cur, taxa)
     frac_dict = get_bins_of_counts(args, len(taxa), locus_counts)
-    print "Freq(taxa present),Cut point,Loci"
+    print("Freq(taxa present),Cut point,Loci")
     for k in sorted(frac_dict.keys()):
-        print "{},{}".format(k, sum(frac_dict[k]))
+        print("{},{}".format(k, sum(frac_dict[k])))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
