@@ -861,3 +861,34 @@ def test_align_screen_alignments_for_problems(o_dir, e_dir, request):
         )
     ]
     assert set(output_files) == set(expected_files)
+
+
+def test_align_split_concat_nexus_to_loci(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_split_concat_nexus_to_loci"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-concat-split-nexus")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--nexus",
+        os.path.join(
+            e_dir,
+            "mafft-gblocks-clean-concat-nexus",
+            "mafft-gblocks-clean-concat-nexus.nexus",
+        ),
+        "--output",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    # make sure we get back the alignments that we started with when
+    # concatenating
+    for output_file in output_files:
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "mafft-gblocks-clean", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected

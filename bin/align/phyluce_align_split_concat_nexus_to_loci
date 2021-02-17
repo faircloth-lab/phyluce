@@ -13,58 +13,123 @@ Created on 09 April 2015 14:17 CDT (-0500)
 
 import os
 import argparse
+import tempfile
+
+
 from Bio import AlignIO
 from Bio.Nexus import Nexus
-from phyluce.helpers import FullPaths, is_file, CreateDir
+from Bio.Align import MultipleSeqAlignment
 
-#import pdb
+from phyluce.log import setup_logging
+from phyluce.helpers import FullPaths, is_file, is_dir, CreateDir
+
+import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Split a concatenated NEXUS file into component loci using the charsets values""")
+        description="""Split a concatenated NEXUS file into component loci using the charsets values"""
+    )
     parser.add_argument(
-            "--nexus",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""The input NEXUS file"""
-        )
+        "--nexus",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The input NEXUS file""",
+    )
     parser.add_argument(
-            "--output",
-            action=CreateDir,
-            required=True,
-            help="""The output directory in which to store alignments""",
-        )
+        "--output",
+        action=CreateDir,
+        required=True,
+        help="""The output directory in which to store alignments""",
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=[
+            "fasta",
+            "nexus",
+            "phylip",
+            "phylip-relaxed",
+            "clustal",
+            "emboss",
+            "stockholm",
+        ],
+        default="nexus",
+        help="""The output alignment format.""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    # drop the charpartition line from Nexus (this will fail when dashes are in names)
+    temp_file = tempfile.mkstemp()
+    with open(temp_file[1], "w") as outfile:
+        for line in open(args.nexus):
+            if line.startswith("charpartition"):
+                pass
+            else:
+                outfile.write(line)
     # get the partitions from the nexus file
-    print "Getting partition information..."
+    log.info("Getting partition information...")
+    # pdb.set_trace()
     aln = Nexus.Nexus()
-    aln.read(args.nexus)
+    aln.read(temp_file[1])
     partitions = aln.charsets
-    print "\tThere are {0} partitions".format(len(partitions))
-    print "Parsing alignment..."
-    aln = AlignIO.read(args.nexus, 'nexus')
-    print "Writing output"
-    for k in sorted(partitions.iterkeys()):
-        #sys.stdout.write('.')
-        #sys.stdout.flush()
+    log.info("\tThere are {0} partitions".format(len(partitions)))
+    log.info("Parsing alignment...")
+    aln = AlignIO.read(temp_file[1], "nexus")
+    log.info("Writing output...")
+    for k in sorted(partitions.keys()):
+        # sys.stdout.write('.')
+        # sys.stdout.flush()
         try:
             start, end = partitions[k][0], partitions[k][-1]
-            #pdb.set_trace()
-            #print start, end
-            temp = aln[:, start:end]
-            outf = open(os.path.join(args.output, "{}.nex".format(k)), 'w')
-            outf.write(temp.format('nexus'))
+            temp = aln[:, start : end + 1]
+            new_align = MultipleSeqAlignment([])
+            for seq in temp:
+                # loci with taxa having no data can be included, so drop those
+                if (set(seq.seq) == set("-")) or (set(seq.seq) == set("?")):
+                    pass
+                else:
+                    seq.annotations = {"molecule_type": "DNA"}
+                    new_align.append(seq)
+            with open(
+                os.path.join(
+                    args.output,
+                    "{}.{}".format(
+                        k.replace(".nexus", ""), args.output_format
+                    ),
+                ),
+                "w",
+            ) as outf:
+                outf.write(format(new_align, args.output_format))
         except IndexError:
-            print "Died on partition {0}".format(k)
+            log.critical("Died on partition {0}".format(k))
         outf.close()
+    os.remove(temp_file[1])
+    log.info("Output alignments written to {}".format(args.output))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
