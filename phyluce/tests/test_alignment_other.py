@@ -712,3 +712,64 @@ def test_align_get_only_loci_with_min_taxa(o_dir, e_dir, request):
         for i in glob.glob(os.path.join(e_dir, "mafft-gblocks-clean-75p", "*"))
     ]
     assert set(output_files) == set(expected_files)
+
+
+def test_align_get_ry_recoded_alignments(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_get_ry_recoded_alignments"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-ry")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--input-format",
+        "nexus",
+        "--output-format",
+        "nexus",
+        "--output",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(e_dir, "mafft-gblocks-clean-ry", name)
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected
+
+
+def test_align_get_ry_recoded_alignments_binary(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_get_ry_recoded_alignments"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-ry-binary")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--input-format",
+        "nexus",
+        "--output-format",
+        "nexus",
+        "--output",
+        output,
+        "--binary",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-gblocks-clean-ry-binary", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected

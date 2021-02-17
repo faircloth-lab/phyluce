@@ -20,7 +20,6 @@ import multiprocessing
 
 from Bio import AlignIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 from Bio.Align import MultipleSeqAlignment
 from phyluce.helpers import FullPaths, is_dir, CreateDir, get_alignment_files
 
@@ -32,13 +31,14 @@ import pdb
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Remove the UCE locus name from nexus alignments.""")
+        description="""Remove the UCE locus name from nexus alignments."""
+    )
     parser.add_argument(
         "--alignments",
         required=True,
         action=FullPaths,
         type=is_dir,
-        help="""The input directory containing nexus files to filter"""
+        help="""The input directory containing nexus files to filter""",
     )
     parser.add_argument(
         "--output",
@@ -48,13 +48,29 @@ def get_args():
     )
     parser.add_argument(
         "--input-format",
-        choices=["fasta", "nexus", "phylip", "phylip-relaxed", "clustal", "emboss", "stockholm"],
+        choices=[
+            "fasta",
+            "nexus",
+            "phylip",
+            "phylip-relaxed",
+            "clustal",
+            "emboss",
+            "stockholm",
+        ],
         default="nexus",
         help="""The input alignment format.""",
     )
     parser.add_argument(
         "--output-format",
-        choices=["fasta", "nexus", "phylip", "phylip-relaxed", "clustal", "emboss", "stockholm"],
+        choices=[
+            "fasta",
+            "nexus",
+            "phylip",
+            "phylip-relaxed",
+            "clustal",
+            "emboss",
+            "stockholm",
+        ],
         default="nexus",
         help="""The output alignment format.""",
     )
@@ -63,21 +79,21 @@ def get_args():
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""Process alignments in parallel using --cores for alignment. """ +
-        """This is the number of PHYSICAL CPUs."""
+        help="""Process alignments in parallel using --cores for alignment. """
+        + """This is the number of PHYSICAL CPUs.""",
     )
     parser.add_argument(
         "--binary",
@@ -91,25 +107,32 @@ def get_args():
 def worker(work):
     all_taxa = []
     args, f, in_type, out_type, translation_table = work
-    new_align = MultipleSeqAlignment([], generic_dna)
+    new_align = MultipleSeqAlignment([])
     for align in AlignIO.parse(f, in_type):
         for seq in list(align):
             seq_string = str(seq.seq)
             seq_string_ry = seq_string.translate(translation_table)
-            new_seq = Seq(seq_string_ry, generic_dna)
+            new_seq = Seq(seq_string_ry)
             new_seq.id = seq.id
             new_seq.name = seq.name
+            new_seq.annotations = {"molecule_type": "DNA"}
             seq.seq = new_seq
             new_align.append(seq)
-    outf = os.path.join(args.output, "{}.{}".format(os.path.splitext(os.path.basename(f))[0], args.output_format))
+    outf = os.path.join(
+        args.output,
+        "{}.{}".format(
+            os.path.splitext(os.path.basename(f))[0], args.output_format
+        ),
+    )
     try:
-        with open(outf, 'w') as outfile:
+        with open(outf, "w") as outfile:
             AlignIO.write(new_align, outfile, out_type)
         sys.stdout.write(".")
         sys.stdout.flush()
     except ValueError:
         raise IOError("Cannot write output file.")
     return all_taxa
+
 
 def main():
     args = get_args()
@@ -118,22 +141,32 @@ def main():
     files = get_alignment_files(log, args.alignments, args.input_format)
     # make translation table
     if not args.binary:
-        translation_table = string.maketrans('AGRCTYSWKMBDHVagrctyswkmbdhv', 'RRRYYY????????rrryyy????????')
+        translation_table = str.maketrans(
+            "AGRCTYSWKMBDHVagrctyswkmbdhv", "RRRYYY????????rrryyy????????"
+        )
     else:
-        translation_table = string.maketrans('AGRCTYSWKMBDHVNagrctyswkmbdhvn', '111000?????????111000?????????')
-    work = [(args, f, args.input_format, args.output_format, translation_table) for f in files]
+        translation_table = str.maketrans(
+            "AGRCTYSWKMBDHVNagrctyswkmbdhvn", "111000?????????111000?????????"
+        )
+    work = [
+        (args, f, args.input_format, args.output_format, translation_table)
+        for f in files
+    ]
     sys.stdout.write("Running")
     sys.stdout.flush()
     if args.cores > 1:
-        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        assert (
+            args.cores <= multiprocessing.cpu_count()
+        ), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         pool.map(worker, work)
     else:
-        map(worker, work)
-    print ""
+        list(map(worker, work))
+    print("")
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

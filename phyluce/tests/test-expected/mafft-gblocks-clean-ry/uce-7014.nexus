@@ -1,0 +1,11 @@
+#NEXUS
+begin data;
+dimensions ntax=4 nchar=440;
+format datatype=dna missing=? gap=-;
+matrix
+alligator_mississippiensis yrryrrryrrrryyryryyyrrrrrryrryyyryyrryyyyrrryryrrrrrryryryyryyyrryyryyryrryryyyyryrrrryrryryr-yryyryyyyyyyryryrrryyyyyryyyrrryrryryrryrryrrrryyyryrryryrryyrrrryyrrrrryyryyyryrryryrryyryyrryyyyrryyryyryrrrryyryyyyrryrryyyryrryyryrrrrryrrrrryryryyyyryyryryyyryryyryrryryyyyyyyyryryyrrryyyryrrryyrrryyrrryyrrryyryryyyyyyyryyyyrrrrryryyyyyyyrrryrrryrrrrryyrryyyyrrrrryyyryryrryryyyrryyryrryryryyryryrrrrryyyyryyrryyryyyrrrrryyrryrrryrrrryyyyyyy
+gallus_gallus              yyryyrrrrrrryyyyryyyryryrryyryyrryyryyyyrrryyyyyryrrryryyyyryyyyryyryyryrryryyyyyyyyrryrryryryyyyyyyyyyyyyryryrrryyyyyryyyrrryrryryrryrryrrrryyyryrryryrryyrrrryyrrrrryyryyyryrryryrryyryyrryyyyrryyryyryrrrryyryyyyrryrryyyryrryyryrrrrryrrrrryryryyyyryyryryyyryryyryrryryyyyyyyyryryyrrryyyryrrryyrrryyrrryyrrryyryryyyyyyyryyyyrrrrryryyyyyyyrrryrrryrrrrryyrryyryrrrrryyyryryrryryyyrryyryrryryryyryryrrrrryyyyryyrryyryyyrrrrryyrryrrryrrrryyyyyyy
+peromyscus_maniculatus     yyryyrryyrryyyyyrryrrrrrrryyrryryyyryyyyyrryyry------------ryyyyryyryyyyrrrryyyryyyyrryryyyrryryyyyyyyyryyryyyrrryyyyyryyyrrryrryryrryrryrrrryyyryrryryrryyrrrryyrrrrryyryyyryrryryrryyryyrryyyyrryyryyryrrrryyryyyyrryrryyyryrryyryrrrrryrrrrryryryyyyryyryryyyryryyryrryryyryyyyyryryyryryyyryrrryyyrryyrrryyrrryyryryyyyyyyryyyyrrrrryyyyyyyyyrrryrrryrrrrryyrryyryrrrrryyyryyyrryryyyrryyryrryryryyryryrrrrryyyyryyrryyryyyrrrrryyrryrrryrrrryyyyyyy
+rana_sphenocephafa         --------------------------------------yyyrryyrrrryrrryryyry----------yyyrrrryyyyrryyrryyyyyyryyyyyyyyyyyyyyyyyrrryyyyyryyyrrryrryryrryrryrrrryyyryrryryrryyyrryyyrrrryyyryyyryrryryrryyryyrryyyyrryyryyryrrrryyryyyyrryyryyyryrryyryrrrrryrrrrryryyyyyyryyryryyyryryrryrryryyyyyyyyryryyryryyyryrrryyyrryyrrryyrrryyryryyyyyyyryyyyrrrrryyyyryyyyr------------------------------------------------------------------------------------------------------
+;
+end;
