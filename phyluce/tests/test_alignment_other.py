@@ -773,3 +773,27 @@ def test_align_get_ry_recoded_alignments_binary(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_align_get_taxon_locus_counts_in_alignments(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_get_taxon_locus_counts_in_alignments"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-taxon-counts.csv")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean"),
+        "--input-format",
+        "nexus",
+        "--output",
+        output,
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    assert output, "There are no output files"
+    expected_file = os.path.join(e_dir, "mafft-gblocks-clean-taxon-counts.csv")
+    observed = open(output).read()
+    expected = open(expected_file).read()
+    assert observed == expected

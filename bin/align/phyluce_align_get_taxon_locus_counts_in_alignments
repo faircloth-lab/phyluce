@@ -15,10 +15,18 @@ import os
 import glob
 import argparse
 from Bio import AlignIO
-from phyluce.helpers import is_dir, FullPaths, get_file_extensions
+
+from phyluce.log import setup_logging
+from phyluce.helpers import (
+    is_dir,
+    FullPaths,
+    get_file_extensions,
+    get_alignment_files,
+    CreateFile,
+)
 from collections import Counter
 
-#import pdb
+# import pdb
 
 
 def get_args():
@@ -31,39 +39,58 @@ def get_args():
         required=True,
         action=FullPaths,
         type=is_dir,
-        help="""The input directory of alignment files"""
+        help="""The input directory of alignment files""",
     )
     parser.add_argument(
         "--input-format",
         dest="input_format",
-        choices=['fasta', 'nexus', 'phylip', 'clustal', 'emboss', 'stockholm'],
-        default='fasta',
+        choices=["fasta", "nexus", "phylip", "clustal", "emboss", "stockholm"],
+        default="fasta",
         help="""The input alignment format""",
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=CreateFile,
+        help="""The name of the CSV file to store the output""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
     )
     return parser.parse_args()
 
 
-def get_files(input_dir, input_format):
-    alignments = []
-    for ftype in get_file_extensions(input_format):
-        alignments.extend(glob.glob(os.path.join(input_dir, "*{}".format(ftype))))
-    return alignments
-
-
 def main():
     args = get_args()
-    # iterate through all the files to determine the longest alignment
-    files = get_files(args.alignments, args.input_format)
+    # setup logging
+    log, my_name = setup_logging(args)
+    files = get_alignment_files(log, args.alignments, args.input_format)
     count = Counter()
     for f in files:
         aln = AlignIO.read(f, args.input_format)
         for seq in aln:
             if len(set(str(seq.seq))) > 1:
                 count[seq.id] += 1
-    print "taxon,count"
-    for taxon, cnt in count.iteritems():
-        print "{},{}".format(taxon, cnt)
+    log.info("Writing taxon count data to {}".format(args.output))
+    with open(args.output, "w") as outfile:
+        outfile.write("taxon,count\n")
+        for taxon, cnt in count.items():
+            outfile.write("{},{}\n".format(taxon, cnt))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
