@@ -271,7 +271,7 @@ def main():
         global_coords = locus.description.split("|")[1]
         global_chromo, global_chromo_positions = global_coords.split(":")
         global_chromo_start, global_chromo_end = [
-            int(i) for i in global_chromo_positions.split("-")
+            int(float(i)) for i in global_chromo_positions.split("-")
         ]
         if args.overlap == "middle":
             coords = middle_overlapper(locus, args)
@@ -280,12 +280,12 @@ def main():
         coords.sort()
         if args.two_probes:
             if len(coords) % 2 == 0:
-                pos1 = len(coords) / 2 - 1
-                pos2 = len(coords) / 2
+                pos1 = int(len(coords) / 2 - 1)
+                pos2 = int(len(coords) / 2)
                 coords = [coords[pos1], coords[pos2]]
             else:
-                pos1 = len(coords) / 2
-                pos2 = pos1 + random.choice([1, -1])
+                pos1 = int(len(coords) / 2)
+                pos2 = int(pos1 + random.choice([1, -1]))
                 coords = [coords[pos1], coords[pos2]]
                 coords.sort()
         probes = []
