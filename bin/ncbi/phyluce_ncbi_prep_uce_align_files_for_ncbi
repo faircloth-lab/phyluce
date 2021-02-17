@@ -13,7 +13,7 @@ Created on 09 June 2014 15:00 PDT (-0700)
 
 import os
 import argparse
-import ConfigParser
+import configparser
 
 from Bio import AlignIO
 from Bio.Seq import Seq
@@ -22,10 +22,17 @@ from Bio.Alphabet import IUPAC
 
 from phyluce import ncbi
 from phyluce.log import setup_logging
-from phyluce.helpers import is_dir, is_file, get_alignment_files, get_file_extensions, FullPaths
+from phyluce.helpers import (
+    is_dir,
+    is_file,
+    get_alignment_files,
+    get_file_extensions,
+    FullPaths,
+)
 
 
 import pdb
+
 
 def get_args():
     """Get arguments from CLI"""
@@ -36,39 +43,42 @@ def get_args():
         "--alignments",
         required=True,
         type=is_dir,
-        help="""The directory containing alignments"""
+        help="""The directory containing alignments""",
     )
     parser.add_argument(
-        "--conf",
-        required=True,
-        type=is_file,
-        help="""The config file name"""
+        "--conf", required=True, type=is_file, help="""The config file name"""
     )
     parser.add_argument(
-        "--output",
-        required=True,
-        help="""The output file name"""
+        "--output", required=True, help="""The output file name"""
     )
     parser.add_argument(
         "--input-format",
         dest="input_format",
-        choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
-        default='nexus',
-        help="""The input alignment format"""
+        choices=[
+            "fasta",
+            "nexus",
+            "phylip",
+            "phylip-relaxed",
+            "clustal",
+            "emboss",
+            "stockholm",
+        ],
+        default="nexus",
+        help="""The input alignment format""",
     )
     parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     return parser.parse_args()
 
@@ -77,52 +87,57 @@ def main():
     args = get_args()
     # setup logging
     log, my_name = setup_logging(args)
-    conf = ConfigParser.ConfigParser(allow_no_value=True)
+    conf = configparser.ConfigParser(allow_no_value=True)
     conf.read(args.conf)
     # get remapped names
     remap = ncbi.get_remaps(conf)
     # get alignments
-    alignments = get_alignment_files(
-        log,
-        args.alignments,
-        args.input_format
-    )
+    alignments = get_alignment_files(log, args.alignments, args.input_format)
     # get metadata from conf file
     metadata = ncbi.get_metadata(conf)
     vouchers = ncbi.get_vouchers(conf)
     # get our excludes
     taxon_excludes = ncbi.get_excludes(conf, "exclude taxa")
     locus_excludes = ncbi.get_excludes(conf, "exclude loci")
-    log.warn("Excluding samples: {}".format(', '.join(taxon_excludes)))
-    log.warn("Excluding loci: {}".format(','.join(locus_excludes)))
+    log.warn("Excluding samples: {}".format(", ".join(taxon_excludes)))
+    log.warn("Excluding loci: {}".format(",".join(locus_excludes)))
     # setup counter for unique ID
     counter = 0
     log.info("Parsing alignments")
-    with open(args.output, 'w') as outf:
+    with open(args.output, "w") as outf:
         for f in alignments:
             uce = os.path.splitext(os.path.basename(f))[0]
             if uce not in locus_excludes:
                 for seq in AlignIO.read(f, args.input_format):
                     # get species name
-                    sp, species, partial, oldname = ncbi.get_species_name(seq.id, remap)
+                    sp, species, partial, oldname = ncbi.get_species_name(
+                        seq.id, remap
+                    )
                     # skip taxa in exclude list
                     if species in taxon_excludes or oldname in taxon_excludes:
                         pass
                     else:
-                        new_id = ncbi.get_new_identifier(species, uce, partial, counter, metadata, vouchers)
-                        new_seq = str(seq.seq).replace('-', '').replace('?', '').upper()
+                        new_id = ncbi.get_new_identifier(
+                            species, uce, partial, counter, metadata, vouchers
+                        )
+                        new_seq = (
+                            str(seq.seq)
+                            .replace("-", "")
+                            .replace("?", "")
+                            .upper()
+                        )
                         new_record = SeqRecord(
                             Seq(new_seq, IUPAC.IUPACAmbiguousDNA()),
                             id=new_id,
-                            name="", description=""
+                            name="",
+                            description="",
                         )
-                        outf.write(new_record.format('fasta'))
+                        outf.write(new_record.format("fasta"))
                         counter += 1
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
