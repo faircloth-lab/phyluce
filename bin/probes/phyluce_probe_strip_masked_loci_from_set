@@ -93,7 +93,7 @@ def main():
                     for i in line.strip().split("\t")
                 ]
                 chromo, start, end = ls
-                sequence = tb[str(chromo).encode()][start:end]
+                sequence = tb[str(chromo).encode()][int(start) : int(end)]
                 if args.min_length > 0:
                     if (
                         n_count(sequence) <= args.max_n
