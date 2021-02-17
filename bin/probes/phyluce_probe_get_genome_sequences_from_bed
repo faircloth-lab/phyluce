@@ -81,39 +81,43 @@ def n_count(sequence):
 
 def main():
     args = get_args()
-    tb = twobit.TwoBitFile(args.twobit)
-    filtered = 0
-    kept = 0
-    with open(args.output, "w") as outf:
-        for cnt, line in enumerate(open(args.bed, "rU")):
-            ls = [
-                int(i) if i.isdigit() else i for i in line.strip().split("\t")
-            ]
-            chromo, start, end = ls
-            if args.buffer_to is not None:
-                length = abs(end - start)
-                delta = args.buffer_to - length
-                if delta > 0:
-                    if delta % 2 != 0:
-                        delta += 1
-                    start -= delta / 2
-                    end += delta / 2
-            sequence = tb[str(chromo)][start:end]
-            if (
-                len(sequence) >= args.buffer_to
-                and n_count(sequence) <= args.max_n
-                and not sequence_is_masked(args.mask, sequence, cnt)
-            ):
-                seq = create_sequence_object(cnt, sequence, chromo, start, end)
-                outf.write(seq.format("fasta"))
-                kept += 1
-            else:
-                filtered += 1
-    print(
-        "Screened {} sequences.  Filtered {} < 160 bp or with > {}% masked bases or > {} N-bases. Kept {}.".format(
-            cnt + 1, filtered, args.mask * 100, args.max_n, kept
+    with open(args.twobit, "rb") as f:
+        tb = twobit.TwoBitFile(f)
+        filtered = 0
+        kept = 0
+        with open(args.output, "w") as outf:
+            for cnt, line in enumerate(open(args.bed, "rU")):
+                ls = [
+                    int(i) if i.isdigit() else i
+                    for i in line.strip().split("\t")
+                ]
+                chromo, start, end = ls
+                if args.buffer_to is not None:
+                    length = abs(end - start)
+                    delta = args.buffer_to - length
+                    if delta > 0:
+                        if delta % 2 != 0:
+                            delta += 1
+                        start -= delta / 2
+                        end += delta / 2
+                sequence = tb[str(chromo).encode()][int(start) : int(end)]
+                if (
+                    len(sequence) >= args.buffer_to
+                    and n_count(sequence) <= args.max_n
+                    and not sequence_is_masked(args.mask, sequence, cnt)
+                ):
+                    seq = create_sequence_object(
+                        cnt, sequence, chromo, start, end
+                    )
+                    outf.write(seq.format("fasta"))
+                    kept += 1
+                else:
+                    filtered += 1
+        print(
+            "Screened {} sequences.  Filtered {} < 160 bp or with > {}% masked bases or > {} N-bases. Kept {}.".format(
+                cnt + 1, filtered, args.mask * 100, args.max_n, kept
+            )
         )
-    )
 
 
 if __name__ == "__main__":
