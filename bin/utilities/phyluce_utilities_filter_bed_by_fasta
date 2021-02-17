@@ -28,19 +28,19 @@ def get_args():
         "--bed",
         required=True,
         type=is_file,
-        help="""The BED file to filter."""
+        help="""The BED file to filter.""",
     )
     parser.add_argument(
         "--fasta",
         required=True,
         type=is_file,
-        help="""The FASTA file to use as a filter."""
+        help="""The FASTA file to use as a filter.""",
     )
     parser.add_argument(
         "--output",
         default=sys.stdout,
-        type=argparse.FileType('w'),
-        help="""The output BED file"""
+        type=argparse.FileType("w"),
+        help="""The output BED file""",
     )
     return parser.parse_args()
 
@@ -67,5 +67,6 @@ def main():
                 args.output.write(line)
     args.output.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

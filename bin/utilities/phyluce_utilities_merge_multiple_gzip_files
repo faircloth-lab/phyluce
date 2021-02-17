@@ -15,13 +15,14 @@ Created on 21 April 2014 13:03 PDT (-0700)
 import os
 import shutil
 import argparse
-import ConfigParser
+import configparser
 
 from phyluce.helpers import is_file, is_dir, FullPaths, CreateDir
 from phyluce.raw_reads import get_input_data, get_input_files
 from phyluce.log import setup_logging
 
 import pdb
+
 
 def get_args():
     """Get arguments from CLI"""
@@ -33,33 +34,33 @@ def get_args():
         required=True,
         type=is_file,
         action=FullPaths,
-        help="""The path to the config file to use for merging."""
+        help="""The path to the config file to use for merging.""",
     )
     parser.add_argument(
         "--output",
         required=True,
         action=CreateDir,
-        help="""The path to a directory in which to store the output."""
+        help="""The path to a directory in which to store the output.""",
     )
     parser.add_argument(
         "--section",
         type=str,
         default="samples",
-        help="""The section holding the merge info."""
+        help="""The section holding the merge info.""",
     )
     parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--trimmed",
@@ -74,53 +75,59 @@ def main():
     args = get_args()
     # setup logging
     log, my_name = setup_logging(args)
-    conf = ConfigParser.ConfigParser()
+    conf = configparser.ConfigParser()
     conf.optionxform = str
     conf.read(args.config)
     items = conf.items(args.section)
-    #pdb.set_trace()
+    # pdb.set_trace()
     if not args.trimmed:
         for item in items:
             name, file_names = item
             files = file_names.strip().split(",")
-            with open(os.path.join(args.output, name), 'wb') as outfile:
+            with open(os.path.join(args.output, name), "wb") as outfile:
                 for infile in sorted(files):
                     shutil.copyfileobj(open(infile), outfile)
-                    log.info("Copied {} to {}".format(
-                        os.path.basename(infile),
-                        name
-                    ))
+                    log.info(
+                        "Copied {} to {}".format(
+                            os.path.basename(infile), name
+                        )
+                    )
     elif args.trimmed:
         for item in items:
             name, path_names = item
             paths = path_names.strip().split(",")
-            read_names = {"r1":[], "r2":[], "s":[]}
+            read_names = {"r1": [], "r2": [], "s": []}
             for path in paths:
                 # get the files in a given path
                 reads = get_input_files(path, "", log)
-                read_names['r1'].append(reads.r1)
-                read_names['r2'].append(reads.r2)
-                read_names['s'].append(reads.singleton)
+                read_names["r1"].append(reads.r1)
+                read_names["r2"].append(reads.r2)
+                read_names["s"].append(reads.singleton)
             # make the output dir
-            output_dir = os.path.join(args.output, name, "split-adapter-quality-trimmed")
+            output_dir = os.path.join(
+                args.output, name, "split-adapter-quality-trimmed"
+            )
             os.makedirs(output_dir)
-            for read in (("r1", "READ1"), ("r2","READ2"), ("s","READ-singleton")):
+            for read in (
+                ("r1", "READ1"),
+                ("r2", "READ2"),
+                ("s", "READ-singleton"),
+            ):
                 new_name = "{}-{}.fastq.gz".format(name, read[1])
-                with open(os.path.join(output_dir, new_name), 'wb') as outfile:
+                with open(os.path.join(output_dir, new_name), "wb") as outfile:
                     for infile in sorted(read_names[read[0]]):
-                        #print infile
+                        # print infile
                         shutil.copyfileobj(open(infile.pth), outfile)
-                        log.info("Copied {} to {}".format(
-                            os.path.basename(infile.pth),
-                            new_name
-                        ))
+                        log.info(
+                            "Copied {} to {}".format(
+                                os.path.basename(infile.pth), new_name
+                            )
+                        )
 
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

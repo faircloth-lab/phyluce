@@ -21,40 +21,39 @@ import pdb
 
 def get_args():
     """Get arguments from CLI"""
-    parser = argparse.ArgumentParser(
-            description="""Program description""")
+    parser = argparse.ArgumentParser(description="""Program description""")
     parser.add_argument(
-            "--indir",
-            required=True,
-            type=is_dir,
-            action=FullPaths,
-            help="""The directory containing the links to rename"""
-        )
+        "--indir",
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The directory containing the links to rename""",
+    )
     parser.add_argument(
-            "--oldpath",
-            required=True,
-            type=str,
-            help="""The text you want to replace in the oldpath (include '/')"""
-        )
+        "--oldpath",
+        required=True,
+        type=str,
+        help="""The text you want to replace in the oldpath (include '/')""",
+    )
     parser.add_argument(
-            "--newpath",
-            required=True,
-            type=str,
-            help="""The text you want to use as a replacement in the newpath (include '/')"""
-        )
+        "--newpath",
+        required=True,
+        type=str,
+        help="""The text you want to use as a replacement in the newpath (include '/')""",
+    )
     parser.add_argument(
-            "--outdir",
-            required=True,
-            type=is_dir,
-            action=FullPaths,
-            help="""The output directory to hold updated symlinks"""
-        )
+        "--outdir",
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The output directory to hold updated symlinks""",
+    )
 
     return parser.parse_args()
 
 
 def get_and_check_links(indir):
-    links = glob.glob(os.path.join(indir, '*'))
+    links = glob.glob(os.path.join(indir, "*"))
     for link in links:
         assert os.path.islink(link), "Not all paths are links"
     return links
@@ -75,5 +74,6 @@ def main():
     links = get_and_check_links(args.indir)
     change_links(links, args.oldpath, args.newpath, args.outdir)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

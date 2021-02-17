@@ -32,36 +32,38 @@ def get_args():
         required=True,
         action=FullPaths,
         default=None,
-        help="""The directory holding the trinity files to clean"""
+        help="""The directory holding the trinity files to clean""",
     )
     parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use"""
+        help="""The logging level to use""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     return parser.parse_args()
 
 
 def cleanup_trinity_assembly_folder(pth, log):
-    #pdb.set_trace()
+    # pdb.set_trace()
     log.info("Removing extraneous Trinity files")
-    files = glob.glob(os.path.join(pth, '*'))
+    files = glob.glob(os.path.join(pth, "*"))
     # check the names to make sure we're not deleting something improperly
     names = [os.path.basename(f) for f in files]
     try:
         assert "Trinity.fasta" in names
         assert "trinity.log" in names
     except:
-        raise IOError("Neither Trinity.fasta nor trinity.log were found in output.")
+        raise IOError(
+            "Neither Trinity.fasta nor trinity.log were found in output."
+        )
     for file in files:
         if not os.path.basename(file) in ("Trinity.fasta", "trinity.log"):
             if os.path.isfile(file) or os.path.islink(file):
@@ -74,14 +76,15 @@ def main():
     args = get_args()
     # setup logging
     log, my_name = setup_logging(args)
-    assembly_directories = glob.glob(os.path.join(args.path_to_clean, '*'))
+    assembly_directories = glob.glob(os.path.join(args.path_to_clean, "*"))
     for directory in assembly_directories:
-        if os.path.basename(directory) == 'contigs':
+        if os.path.basename(directory) == "contigs":
             pass
         else:
             cleanup_trinity_assembly_folder(directory, log)
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
