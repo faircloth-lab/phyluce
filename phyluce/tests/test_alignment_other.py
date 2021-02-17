@@ -830,3 +830,34 @@ def test_align_remove_empty_taxa(o_dir, e_dir, request):
         observed = open(output_file).read()
         expected = open(expected_file).read()
         assert observed == expected
+
+
+def test_align_screen_alignments_for_problems(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_screen_alignments_for_problems"
+    output = os.path.join(o_dir, "mafft-gblocks-clean-problems-screened")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-gblocks-clean-problems"),
+        "--input-format",
+        "nexus",
+        "--output",
+        output,
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = [
+        os.path.basename(i) for i in glob.glob(os.path.join(output, "*"))
+    ]
+    expected_files = [
+        os.path.basename(i)
+        for i in glob.glob(
+            os.path.join(e_dir, "mafft-gblocks-clean-problems-screened", "*")
+        )
+    ]
+    assert set(output_files) == set(expected_files)
