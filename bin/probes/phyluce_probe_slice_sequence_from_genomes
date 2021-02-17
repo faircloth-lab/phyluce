@@ -161,7 +161,7 @@ def slice_and_return_fasta(tb, name, min, max, flank, probes):
         else:
             ss = min
             se = max
-    return ss, se, tb[name][ss:se]
+    return ss, se, tb[name.encode()][int(ss) : int(se)]
 
 
 def remove_ambiguous_ends(ss, se, sequence):
@@ -307,87 +307,88 @@ def main():
             )
             with open(out_name, "w") as outf:
                 log.info("Reading {} genome".format(short_name))
-                tb = twobit.TwoBitFile(twobit_name)
-                # parse the lastz results of the alignment
-                lz = os.path.join(args.lastz, long_name)
-                regex = args.probe_regex.format(args.probe_prefix)
-                all_uce_names, uce_matches, orientation = parse_lastz_file(
-                    lz, args.contig_orient, regex
-                )
-                # we need to check nodes for dupe matches to the same probes
-                uce_loci_matching_mult_contigs = check_loci_for_dupes(
-                    uce_matches
-                )
-                # delete those loci that hit multiple probes or had multiple probes hit them
-                # this does not filter out contigs hitting multiple loci for the simple
-                # reason that many loci will hit the same "contig" in circumstances where
-                # the contig is large/chromosome sized.  These will get filtered out in
-                # the next step of the matching process after we've created fasta sequences
-                # representing each UCE locus
-                for k in list(uce_matches.keys()):
-                    if k in uce_loci_matching_mult_contigs:
-                        del uce_matches[k]
-                # QC contig matches
-                node_count = 0
-                orient_drop = set()
-                length_drop = set()
-                for uce_name, matches in uce_matches.items():
-                    bad = False
-                    # make sure there is only one UCE match
-                    assert (
-                        len(list(matches.keys())) == 1
-                    ), "There are multiple UCE matches"
-                    for contig_name, positions in matches.items():
-                        # remove any probes with mixed orientation
-                        orient = orientation[uce_name][contig_name]
-                        if len(orient) > 1:
-                            bad = True
-                            orient_drop.add(uce_name)
-                        if not bad:
-                            # sort the positions for each contig
-                            sorted_positions = sorted(positions)
-                            if len(sorted_positions) > 1:
-                                for i in range(1, len(sorted_positions)):
-                                    # drop those contigs where probes fall > 500 bp apart
-                                    if (
-                                        sorted_positions[i][0]
-                                        - sorted_positions[i - 1][1]
-                                        > 500
-                                    ):
-                                        bad = True
-                                        length_drop.add(uce_name)
-                                        break
-                                    else:
-                                        bad = False
-                        if not bad:
-                            min = sorted_positions[0][0]
-                            max = sorted_positions[-1][-1]
-                            ss, se, sequence = slice_and_return_fasta(
-                                tb,
-                                contig_name,
-                                min,
-                                max,
-                                args.flank,
-                                args.probes,
-                            )
-                            seq = build_sequence_object(
-                                node_count,
-                                contig_name,
-                                ss,
-                                se,
-                                uce_name,
-                                min,
-                                max,
-                                orient,
-                                sorted_positions,
-                                sequence,
-                                args.probes,
-                            )
-                            if args.probes and len(seq) < args.probes:
-                                pass
-                            else:
-                                outf.write(seq.format("fasta"))
-                                node_count += 1
+                with open(twobit_name, "rb") as f:
+                    tb = twobit.TwoBitFile(f)
+                    # parse the lastz results of the alignment
+                    lz = os.path.join(args.lastz, long_name)
+                    regex = args.probe_regex.format(args.probe_prefix)
+                    all_uce_names, uce_matches, orientation = parse_lastz_file(
+                        lz, args.contig_orient, regex
+                    )
+                    # we need to check nodes for dupe matches to the same probes
+                    uce_loci_matching_mult_contigs = check_loci_for_dupes(
+                        uce_matches
+                    )
+                    # delete those loci that hit multiple probes or had multiple probes hit them
+                    # this does not filter out contigs hitting multiple loci for the simple
+                    # reason that many loci will hit the same "contig" in circumstances where
+                    # the contig is large/chromosome sized.  These will get filtered out in
+                    # the next step of the matching process after we've created fasta sequences
+                    # representing each UCE locus
+                    for k in list(uce_matches.keys()):
+                        if k in uce_loci_matching_mult_contigs:
+                            del uce_matches[k]
+                    # QC contig matches
+                    node_count = 0
+                    orient_drop = set()
+                    length_drop = set()
+                    for uce_name, matches in uce_matches.items():
+                        bad = False
+                        # make sure there is only one UCE match
+                        assert (
+                            len(list(matches.keys())) == 1
+                        ), "There are multiple UCE matches"
+                        for contig_name, positions in matches.items():
+                            # remove any probes with mixed orientation
+                            orient = orientation[uce_name][contig_name]
+                            if len(orient) > 1:
+                                bad = True
+                                orient_drop.add(uce_name)
+                            if not bad:
+                                # sort the positions for each contig
+                                sorted_positions = sorted(positions)
+                                if len(sorted_positions) > 1:
+                                    for i in range(1, len(sorted_positions)):
+                                        # drop those contigs where probes fall > 500 bp apart
+                                        if (
+                                            sorted_positions[i][0]
+                                            - sorted_positions[i - 1][1]
+                                            > 500
+                                        ):
+                                            bad = True
+                                            length_drop.add(uce_name)
+                                            break
+                                        else:
+                                            bad = False
+                            if not bad:
+                                min = sorted_positions[0][0]
+                                max = sorted_positions[-1][-1]
+                                ss, se, sequence = slice_and_return_fasta(
+                                    tb,
+                                    contig_name,
+                                    min,
+                                    max,
+                                    args.flank,
+                                    args.probes,
+                                )
+                                seq = build_sequence_object(
+                                    node_count,
+                                    contig_name,
+                                    ss,
+                                    se,
+                                    uce_name,
+                                    min,
+                                    max,
+                                    orient,
+                                    sorted_positions,
+                                    sequence,
+                                    args.probes,
+                                )
+                                if args.probes and len(seq) < args.probes:
+                                    pass
+                                else:
+                                    outf.write(seq.format("fasta"))
+                                    node_count += 1
             output = "{}: {} uces, {} dupes, {} non-dupes, {} orient drop, {} length drop, {} written".format(
                 short_name,
                 len(all_uce_names),
