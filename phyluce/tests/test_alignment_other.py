@@ -797,3 +797,36 @@ def test_align_get_taxon_locus_counts_in_alignments(o_dir, e_dir, request):
     observed = open(output).read()
     expected = open(expected_file).read()
     assert observed == expected
+
+
+def test_align_remove_empty_taxa(o_dir, e_dir, request):
+    program = "bin/align/phyluce_align_remove_empty_taxa"
+    output = os.path.join(o_dir, "mafft-missing-data-designators-removed")
+    cmd = [
+        os.path.join(request.config.rootdir, program),
+        "--alignments",
+        os.path.join(e_dir, "mafft-missing-data-designators"),
+        "--input-format",
+        "nexus",
+        "--output-format",
+        "nexus",
+        "--output",
+        output,
+        "--cores",
+        "1",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    output_files = glob.glob(os.path.join(output, "*"))
+    assert output_files, "There are no output files"
+    for output_file in output_files:
+        name = os.path.basename(output_file)
+        expected_file = os.path.join(
+            e_dir, "mafft-missing-data-designators-removed", name
+        )
+        observed = open(output_file).read()
+        expected = open(expected_file).read()
+        assert observed == expected

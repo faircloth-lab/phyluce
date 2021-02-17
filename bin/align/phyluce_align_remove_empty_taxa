@@ -17,44 +17,59 @@ import sys
 import argparse
 import multiprocessing
 from Bio import AlignIO
-from Bio.Alphabet import generic_dna
 from Bio.Align import MultipleSeqAlignment
 from phyluce.helpers import is_dir, FullPaths, CreateDir, get_alignment_files
 from phyluce.log import setup_logging
 
-#import pdb
+# import pdb
 
 
 def get_args():
     parser = argparse.ArgumentParser(
         description="""Remove taxa having no data from a set of input nucleotides""",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        '--alignments',
+        "--alignments",
         type=is_dir,
         action=FullPaths,
         required=True,
-        help="""The directory containing alignments to be screened."""
+        help="""The directory containing alignments to be screened.""",
     )
     parser.add_argument(
-        '--output',
+        "--output",
         action=CreateDir,
         required=True,
-        help="""The directory in which to store the resulting alignments."""
+        help="""The directory in which to store the resulting alignments.""",
     )
     parser.add_argument(
         "--input-format",
         dest="input_format",
-        choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
-        default='nexus',
+        choices=[
+            "fasta",
+            "nexus",
+            "phylip",
+            "phylip-relaxed",
+            "clustal",
+            "emboss",
+            "stockholm",
+        ],
+        default="nexus",
         help="""The input alignment format""",
     )
     parser.add_argument(
         "--output-format",
         dest="output_format",
-        choices=['fasta', 'nexus', 'phylip', 'phylip-relaxed', 'clustal', 'emboss', 'stockholm'],
-        default='nexus',
+        choices=[
+            "fasta",
+            "nexus",
+            "phylip",
+            "phylip-relaxed",
+            "clustal",
+            "emboss",
+            "stockholm",
+        ],
+        default="nexus",
         help="""The input alignment format""",
     )
     parser.add_argument(
@@ -62,21 +77,21 @@ def get_args():
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
         default="INFO",
-        help="""The logging level to use."""
+        help="""The logging level to use.""",
     )
     parser.add_argument(
         "--log-path",
         action=FullPaths,
         type=is_dir,
         default=None,
-        help="""The path to a directory to hold logs."""
+        help="""The path to a directory to hold logs.""",
     )
     parser.add_argument(
         "--cores",
         type=int,
         default=1,
-        help="""Process alignments in parallel using --cores for alignment. """ +
-        """This is the number of PHYSICAL CPUs."""
+        help="""Process alignments in parallel using --cores for alignment. """
+        + """This is the number of PHYSICAL CPUs.""",
     )
     return parser.parse_args()
 
@@ -85,17 +100,21 @@ def screen_files(work):
     file, args = work
     aln = AlignIO.read(file, args.input_format)
     name = os.path.basename(file)
-    new_align = MultipleSeqAlignment([], generic_dna)
+    new_align = MultipleSeqAlignment([])
     removed = []
     for seq in aln:
+        seq.annotations = {"molecule_type": "DNA"}
         ss = set(str(seq.seq))
-        if ss == {'?'} or ss == {'-'}:
+        if ss == {"?"} or ss == {"-"}:
             removed.append(seq.id)
         else:
             new_align.append(seq)
-    outf = os.path.join(args.output, "{}.{}".format(os.path.splitext(name)[0], args.output_format))
+    outf = os.path.join(
+        args.output,
+        "{}.{}".format(os.path.splitext(name)[0], args.output_format),
+    )
     try:
-        with open(outf, 'w') as outfile:
+        with open(outf, "w") as outfile:
             AlignIO.write(new_align, outfile, args.output_format)
         sys.stdout.write(".")
         sys.stdout.flush()
@@ -113,21 +132,26 @@ def main():
     work = [[file, args] for file in files]
     log.info("Screening alignments for taxa with no data".format(args.cores))
     if args.cores > 1:
-        assert args.cores <= multiprocessing.cpu_count(), "You've specified more cores than you have"
+        assert (
+            args.cores <= multiprocessing.cpu_count()
+        ), "You've specified more cores than you have"
         pool = multiprocessing.Pool(args.cores)
         results = pool.map(screen_files, work)
         pool.close()
     else:
-        results = map(screen_files, work)
-    print ""
+        results = list(map(screen_files, work))
+    print("")
     for result in results:
         if len(result[1]) > 0:
-            print "{}: {}\n".format(result[0], ", ".join(result[1]))
+            log.info(
+                "Altered {}. Removed: {}".format(
+                    result[0], ", ".join(result[1])
+                )
+            )
     # end
     text = " Completed {} ".format(my_name)
     log.info(text.center(65, "="))
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

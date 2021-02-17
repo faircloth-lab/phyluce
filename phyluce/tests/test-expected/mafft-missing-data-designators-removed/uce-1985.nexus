@@ -1,0 +1,67 @@
+#NEXUS
+begin data;
+dimensions ntax=3 nchar=1013;
+format datatype=dna missing=? gap=- interleave;
+matrix
+alligator_mississippiensis -------------------------aaaatccttggaatctaagccttttaaaatgttactgcatacaat
+gallus_gallus              gacagacagacatattaacccctcggaaatccgcaggatctaagcctttt-aagtgttgccgcacgcgat
+peromyscus_maniculatus     agga--------------------agaaagattccaattccaagtttctt--------------------
+
+alligator_mississippiensis tcccccataaaaagaggcatata-gcattaaagctctatatcacaagtggctttaatattgaaagtcggc
+gallus_gallus              tcttccataaaaagaggcatata-gcattaaagctctctatcacaagtggctttaatattgaaagccg--
+peromyscus_maniculatus     ----tcatggaaagaagagcgagcccaagaaaacgctatagaaaaggatgtgccaaaggcagagttctag
+
+alligator_mississippiensis actatagacagactaagatgacg---------ggcttgggaggagagacatctccgtatgtatcatagat
+gallus_gallus              ----tagacagacagaggtggagtggggggaagaaggaggagaagagacatc--------tatcctgtat
+peromyscus_maniculatus     aacaccagcag-----------------------------------gacaccatgctaggtctcatac--
+
+alligator_mississippiensis ggatttattgtattatgatcatattattattattatttttacttgaggcttgcatttctgtttgcaagtg
+gallus_gallus              gtatttatattattccagtc---agattattattatttttactccaggctt-cccctccgcttgcaagcg
+peromyscus_maniculatus     -----------------------cacctgctgtggccctgactggggacac-cctgtctgtgtggaag--
+
+alligator_mississippiensis aatcagtttttgtttctagcttttctcagggcatatactcagacctctgtggtacattgggctctattaa
+gallus_gallus              aatcaggttttgtgcgcagcttttctcagggcaccggcgcacggacctcggttacacagggctctattaa
+peromyscus_maniculatus     --------------------------------------------------------cctgactccattag
+
+alligator_mississippiensis gctgctgttcaatagtttggtgatattcagacaatattgaaacattcccaaatgaactttgcagggagac
+gallus_gallus              gccgctgttcaatagtttggtgatattcagacaatattgaaacattcccaaatgaactttgcagggagac
+peromyscus_maniculatus     ggc-ctcatcaatagttgggagatatccaggcgatattgaaacattttcaaatgaactttgcatagagac
+
+alligator_mississippiensis attttcattcgctgcctccctcctcatgcatattaacaaatggtatgcaaggcctcatttaattcactga
+gallus_gallus              attttcattcgctgcctccctcctcatgcatattaacaaatggtatgcaaggcctcatttaattcactga
+peromyscus_maniculatus     agtttcattcgctgcctccctcctcatgcatattaacaaatggtatgcgcggcctcatttaattcactga
+
+alligator_mississippiensis ttttacattcggatcactttctcttttacagctatttttaccgggcttcattaatctttgttgaatacaa
+gallus_gallus              ttttacattcggatcactttctcttttacagctatttttaccaggcttcattaatctttgttgaatacaa
+peromyscus_maniculatus     ttttacattcggatcactttctcttttacagctatttttaccgggcttcattaatctttgttgaatacaa
+
+alligator_mississippiensis tggcatacatctttaatgcggccgctgtcaagtcatatttcagtaagagctgcaaactgaatgacagcaa
+gallus_gallus              tggcatacatctttaatgcggccgctgtcaagtcatatttcagtaagagctgcaaactgaatgacagcaa
+peromyscus_maniculatus     tggcatacatctttaatgcggccgctgtcaagtcatatttcagcaggagctgcaaactgaatgacagcaa
+
+alligator_mississippiensis gcaatattaataaatttaacatagactatatcaatttttaacagaatgaatgtggaaagctaaatgtatt
+gallus_gallus              gcaatattaataaatttaacatagactatatcaatttttaacagaatgaatgtggaaagctaaatgtatt
+peromyscus_maniculatus     gcaatattaataaatttaacatagactatatcaatttttaacagaatgagtgtggaaagctaaatgtatt
+
+alligator_mississippiensis atttttcgtttaaatcatagggtttatcaccggttaagtagcagcgat--------------ttcgggaa
+gallus_gallus              atttttcgtttaaatcatagggtttatcaccggttaagtagcagcgat--------------ttcgggaa
+peromyscus_maniculatus     atttttcatttaaatcatagggtttatcaccggttaagtagtagcagtgatttgggggtgggtgggggag
+
+alligator_mississippiensis acttgtgacgtgccgtacaaatagatttacatctcattaataagtaaattaggcaaatgcctttcaagtt
+gallus_gallus              acttgtgacgtgccgtacaaatagatttacatctcattaataagtaaattaggcaaatgcctttcaagtt
+peromyscus_maniculatus     gcttgtgacgtgccacacaaatagattta-----------------------------------------
+
+alligator_mississippiensis cagacaagtacataagtgtaatctccat------------------------------------------
+gallus_gallus              cagacaagtacataagtgtaatctccatattaaaggagtagtctttgataaaccaccgaggaattgcagc
+peromyscus_maniculatus     ----------------------------------------------------------------------
+
+alligator_mississippiensis ----------------------------------------------------------------------
+gallus_gallus              agccaactatgtgacatgttgccagtgcctgaactcttccacattcccacctttaattacactggttcat
+peromyscus_maniculatus     ----------------------------------------------------------------------
+
+alligator_mississippiensis ---------------------------------
+gallus_gallus              tactaaagagataagtgtctctccagttaagat
+peromyscus_maniculatus     ---------------------------------
+
+;
+end;

@@ -1,0 +1,82 @@
+#NEXUS
+begin data;
+dimensions ntax=4 nchar=1010;
+format datatype=dna missing=? gap=- interleave;
+matrix
+alligator_mississippiensis a------aaaaagcacaacaaaacaacccaa---caaaaaacaacaaacaaacaaagaacagccccaaaa
+gallus_gallus              ccctgggataaggtttggaaaatcgctcccaacttgctgagctgctgggaattttgcattggtcttaact
+peromyscus_maniculatus     t-----------------------------------cagtgctgttgattatcatttgtcttt-------
+rana_sphenocephafa         g---------------------------------------------------------------------
+
+alligator_mississippiensis aca-aaaaccatgcttagggagtgatccatcagtaagt----------tctcttgggtgtaaaaagtgta
+gallus_gallus              ggatgcagctctgcttgtgcagctgtcagttactgaataggtgcttgactattgagcttttatgaacgtt
+peromyscus_maniculatus     ----tcatccctggtagagaagctggtgcttattac------------tggcttgactgt----------
+rana_sphenocephafa         --------------------------------------------------acttaactgaaataaatgtt
+
+alligator_mississippiensis tttagaaaacaacagacaag----------------tgtttagcttgactgtgtagccgtggaatctagt
+gallus_gallus              ctgatggaatggcagagggggcttgtaaactcacttcctttggttttgttatagatggaaaggctatgta
+peromyscus_maniculatus     ----------------------ttccacctgttcctttcccggctctgctgt------------------
+rana_sphenocephafa         gta-------------------------------------------------------------------
+
+alligator_mississippiensis tctctataaaggttcatggcattc------------------ctcaaaaccagataattgc--------t
+gallus_gallus              tgtatgaaagggatcatcgtgtttgtgattaaatccaaggtatttaaggtgcatcatttataagaaatat
+peromyscus_maniculatus     -------------------------------------------ccagagccacctgtttgcaaga-----
+rana_sphenocephafa         ----------------------------------------------------------------------
+
+alligator_mississippiensis ttttctccatttttaaagaaaagtatgtgacagtgatattactgtagtattttacagaataatata----
+gallus_gallus              ttctttaacttctttaacaaatttaattgataatga---gattatagtatttttcttagtaacata----
+peromyscus_maniculatus     ------------------------------------------tttaggacctgccttagcacctgagtgc
+rana_sphenocephafa         ------------------------------------------tccagaattttaattagtttttta----
+
+alligator_mississippiensis --------------tgttgttttcttgcacaggtttccacttgagtggcacagtgacagaacctgcaatg
+gallus_gallus              --------agctctttttcttttcctgcacaggtttccacttgagtggcacagtgacagagcctgcaatg
+peromyscus_maniculatus     agacgctgaactttgcctttcttgtcacctaggtttccacttgagtggtacagtgacagagcctgcagta
+rana_sphenocephafa         -------------ttccctcccttccttctaggttttcacttaagcggcacagtgacagaacctgcgaca
+
+alligator_mississippiensis caatcggagccagaaactgtttgcaatgtagctatcagctttgatcgttgcaagattacctcagtgacct
+gallus_gallus              caatcggagccagaaactgtttgcaatgtagctatcagctttgatcgttgcaagattacctcagtgacct
+peromyscus_maniculatus     caatcggagccagaaaccatttgcaatgtggccatcagctttgatcgttgcaagattacctcagtgacct
+rana_sphenocephafa         cagtctgatccggaatccgtttgcaatgtagccatcagctttgaccgttgcaagattacctcagttacct
+
+alligator_mississippiensis gtagctgtggaaacaaggacatattttactgtgcccatgttgtggcactttctttatatcggatccgcaa
+gallus_gallus              gcagctgtggaaacaaggacatattttattgtgcccacgttgtggcactttctttataccggatccgcaa
+peromyscus_maniculatus     gcagctgtggaaacaaggacatattttactgtgcccatgttgtggcactgtctttataccgcatccgcaa
+rana_sphenocephafa         gcagctgtggaaacaaggacatcttctactgcgcccatgtggtggcactttctttatatcgcatccgcaa
+
+alligator_mississippiensis gccagatcaggtcaaactgcatcttcccatttcagagacactctttcaaatgaacagagaccaacttcaa
+gallus_gallus              gccagatcaggtcaaactgcatctccccatttcagagacgctctttcaaatgaacagagaccaactacaa
+peromyscus_maniculatus     gcccgatcaggtcaaactacatcttcccatttcagagactctcttccagatgaacagagaccagctgcag
+rana_sphenocephafa         gcccgatcaggtcaagctgcatcttcctatttcagagaccctgtttca----------------------
+
+alligator_mississippiensis aagtttgtacagtatttgatcacagtgcaccatacagaagttttgccaactgctcagaaattagcagatg
+gallus_gallus              aaatttgtacagtatttgatcacagtgcaccatacagaagttttgccaactgctcaaaagttagcagatg
+peromyscus_maniculatus     aagtttgtccagtatttgattacagtgcaccacacagaagtcttgccaactgctcaaaagctagcagatg
+rana_sphenocephafa         ----------------------------------------------------------------------
+
+alligator_mississippiensis aaattctttctcagaattcagaaatcaatcaagttcatggtaagtttgacaactgctttttcttgt-ctt
+gallus_gallus              aaattctttctcagaattcagaaatcaatcaagtccatggtaagtttgattcttgttctcccttttgcct
+peromyscus_maniculatus     aaatcctttc------------------------------------------------------------
+rana_sphenocephafa         ----------------------------------------------------------------------
+
+alligator_mississippiensis tatggtttctttattttt-------------------------actttttaaga----ctgtattcagag
+gallus_gallus              cattccctcgttgattttgaggttaatggcgttcagaagtatgacctcctgaggtcccttacatcttgag
+peromyscus_maniculatus     ----------------------------------------------------------------------
+rana_sphenocephafa         ----------------------------------------------------------------------
+
+alligator_mississippiensis gatacatgtgattatattg-agatattaaacaaattcttgctggttt-----------------------
+gallus_gallus              ctcttctgtgattctatgatctatacaaaagataattctgcccttttaaaacgcttggaaagtaaaactt
+peromyscus_maniculatus     ----------------------------------------------------------------------
+rana_sphenocephafa         ----------------------------------------------------------------------
+
+alligator_mississippiensis ----gcaaggaaaatatcccttaaggaatgagg--gatct------------------------------
+gallus_gallus              ttggggagagagaagaattcatgaggagtgaggttgatctcttcaatgctgtttatacattacctggtct
+peromyscus_maniculatus     ----------------------------------------------------------------------
+rana_sphenocephafa         ----------------------------------------------------------------------
+
+alligator_mississippiensis ------------------------------
+gallus_gallus              acttcacaattatattttccttctatgaag
+peromyscus_maniculatus     ------------------------------
+rana_sphenocephafa         ------------------------------
+
+;
+end;
