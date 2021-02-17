@@ -12,92 +12,97 @@ to values in a configuration file
 
 """
 
-import dendropy
 import argparse
-import ConfigParser
+import configparser
+
 from phyluce.helpers import is_file, FullPaths
 
-#import pdb
+import dendropy
+
+# import pdb
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Rename the leaves of an input tree""")
+        description="""Rename the leaves of an input tree"""
+    )
     parser.add_argument(
-            "--input",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""The input tree file"""
-        )
+        "--input",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The input tree file""",
+    )
     parser.add_argument(
-            "--config",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""A python config file mapping one name to another"""
-        )
+        "--config",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""A python config file mapping one name to another""",
+    )
     parser.add_argument(
-            "--output",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""The output tree file"""
-        )
+        "--output",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The output tree file""",
+    )
     parser.add_argument(
-            "--section",
-            required=True,
-            type=str,
-            help="""The section of the conf file to use"""
-        )
+        "--section",
+        required=True,
+        type=str,
+        help="""The section of the conf file to use""",
+    )
     parser.add_argument(
-            "--order",
-            type=str,
-            default="left:right",
-            choices = ["left:right", "right:left"],
-            help="""Map the names as entered or in reverse"""
-        )
+        "--order",
+        type=str,
+        default="left:right",
+        choices=["left:right", "right:left"],
+        help="""Map the names as entered or in reverse""",
+    )
     parser.add_argument(
-            "--input-format",
-            dest='input_format',
-            choices=['nexus', 'newick', 'fasta', 'phylip'],
-            default='newick',
-            help="""The tree file format"""
-        )
+        "--input-format",
+        dest="input_format",
+        choices=["nexus", "newick", "fasta", "phylip"],
+        default="newick",
+        help="""The tree file format""",
+    )
     parser.add_argument(
-            "--output-format",
-            dest='output_format',
-            choices=['nexus', 'newick', 'fasta', 'phylip'],
-            default='newick',
-            help="""The tree file format"""
-        )
+        "--output-format",
+        dest="output_format",
+        choices=["nexus", "newick", "fasta", "phylip"],
+        default="newick",
+        help="""The tree file format""",
+    )
     parser.add_argument(
-            "--reroot",
-            type=str,
-            default=False,
-            help="""The resulting name to root the tree on""",
-        )
+        "--reroot",
+        type=str,
+        default=False,
+        help="""The resulting name to root the tree on""",
+    )
     parser.add_argument(
-            "--do-not-preserve-spaces",
-            type=str,
-            default=False,
-            help="""Do not retain spaces in output names""",
-        )
+        "--do-not-preserve-spaces",
+        type=str,
+        default=False,
+        help="""Do not retain spaces in output names""",
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
-    conf = ConfigParser.ConfigParser()
+    conf = configparser.ConfigParser()
     conf.optionxform = str
     conf.read(args.config)
     names = conf.items(args.section)
     if args.order == "left:right":
-        names = dict([(name[0].replace("-","_"), name[1]) for name in names])
+        names = dict([(name[0].replace("-", "_"), name[1]) for name in names])
     elif args.order == "right:left":
-        names = dict([(name[1].replace("-","_"), name[0]) for name in names])
-    trees = dendropy.TreeList(stream=open(args.input), schema=args.input_format)
+        names = dict([(name[1].replace("-", "_"), name[0]) for name in names])
+    trees = dendropy.TreeList(
+        stream=open(args.input), schema=args.input_format
+    )
     new_labels = []
     for tree in trees:
         for leaf in tree.leaf_nodes():
@@ -107,7 +112,7 @@ def main():
                 try:
                     new_label = names[leaf.taxon.label]
                 except:
-                    new_label = names[leaf.taxon.label.replace(' ', '_')]
+                    new_label = names[leaf.taxon.label.replace(" ", "_")]
                 new_labels.append(new_label)
                 leaf.taxon.label = new_label
         # reroot
@@ -118,7 +123,10 @@ def main():
     if args.do_not_preserve_spaces:
         trees.write_to_path(args.output, args.output_format)
     else:
-        trees.write_to_path(args.output, args.output_format, preserve_spaces=True)
+        trees.write_to_path(
+            args.output, args.output_format, preserve_spaces=True
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -7,70 +7,77 @@ Description:  Sorts RAxML bootstrap output into multi-locus bootstrap replicates
 """
 
 import os
+import sys
 import glob
 import argparse
 import pickle
-import sys
+
 from phyluce.helpers import is_dir, is_file, FullPaths, CreateDir
 
 
 def get_args():
     """Get arguments from CLI"""
     parser = argparse.ArgumentParser(
-            description="""Sorts RAxML bootstrap output into multi-locus bootstrap replicates.""")
+        description="""Sorts RAxML bootstrap output into multi-locus bootstrap replicates."""
+    )
     parser.add_argument(
-            "--input",
-            required=True,
-            type=is_dir,
-            action=FullPaths,
-            help="""The input directory containing bootstrap replicates for each locus"""
-        )
+        "--input",
+        required=True,
+        type=is_dir,
+        action=FullPaths,
+        help="""The input directory containing bootstrap replicates for each locus""",
+    )
     parser.add_argument(
-            "--bootstrap_replicates",
-            required=True,
-            type=is_file,
-            action=FullPaths,
-            help="""The file containing bootstrap replicate sampling"""
-        )
+        "--bootstrap_replicates",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        help="""The file containing bootstrap replicate sampling""",
+    )
     parser.add_argument(
-            "--output",
-            required=True,
-            type=is_dir,
-            help="""The output directory to multi-locus bootstraps"""
-        )
+        "--output",
+        required=True,
+        type=is_dir,
+        help="""The output directory to multi-locus bootstraps""",
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
     # read bootstrap sampling file
-    with open(args.bootstrap_replicates, 'rb') as f:
-        replicates = pickle.load(f)    
+    with open(args.bootstrap_replicates, "rb") as f:
+        replicates = pickle.load(f)
     # read and sort bootstrap replicates
-    print('Reading bootstrap replicates')
+    print("Reading bootstrap replicates")
     all_bootreps = {}
     for root, dirs, files in os.walk(args.input):
         for d in dirs:
-            files = glob.glob(os.path.join(root, os.path.join(d, '*.bootrep')))
-            bootreps = [f for f in files if "RAxML_bootstrap" in os.path.basename(f)]
-            assert len(bootreps) == 1, "There appear to be <>1 bootstrap files in {}".format(d)
+            files = glob.glob(os.path.join(root, os.path.join(d, "*.bootrep")))
+            bootreps = [
+                f for f in files if "RAxML_bootstrap" in os.path.basename(f)
+            ]
+            assert (
+                len(bootreps) == 1
+            ), "There appear to be >1 bootstrap files in {}".format(d)
             bootrep = bootreps[0]
-            with open(bootrep, 'rU') as file:
+            with open(bootrep, "rU") as file:
                 all_bootreps[d] = [line for line in file]
             sys.stdout.write(".")
             sys.stdout.flush()
     # write out trees for each replicate
-    print('\nWriting bootstrap replicates')
+    print("\nWriting bootstrap replicates")
     for n, replicate in enumerate(replicates):
-        outfname = os.path.join(args.output, "boot%03d" % n)
-        with open(outfname, 'w') as outfile:
+        outfname = os.path.join(args.output, "boot{:03d}".format(n))
+        with open(outfname, "w") as outfile:
             for locus in replicate:
-            	locus_name = os.path.splitext(os.path.basename(locus))[0]
+                locus_name = os.path.splitext(os.path.basename(locus))[0]
                 outfile.write(all_bootreps[locus_name].pop(0))
         outfile.close()
         sys.stdout.write(".")
         sys.stdout.flush()
-    print('')
+    print("")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

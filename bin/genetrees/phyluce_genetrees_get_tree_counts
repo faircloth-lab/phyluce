@@ -32,38 +32,34 @@ def get_args():
         required=True,
         action=FullPaths,
         type=is_dir,
-        help="""Tree file"""
+        help="""Tree file""",
     )
     parser.add_argument(
         "--locus-support-output",
         required=True,
         action=FullPaths,
-        help="""The output file in which to store trees and their associated loci (config format)"""
+        help="""The output file in which to store trees and their associated loci (config format)""",
     )
     parser.add_argument(
         "--schema",
         choices=["nexus", "newick", "nexml", "fasta", "phylip"],
         default="newick",
-        help="""The scheme of the input data"""
+        help="""The scheme of the input data""",
     )
     parser.add_argument(
         "--root",
         required=True,
         type=str,
-        help="""The taxon on which to root trees"""
+        help="""The taxon on which to root trees""",
     )
     parser.add_argument(
         "--extension",
         required=True,
         type=str,
-        help="""File extension used with each 'best' tree"""
+        help="""File extension used with each 'best' tree""",
     )
     parser.add_argument(
-        '--exclude',
-        type=str,
-        default=[],
-        nargs='+',
-        help='Loci to exclude'
+        "--exclude", type=str, default=[], nargs="+", help="Loci to exclude"
     )
     return parser.parse_args()
 
@@ -79,14 +75,23 @@ def main():
     # reading trees
     directories = glob.glob("{}/*".format(args.trees))
     trees = []
-    print "creating tree objects"
+    print("creating tree objects")
     for d in directories:
         if os.path.isdir(d):
             if os.path.basename(d) not in args.exclude:
-                tree = dendropy.Tree.get_from_stream(open(os.path.join(d, "RAxML_bestTree.{}".format(args.extension)), 'rU'), schema=args.schema, preserve_underscores=True)
+                tree = dendropy.Tree.get_from_stream(
+                    open(
+                        os.path.join(
+                            d, "RAxML_bestTree.{}".format(args.extension)
+                        ),
+                        "rU",
+                    ),
+                    schema=args.schema,
+                    preserve_underscores=True,
+                )
                 tree.gene_name = os.path.basename(d)
                 trees.append(tree)
-    print "creating treelist"
+    print("creating treelist")
     treelist = dendropy.TreeList(trees)
     sys.stdout.write("Running")
     treecounts = Counter()
@@ -98,12 +103,12 @@ def main():
         if cnt == 0:
             root = tree.find_node_with_taxon_label(args.root)
             tree.reroot_at_edge(root.edge, update_splits=True)
-            #pdb.set_trace()
+            # pdb.set_trace()
             tree = strip_branch_lengths(tree)
             treecounts.update([tree])
             treeloci[tree].append(tree.gene_name)
         else:
-            for k, v in treecounts.iteritems():
+            for k, v in list(treecounts.items()):
                 root = tree.find_node_with_taxon_label(args.root)
                 tree.reroot_at_edge(root.edge, update_splits=True)
                 tree = strip_branch_lengths(tree)
@@ -118,28 +123,33 @@ def main():
                 treecounts.update([tree])
                 treeloci[tree].append(tree.gene_name)
     # flush stdout
-    print ""
+    print("")
     # sort and print out the counts of loci and various trees supported by a
     # set of counts
-    treetuple = sorted(treecounts.items(),key=lambda x: x[1], reverse=True)
+    treetuple = sorted(
+        list(treecounts.items()), key=lambda x: x[1], reverse=True
+    )
     for rooted_tree, count in treetuple:
-        print "{0}\t{1}".format(count, rooted_tree.as_string('newick').strip())
+        print(
+            ("{0}\t{1}".format(count, rooted_tree.as_string("newick").strip()))
+        )
     # sort and print out the and various trees supported by a
     # set of counts in configuration file format
-    locituple = sorted(treeloci.items(),key=lambda x: len(x[1]), reverse=True)
-    with open(args.locus_support_output, 'w') as outfile2:
+    locituple = sorted(
+        list(treeloci.items()), key=lambda x: len(x[1]), reverse=True
+    )
+    with open(args.locus_support_output, "w") as outfile2:
         for cnt, data in enumerate(locituple):
             rooted_tree, loci = data
-            outfile2.write("# {}\n# {}\n[{}th most numerous]\n{}\n\n".format(
-                rooted_tree.as_string('newick').strip(),
-                len(loci),
-                cnt + 1,
-                "\n".join(loci)
-            ))
+            outfile2.write(
+                "# {}\n# {}\n[{}th most numerous]\n{}\n\n".format(
+                    rooted_tree.as_string("newick").strip(),
+                    len(loci),
+                    cnt + 1,
+                    "\n".join(loci),
+                )
+            )
 
 
-
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

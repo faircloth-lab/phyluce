@@ -16,7 +16,7 @@ import sys
 import glob
 import numpy
 import argparse
-import ConfigParser
+import configparser
 from collections import Counter, defaultdict
 from phyluce.helpers import is_file, is_dir, FullPaths
 import dendropy
@@ -26,34 +26,32 @@ import pdb
 
 def get_args():
     """Get arguments from CLI"""
-    parser = argparse.ArgumentParser(
-        description="""Root some genetrees"""
-    )
+    parser = argparse.ArgumentParser(description="""Root some genetrees""")
     parser.add_argument(
         "--trees",
         required=True,
         action=FullPaths,
         type=is_dir,
-        help="""Tree file"""
+        help="""Tree file""",
     )
     parser.add_argument(
         "--config",
         required=True,
         action=FullPaths,
         type=is_file,
-        help="""config file"""
+        help="""config file""",
     )
     parser.add_argument(
         "--schema",
         choices=["nexus", "newick", "nexml", "fasta", "phylip"],
         default="newick",
-        help="""The scheme of the input data"""
+        help="""The scheme of the input data""",
     )
     parser.add_argument(
         "--root",
         required=True,
         type=str,
-        help="""The taxon on which to root trees"""
+        help="""The taxon on which to root trees""",
     )
     return parser.parse_args()
 
@@ -68,22 +66,37 @@ def main():
     args = get_args()
     # reading trees
     trees = []
-    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config = configparser.RawConfigParser(allow_no_value=True)
     config.optionxform = str
     config.readfp(open(args.config))
     # get config sections
     sections = config.sections()
     # iterate over sections
-    with open('outfile.csv', 'w') as outfile:
+    with open("outfile.csv", "w") as outfile:
         outfile.write("set,mean bootrep support\n")
         for section in sections:
             section_trees = {}
             section_support_values = []
             for locus in config.items(section):
-                tree = dendropy.Tree.get_from_stream(open(os.path.join(args.trees, locus[0], "RAxML_bipartitions.FINAL"), 'rU'), schema=args.schema, preserve_underscores=True)
+                tree = dendropy.Tree.get_from_stream(
+                    open(
+                        os.path.join(
+                            args.trees, locus[0], "RAxML_bipartitions.FINAL"
+                        ),
+                        "rU",
+                    ),
+                    schema=args.schema,
+                    preserve_underscores=True,
+                )
                 tree.gene_name = os.path.basename(locus[0])
                 trees.append(tree)
-                support = numpy.array([int(node.label) for node in tree if node.label is not None])
+                support = numpy.array(
+                    [
+                        int(node.label)
+                        for node in tree
+                        if node.label is not None
+                    ]
+                )
                 section_trees[tree.gene_name] = support
                 # add mean for tree to list for section
                 section_support_values.append(numpy.mean(support))
@@ -91,15 +104,24 @@ def main():
             mean = numpy.mean(section_support_values)
             # we'll hit `Degrees of freedom <= 0 for slice warning because of sample size
             if len(section_support_values) > 1:
-                ci  = 1.96 * (numpy.std(section_support_values, ddof=1) / numpy.sqrt(len(section_support_values)))
+                ci = 1.96 * (
+                    numpy.std(section_support_values, ddof=1)
+                    / numpy.sqrt(len(section_support_values))
+                )
             else:
                 ci = numpy.nan
-            print "{},{},{},{}".format(section, len(section_support_values), mean, ci)
+            print(
+                (
+                    "{},{},{},{}".format(
+                        section, len(section_support_values), mean, ci
+                    )
+                )
+            )
             for value in section_support_values:
                 outfile.write("{},{}\n".format(section, value))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
 # data = read.csv('outfile.csv', header=FALSE)
