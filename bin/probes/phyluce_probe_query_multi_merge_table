@@ -18,6 +18,9 @@ import sqlite3
 import argparse
 from collections import Counter
 
+from phyluce.log import setup_logging
+from phyluce.helpers import is_dir, FullPaths
+
 import pdb
 
 
@@ -55,17 +58,34 @@ def get_args():
         action=SpecificCountsAction,
         help="""Return data for a specific minimum number of taxa.""",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
     # get header names
     cur.execute("PRAGMA table_info({})".format(args.base_taxon))
     values = [str(r[1]) for r in cur.fetchall()]
     taxa = values[4:]
+    log.info("Getting data...")
     if not args.specific_counts:
         # query all the data
         query = "SELECT * FROM {}".format(args.base_taxon)
@@ -75,7 +95,7 @@ def main():
             ss = sum(row[4:])
             counts[ss] += 1
         for i in range(len(taxa) + 1):
-            print(
+            log.info(
                 "Loci shared by {} + {} taxa:\t{:,}".format(
                     args.base_taxon, i, sum(counts[i:])
                 )
@@ -101,6 +121,9 @@ def main():
                             "{}\n".format(",".join([str(i) for i in row[4:]]))
                         )
         print(c)
+        # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
