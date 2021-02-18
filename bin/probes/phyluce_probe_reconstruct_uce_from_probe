@@ -85,7 +85,7 @@ def main():
     )
     count = 0
     with open(args.output, "w") as outfile:
-        for locus, records in sequences_dict.items():
+        for locus, records in list(sequences_dict.items()):
             if len(records) > 1:
                 # pdb.set_trace()
                 handle = StringIO()
