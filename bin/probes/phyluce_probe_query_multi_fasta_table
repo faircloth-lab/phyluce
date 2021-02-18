@@ -18,6 +18,9 @@ import sqlite3
 import argparse
 from collections import Counter
 
+from phyluce.log import setup_logging
+from phyluce.helpers import is_dir, FullPaths
+
 import pdb
 
 
@@ -55,11 +58,27 @@ def get_args():
         action=SpecificCountsAction,
         help="""Return data for a specific minimum number of taxa.""",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
 
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
     # get header names
@@ -67,6 +86,7 @@ def main():
     values = [str(r[1]) for r in cur.fetchall()]
     # pdb.set_trace()
     taxa = values[1:]
+    log.info("Querying database...")
     if not args.specific_counts:
         # query all the data
         query = "SELECT * FROM {}".format(args.base_taxon)
@@ -76,7 +96,9 @@ def main():
             ss = sum(row[1:])
             counts[ss] += 1
         for i in range(len(taxa) + 1):
-            print("Loci shared by {} taxa:\t{:,}".format(i, sum(counts[i:])))
+            log.info(
+                "Loci shared by {} taxa:\t{:,}".format(i, sum(counts[i:]))
+            )
     else:
         # query all the data
         query = "SELECT * FROM {}".format(args.base_taxon)
@@ -108,8 +130,11 @@ def main():
                                 ",".join([str(i) for i in row[1:]]),
                             )
                         )
-        print(c)
-        print("Total loci = {}".format(total_loci))
+        log.info(c)
+        log.info("Total loci = {}".format(total_loci))
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
