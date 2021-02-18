@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2020 Brant Faircloth || http://faircloth-lab.org/
+
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 05 October 2020 11:27 CDT (-0500)
+
+DESCRIPTION
+
+Workflow uses bcftools to generate clean consensus sequences from BAM
+files - ideally filtering low quality/coverage bases in the process.
+Output written to `consensus` folder and filtered SNP calls retained.
+"""
+
+#import pdb
+
+
+configfile: "config.yaml"
+
+
+rule all:
+    input:
+        expand("bams/{sample}.0.bam", sample=config["contigs"]),
+        expand("bams/{sample}.1.bam", sample=config["contigs"]),
+        expand("bams/{sample}.chimera.bam", sample=config["contigs"]),
+        expand("bams/{sample}.0.bam.bai", sample=config["contigs"]),
+        expand("bams/{sample}.1.bam.bai", sample=config["contigs"]),
+        expand("fastas/{sample}.0.fasta", sample=config["contigs"]),
+        expand("fastas/{sample}.1.fasta", sample=config["contigs"])
+
+
+rule phase_bams:
+    input:
+        contig = lambda wildcards: config["contigs"][wildcards.sample],
+        bam = lambda wildcards: config["bams"][wildcards.sample]
+    output:
+        "{sample}.0.bam",
+        "{sample}.1.bam",
+        "{sample}.chimera.bam"
+    threads: 1
+    shell:
+        "samtools phase -b {wildcards.sample} --reference {input.contig} {input.bam}"
+
+rule move_bams_0:
+    input:
+        "{sample}.0.bam"
+    output:
+        "bams/{sample}.0.bam"
+    threads: 1
+    shell:
+        "mv {input} bams/"
+
+rule move_bams_1:
+    input:
+        "{sample}.1.bam"
+    output:
+        "bams/{sample}.1.bam"
+    threads: 1
+    shell:
+        "mv {input} bams/"
+
+rule move_bams_chimera:
+    input:
+        "{sample}.chimera.bam"
+    output:
+        "bams/{sample}.chimera.bam"
+    threads: 1
+    shell:
+        "mv {input} bams/"
+
+rule index_bams_0:
+    input:
+        "bams/{sample}.0.bam"
+    output:
+        "bams/{sample}.0.bam.bai"
+    threads: 1
+    shell:
+        "samtools index -@ {threads} {input} {output}"
+
+rule index_bams_1:
+    input:
+        "bams/{sample}.1.bam"
+    output:
+        "bams/{sample}.1.bam.bai"
+    threads: 1
+    shell:
+        "samtools index -@ {threads} {input} {output}"        
+
+rule pilon_allele_0:
+    input:
+        contig = lambda wildcards: config["contigs"][wildcards.sample],
+        bam = "bams/{sample}.0.bam",
+        bai = "bams/{sample}.0.bam.bai"
+    output:
+        "fastas/{sample}.0.fasta"
+    threads: 1
+    shell:
+        "pilon --threads {threads} --vcf --changes --fix snps,indels --minqual 10 --mindepth 5 --genome {input.contig} --bam {input.bam} --outdir fastas --output {wildcards.sample}.0"
+
+rule pilon_allele_1:
+    input:
+        contig = lambda wildcards: config["contigs"][wildcards.sample],
+        bam = "bams/{sample}.1.bam",
+        bai = "bams/{sample}.1.bam.bai"
+    output:
+        "fastas/{sample}.1.fasta"
+    threads: 1
+    shell:
+        "pilon --threads {threads} --vcf --changes --fix snps,indels --minqual 10 --mindepth 5 --genome {input.contig} --bam {input.bam} --outdir fastas --output {wildcards.sample}.1"

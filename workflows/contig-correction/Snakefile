@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2020 Brant Faircloth || http://faircloth-lab.org/
+
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 05 October 2020 11:27 CDT (-0500)
+
+DESCRIPTION
+
+Workflow uses bcftools to generate clean consensus sequences from BAM
+files - ideally filtering low quality/coverage bases in the process.
+Output written to `consensus` folder and filtered SNP calls retained.
+"""
+
+#import pdb
+
+
+configfile: "config.yaml"
+
+
+rule all:
+    input:
+        expand("consensus/{sample}.consensus.fasta", sample=config["contigs"])
+
+
+rule generate_pileups:
+    input:
+        contig = lambda wildcards: config["contigs"][wildcards.sample],
+        bam = lambda wildcards: config["bams"][wildcards.sample]
+    output:
+        temp("pileups/{sample}.calls.bcf")
+    threads: 1
+    shell:
+        "bcftools mpileup -Ou -f {input.contig} {input.bam} | bcftools call -m -Ob -o {output}"
+
+
+rule normalize_calls:
+    input:
+        contig = lambda wildcards: config["contigs"][wildcards.sample],
+        pileup = "pileups/{sample}.calls.bcf"
+    output:
+        temp("normalized_pileups/{sample}.norm.bcf")
+    threads: 1
+    shell:
+        "bcftools norm --rm-dup all -f {input.contig} {input.pileup} -Ob -o {output}"
+
+
+rule filter_norm_pileups:
+    input:
+        "normalized_pileups/{sample}.norm.bcf"
+    output:
+        "filtered_norm_pileups/{sample}.norm.flt-indels.Q20.DP10.bcf"
+    threads: 1
+    shell:
+        "bcftools filter --IndelGap 5 --SnpGap 5 --exclude 'QUAL<20 | DP<5 | AN>2' {input} -Ob -o {output}"
+
+
+rule index_filterd_pileups:
+    input:
+        "filtered_norm_pileups/{sample}.norm.flt-indels.Q20.DP10.bcf"
+    output:
+        "filtered_norm_pileups/{sample}.norm.flt-indels.Q20.DP10.bcf.csi"
+    threads: 1
+    shell:
+        "bcftools index {input}"
+
+
+rule generate_consensus:
+    input:
+        contig = lambda wildcards: config["contigs"][wildcards.sample],
+        bcf = "filtered_norm_pileups/{sample}.norm.flt-indels.Q20.DP10.bcf",
+        idx = "filtered_norm_pileups/{sample}.norm.flt-indels.Q20.DP10.bcf.csi"
+    output:
+        "consensus/{sample}.consensus.fasta"
+    threads: 1
+    shell:
+        "bcftools consensus -f {input.contig} --absent '.' {input.bcf} | python ./scripts/filter_missing_from_bcftools.py > {output}"

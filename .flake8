@@ -3,3 +3,6 @@ ignore = E203, E266, E501, E722, W503, F403, F401, C901, E712, W605, E711
 max-line-length = 79
 max-complexity = 18
 select = B,C,E,F,W,T4,B9
+per-file-ignores =
+    # excluding snakemake code snippets because of the way they import snakemake
+    get_coverage_summary.py: F821

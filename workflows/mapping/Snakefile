@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+(c) 2020 Brant Faircloth || http://faircloth-lab.org/
+
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 05 October 2020 11:29 CDT (-0500)
+
+DESCRIPTION
+
+Workflow uses samtools utilities to align raw reads to contigs, mark
+duplicates, and compute coverage on a taxon-by-taxon basis with
+pandas. Output written to `coverage` folder and duplicate-marked BAM
+files are retained (these can be input to `contig-correct`).
+"""
+
+#import pdb
+
+configfile: "config.yaml"
+
+def get_fq1(wildcards):
+    return os.path.join(config['reads'][wildcards.sample], "{}-READ1.fastq.gz".format(wildcards.sample))
+
+def get_fq2(wildcards):
+    # code that returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    return os.path.join(config['reads'][wildcards.sample], "{}-READ2.fastq.gz".format(wildcards.sample))
+
+
+rule all:
+    input:
+        expand("coverage/{sample}.summary.csv", sample=config["contigs"]),
+        expand("mapped_reads/{sample}.fxm.sorted.md.bam.flagstats.txt", sample=config["contigs"])
+
+
+
+rule copy_and_build_index:
+    input:
+        lambda wildcards: config["contigs"][wildcards.sample]
+    output:
+        "references/{sample}.contigs.fasta"
+    shell:
+        "cp {input} {output} && bwa index {output}"
+
+
+rule bwa_map:
+    input:
+        ref="references/{sample}.contigs.fasta",
+        r1 = get_fq1,
+        r2 = get_fq2
+    output:
+        temp("mapped_reads/{sample}.bam")
+    params:
+        rg=r"@RG\tID:{sample}\tSM:{sample}"
+    threads: 8
+    shell:
+        "bwa mem -R '{params.rg}' -t {threads} {input.ref} {input.r1} {input.r2} | samtools view -Sb - > {output}"
+
+
+rule samtools_sort_by_read_name:
+    input:
+        "mapped_reads/{sample}.bam"
+    output:
+        temp("mapped_reads/{sample}.sorted.rn.bam")
+    threads: 8
+    shell:
+        "samtools sort -@ {threads} -n -O bam -o {output} {input}"
+
+
+rule samtools_fixmate:
+    input:
+        "mapped_reads/{sample}.sorted.rn.bam"
+    output:
+        temp("mapped_reads/{sample}.sorted.rn.fxm.bam")
+    threads: 8
+    # note that we're adding mate score tag here (-m)
+    shell:
+        "samtools fixmate -@ {threads} -m {input} {output}"
+
+
+rule samtools_sort:
+    input:
+        "mapped_reads/{sample}.sorted.rn.fxm.bam"
+    output:
+        temp("mapped_reads/{sample}.fxm.sorted.bam")
+    threads: 8
+    shell:
+        "samtools sort -@ {threads} -O bam -o {output} {input}"
+
+
+rule samtools_markdupes:
+    input:
+        "mapped_reads/{sample}.fxm.sorted.bam"
+    output:
+        protected("mapped_reads/{sample}.fxm.sorted.md.bam")
+    threads: 8
+    shell:
+        "samtools markdup -@ {threads} {input} {output}"
+
+
+rule samtools_flagstat:
+    input:
+        "mapped_reads/{sample}.fxm.sorted.bam"
+    output:
+        "mapped_reads/{sample}.fxm.sorted.md.bam.flagstats.txt"
+    threads: 8
+    shell:
+        "samtools flagstat -@ {threads} {input} > {output}"
+
+
+rule samtools_coverage:
+    input:
+        "mapped_reads/{sample}.fxm.sorted.md.bam"
+    output:
+        "coverage/{sample}.samtools.cov.tdt"
+    # note that we'll output all positions here (-a) to
+    # get zero coverage positions
+    shell:
+        "samtools depth -a {input} > {output}"
+
+
+rule coverage_summary:
+    input:
+        expand("coverage/{sample}.samtools.cov.tdt", sample=config["contigs"])
+    output:
+        expand("coverage/{sample}.summary.csv", sample=config["contigs"]),
+        "coverage/all-taxon.summary.csv"
+    script:
+        "scripts/get_coverage_summary.py"

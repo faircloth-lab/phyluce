@@ -1,0 +1,11 @@
+bams:
+    alligator-mississippiensis: ../tests/test-data/bams/alligator-mississippiensis.fxm.sorted.md.bam
+    gallus-gallus: ../tests/test-data/bams/gallus-gallus.fxm.sorted.md.bam
+    peromyscus-maniculatus: ../tests/test-data/bams/peromyscus-maniculatus.fxm.sorted.md.bam
+    rana-sphenocephafa: ../tests/test-data/bams/rana-sphenocephafa.fxm.sorted.md.bam
+
+contigs:
+    alligator-mississippiensis: ../tests/test-data/contigs/alligator_mississippiensis.contigs.fasta
+    gallus-gallus: ../tests/test-data/contigs/gallus_gallus.contigs.fasta
+    peromyscus-maniculatus: ../tests/test-data/contigs/peromyscus_maniculatus.contigs.fasta
+    rana-sphenocephafa: ../tests/test-data/contigs/rana_sphenocephafa.contigs.fasta
