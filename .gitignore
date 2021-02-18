@@ -5,6 +5,7 @@
 *.log
 .pytest_cache
 .vscode
+.snakemake
 tmp
 tmp2
 myhtmldocs
