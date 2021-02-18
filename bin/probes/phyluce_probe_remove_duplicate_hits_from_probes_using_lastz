@@ -19,7 +19,8 @@ from collections import defaultdict
 from Bio import SeqIO
 
 from phyluce import lastz
-from phyluce.helpers import FullPaths
+from phyluce.helpers import FullPaths, is_dir
+from phyluce.log import setup_logging
 
 import pdb
 
@@ -72,6 +73,20 @@ def get_args():
         default=False,
         help="""If the lastz output is the longfield format""",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
 
 
@@ -80,20 +95,20 @@ def new_get_probe_name(header, regex):
     return match.groups()[0]
 
 
-def get_dupes(lastz_file, regex, format):
+def get_dupes(log, lastz_file, regex, format):
     """Given a lastz_file of probes aligned to themselves, get duplicates"""
     matches = defaultdict(list)
     dupes = set()
     # get names and strip probe designation since loci are the same
-    print("Parsing lastz file...")
+    log.info("Parsing lastz file...")
     for lz in lastz.Reader(lastz_file, long_format=format):
         target_name = new_get_probe_name(lz.name1, regex)
         query_name = new_get_probe_name(lz.name2, regex)
         matches[target_name].append(query_name)
     # see if one probe matches any other probes
     # other than the children of the locus
-    print("Screening results...")
-    for k, v in matches.items():
+    log.info("Screening results...")
+    for k, v in list(matches.items()):
         # if the probe doesn't match itself, we have
         # problems
         if len(v) > 1:
@@ -116,10 +131,13 @@ def return_screened_filename(s):
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
     regex = args.probe_regex.format(args.probe_prefix)
-    dupes = get_dupes(args.lastz, regex, args.long)
+    dupes = get_dupes(log, args.lastz, regex, args.long)
     fasta_output = return_screened_filename(args.fasta)
     fasta_kept = 0
+    log.info("Reading bait sequences...")
     with open(args.fasta, "rU") as infile:
         with open(fasta_output, "w") as outf:
             for fasta_cnt, seq in enumerate(SeqIO.parse(infile, "fasta")):
@@ -130,7 +148,7 @@ def main():
                     fasta_kept += 1
                 else:
                     pass
-    print(
+    log.info(
         "Screened {} fasta sequences.  Filtered {} duplicates. Kept {}.".format(
             fasta_cnt, len(dupes), fasta_kept
         )
@@ -155,7 +173,7 @@ def main():
                             pass
         if header:
             probe_cnt -= 1
-        print(
+        log.info(
             "Screened {} BED probe sequences.  Filtered {} duplicates. Kept {}.".format(
                 probe_cnt, len(dupes), probe_kept
             )
@@ -179,11 +197,14 @@ def main():
                             pass
         if header:
             locus_cnt -= 1
-        print(
+        log.info(
             "Screened {} BED locus sequences.  Filtered {} duplicates. Kept {}.".format(
                 locus_cnt, len(dupes), locus_kept
             )
         )
+        # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
