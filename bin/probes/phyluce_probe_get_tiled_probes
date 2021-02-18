@@ -216,42 +216,6 @@ def dots(letter=None):
     sys.stdout.flush()
 
 
-def check_for_dupes(probe_set):
-    """create some temp files and search a newly-designed probe-set for dupes"""
-    # write to a tempfile
-    f = tempfile.NamedTemporaryFile(mode="w", delete=False)
-    for ps in probe_set:
-        SeqIO.write(ps, f, "fasta")
-    f.close()
-    # align f to itself
-    lz = lastz.Align(f.name, f.name, 70, 80)
-    lz.run()
-    dupes = get_dupes(lz.output, pos=2)
-    os.remove(f.name)
-    os.remove(lz.output)
-    return dupes
-
-
-def prune_probe_set(probe_set, dupes):
-    """prune a probe set of duplicates"""
-    final = []
-    for ps in probe_set:
-        good = []
-        for probe in ps:
-            name = "_".join(probe.id.split("|")[:2])
-            if name not in dupes:
-                good.append(probe)
-        final.append(good)
-        print(
-            (
-                "Removed {0} probes that were likely duplicates".format(
-                    len(ps) - len(good)
-                )
-            )
-        )
-    return final
-
-
 def meta_to_dict(s):
     return dict([i.split(":") for i in s.split(",")])
 
