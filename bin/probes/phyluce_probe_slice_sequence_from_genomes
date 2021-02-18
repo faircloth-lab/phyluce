@@ -20,13 +20,13 @@ import argparse
 import configparser
 from collections import defaultdict
 
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-
-from bx.seq import twobit
 from phyluce import lastz
+from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
 
+from bx.seq import twobit
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 import pdb
 
@@ -83,13 +83,6 @@ def get_args():
         help="""Species to exclude from genome slicing""",
     )
     parser.add_argument(
-        "--verbosity",
-        type=str,
-        choices=["INFO", "WARN", "CRITICAL"],
-        default="INFO",
-        help="""The logging level to use""",
-    )
-    parser.add_argument(
         "--contig_orient",
         action="store_true",
         default=False,
@@ -107,6 +100,20 @@ def get_args():
         type=int,
         default=None,
         help="""The probe length to use""",
+    )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
     )
     return parser.parse_args()
 
@@ -132,7 +139,7 @@ def new_get_probe_name(header, regex):
 def check_loci_for_dupes(matches):
     """Check for UCE loci that match more than one contig"""
     dupe_set = set(
-        [uce for uce, contigs in matches.items() if len(contigs) > 1]
+        [uce for uce, contigs in list(matches.items()) if len(contigs) > 1]
     )
     return dupe_set
 
@@ -264,36 +271,21 @@ def parse_lastz_file(lz, contig_orient, regex):
     return all_uce_names, uce_matches, orientation
 
 
-def setup_logging(level):
-    log = logging.getLogger("Phyluce")
-    console = logging.StreamHandler(sys.stdout)
-    if level == "INFO":
-        log.setLevel(logging.INFO)
-        console.setLevel(logging.INFO)
-    if level == "WARN":
-        log.setLevel(logging.WARN)
-        console.setLevel(logging.WARN)
-    if level == "CRITICAL":
-        log.setLevel(logging.CRITICAL)
-        console.setLevel(logging.CRITICAL)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    console.setFormatter(formatter)
-    log.addHandler(console)
-    return log
-
-
 def main():
     args = get_args()
-    # setup logger
-    log = setup_logging(args.verbosity)
+    # setup logging
+    log, my_name = setup_logging(args)
     log.info(
         "=================== Starting Phyluce: Slice Sequence ==================="
     )
     # parse config file of genome locations (genomes in 2bit format)
     conf = configparser.ConfigParser()
     conf.optionxform = str
+    try:
+        assert os.path.isfile(args.conf)
+    except AssertionError:
+        log.critical("You need to pass the name of a config file that exists")
+        sys.exit(2)
     conf.read(args.conf)
     # get the files associated with the config entries
     all_files = get_all_files_from_conf(conf, args.pattern)
@@ -332,13 +324,13 @@ def main():
                     node_count = 0
                     orient_drop = set()
                     length_drop = set()
-                    for uce_name, matches in uce_matches.items():
+                    for uce_name, matches in list(uce_matches.items()):
                         bad = False
                         # make sure there is only one UCE match
                         assert (
                             len(list(matches.keys())) == 1
                         ), "There are multiple UCE matches"
-                        for contig_name, positions in matches.items():
+                        for contig_name, positions in list(matches.items()):
                             # remove any probes with mixed orientation
                             orient = orientation[uce_name][contig_name]
                             if len(orient) > 1:
@@ -399,6 +391,9 @@ def main():
                 node_count,
             )
             log.info(output)
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
