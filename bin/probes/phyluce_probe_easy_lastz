@@ -10,8 +10,10 @@ Copyright (c) 2010 Brant Faircloth. All rights reserved.
 
 import time
 import argparse
+
+from phyluce.log import setup_logging
 from phyluce import lastz
-from phyluce.helpers import FullPaths
+from phyluce.helpers import FullPaths, is_dir
 
 # import pdb
 
@@ -61,16 +63,28 @@ def get_args():
         default=None,
         help="""The minimum number of base pairs required for a match""",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
 
 
 def main():
-    start_time = time.time()
-    print(
-        "Started: ",
-        time.strftime("%a %b %d, %Y  %H:%M:%S", time.localtime(start_time)),
-    )
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    log.info("Running lastz...")
     alignment = lastz.Align(
         args.target,
         args.query,
@@ -82,12 +96,9 @@ def main():
     lzstdout, lztstderr = alignment.run()
     if lztstderr:
         raise IOError(lztstderr)
-    end_time = time.time()
-    print(
-        "Ended: ",
-        time.strftime("%a %b %d, %Y  %H:%M:%S", time.localtime(end_time)),
-    )
-    print("Time for execution: ", (end_time - start_time) / 60, "minutes")
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
