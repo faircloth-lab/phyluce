@@ -20,7 +20,8 @@ import argparse
 import configparser
 from collections import defaultdict
 
-from phyluce.helpers import is_dir, is_file, FullPaths
+from phyluce.log import setup_logging
+from phyluce.helpers import is_dir, is_file, FullPaths, CreateFile
 from bx.intervals.intersection import Interval, IntervalTree
 
 import pdb
@@ -41,6 +42,7 @@ def get_args():
     parser.add_argument(
         "--output",
         required=True,
+        action=CreateFile,
         help="""A SQLite database to create during integration.""",
     )
     parser.add_argument(
@@ -54,6 +56,20 @@ def get_args():
         type=str,
         help="""A file-type filter to apply to the BED directory of files""",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
 
 
@@ -62,34 +78,24 @@ def create_match_database(db, organisms, base):
     conn = sqlite3.connect(db)
     c = conn.cursor()
     c.execute("PRAGMA foreign_keys = ON")
-    try:
-        create_string = [org + " integer DEFAULT 0" for org in organisms]
-        query = "CREATE TABLE {0} (uce integer primary key autoincrement, chromo text, start integer, stop integer, {1})".format(
-            base, ", ".join(create_string)
-        )
-        c.execute(query)
-    except sqlite3.OperationalError as e:
-        # log.critical("Database already exists")
-        if e[0].endswith("already exists"):
-            answer = input("Database already exists.  Overwrite [Y/n]? ")
-            if answer == "Y" or "YES":
-                os.remove(db)
-                conn, c = create_match_database(db, organisms, base)
-            else:
-                sys.exit(2)
-        else:
-            # log.critical("Cannot create database")
-            raise sqlite3.OperationalError("Cannot create database")
+    create_string = [org + " integer DEFAULT 0" for org in organisms]
+    query = "CREATE TABLE {0} (uce integer primary key autoincrement, chromo text, start integer, stop integer, {1})".format(
+        base, ", ".join(create_string)
+    )
+    c.execute(query)
     return conn, c
 
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
     conf = configparser.ConfigParser()
     conf.read(args.conf)
     organisms = []
     beds = conf.items("beds")
     conserved = defaultdict(IntervalTree)
+    log.info("Reading the BED file for:")
     for taxon_name, bedfile in beds:
         organisms.append(taxon_name)
         sys.stdout.write(taxon_name)
@@ -119,10 +125,10 @@ def main():
                         )
         print("")
     # create database
-    print("Creating database")
+    log.info("Creating database")
     conn, c = create_match_database(args.output, organisms, args.base_taxon)
-    print("Inserting results")
-    for chromo, ints in conserved.items():
+    log.info("Inserting results")
+    for chromo, ints in list(conserved.items()):
         for each in ints.after(0, 1000000000, 1000000000):
             names = ", ".join([i for i in list(each.value)])
             ones = ", ".join(["1"] * len(each.value))
@@ -132,6 +138,9 @@ def main():
             c.execute(query)
     conn.commit()
     conn.close()
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
