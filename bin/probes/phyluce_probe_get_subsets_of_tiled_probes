@@ -81,13 +81,13 @@ def main():
                 loci_kept.append(locus)
     with open(args.output, "w") as outfile:
         SeqIO.write(probes_to_keep, outfile, "fasta")
-    print("All probes = {0}".format(sum(taxa.values())))
+    print(("All probes = {0}".format(sum(taxa.values()))))
     print("--- Probes by taxon ---")
-    for taxon, count in taxa.items():
-        print("{}\t{}".format(taxon, count))
+    for taxon, count in list(taxa.items()):
+        print(("{}\t{}".format(taxon, count)))
     print("--- Post  filtering ---")
-    print("Conserved locus count = {0}".format(len(set(loci_kept))))
-    print("Probe Count = {0}".format(sum(probes_kept)))
+    print(("Conserved locus count = {0}".format(len(set(loci_kept)))))
+    print(("Probe Count = {0}".format(sum(probes_kept))))
 
 
 if __name__ == "__main__":
