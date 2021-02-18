@@ -106,7 +106,7 @@ def main():
         written = set([])
         for locus in sorted(loci.keys()):
             matches = loci[locus]
-            for chromo, locs in matches.items():
+            for chromo, locs in list(matches.items()):
                 if locus in written:
                     log.warn("{0} may have >1 hit".format(locus))
                 else:
