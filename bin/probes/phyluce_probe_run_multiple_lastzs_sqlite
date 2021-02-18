@@ -25,7 +25,7 @@ from phyluce.many_lastz import multi_lastz_runner
 import colorful as cf
 
 
-import pdb
+# import pdb
 
 
 def get_args():
@@ -118,7 +118,6 @@ def get_args():
         help="""The path to a directory to hold logs.""",
     )
     p = parser.parse_args()
-    pdb.set_trace()
     if os.path.isfile(p.db) or os.path.isdir(p.output):
         answer = input(
             cf.bold_coral("[WARNING] Output files exist, REMOVE [Y/n]? ")
@@ -132,7 +131,6 @@ def get_args():
                 os.remove(p.db)
             except FileNotFoundError:
                 pass
-            pdb.set_trace()
             # create the new directory
             os.makedirs(p.output)
         else:
@@ -165,17 +163,9 @@ def create_species_lastz_tables(cur, g):
             percent_coverage FLOAT NOT NULL)""".format(
         g
     )
-    try:
-        cur.execute(query)
-    except sqlite3.OperationalError as msg:
-        if "table {0} already exists".format(g) in msg.message:
-            cur.execute("DROP TABLE {0}".format(g))
-            cur.execute(query)
-    try:
-        query = """CREATE INDEX '{0}_name2_idx' on {0}(name2)""".format(g)
-        cur.execute(query)
-    except:
-        pdb.set_trace()
+    cur.execute(query)
+    query = """CREATE INDEX '{0}_name2_idx' on {0}(name2)""".format(g)
+    cur.execute(query)
 
 
 def insert_species_to_lastz_tables(cur, g, input):
