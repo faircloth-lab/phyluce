@@ -40,7 +40,7 @@ def run_lastz(work):
         os.remove(temp_out)
         return None
     else:
-        sys.stdout.write("\t{0}\n".format(unit))
+        sys.stdout.write(".")
         sys.stdout.flush()
         return temp_out
 
@@ -70,7 +70,7 @@ def lastz_params(target, query, coverage, identity, outfile):
     return cmd
 
 
-def chunk_scaffolds(target, size):
+def chunk_scaffolds(log, target, size):
     chromos = []
     # split target file into `options.size` (~10 Mbp) chunks
     temp_fd, temp_out = tempfile.mkstemp(suffix=".fasta")
@@ -80,8 +80,8 @@ def chunk_scaffolds(target, size):
         tb = twobit.TwoBitFile(f)
         sequence_length = 0
         tb_key_len = len(tb.keys()) - 1
-        print("\nRunning against {}".format(os.path.basename(target)))
-        print(
+        log.info("Running against {}".format(os.path.basename(target)))
+        log.info(
             "Running with the --huge option.  Chunking files into {0} bp...".format(
                 size
             )
@@ -115,6 +115,7 @@ def chunk_scaffolds(target, size):
 
 
 def multi_lastz_runner(
+    log,
     output,
     cores,
     target,
@@ -131,27 +132,30 @@ def multi_lastz_runner(
             tb_keys = [i.decode("utf-8") for i in tb.keys()]
         chromos = [os.path.join(target, c) for c in tb_keys]
     else:
-        chromos = chunk_scaffolds(target, size)
+        chromos = chunk_scaffolds(log, target, size)
     work = [[chromo, query, coverage, identity] for chromo in chromos]
     # pdb.set_trace()
-    print("Running the targets against %s queries..." % len(chromos))
+    log.info("Running the targets against %s queries..." % len(chromos))
     if cores == 1:
         results = list(map(run_lastz, work))
     else:
         pool = multiprocessing.Pool(cores)
         results = pool.map(run_lastz, work)
-    print("\nWriting the results file...")
+    print("")
+    log.info("Writing the results file...")
     outp = open(output, "wb")
     for t_file in results:
         if t_file is not None:
-            print("\t{0}".format(t_file))
+            sys.stdout.write(".")
+            sys.stdout.flush()
             # read the file
             outp.write(open(t_file, "rb").read())
             # cleanup the lastz output files
             os.remove(t_file)
     outp.close()
+    print("")
     if huge:
-        print("Cleaning up the chunked files...")
+        log.info("Cleaning up the chunked files...")
         for t_file in chromos:
             # cleanup the chunked files
             os.remove(t_file)

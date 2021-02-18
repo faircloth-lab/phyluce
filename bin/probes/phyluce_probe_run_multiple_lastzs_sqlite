@@ -1,27 +1,28 @@
 #!/usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
-File: run_multiple_lastzs_sqlite.py
-Author: Brant Faircloth
+(c) 2021 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
 
-Created by Brant Faircloth on 22 August 2012 17:08 PDT (-0700)
-Copyright (c) 2012 Brant C. Faircloth. All rights reserved.
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
 
-USAGE:  python run_multiple_lastzs.py \
-    my-output-db.sqlite \
-    /path/to/some/folder/for/lastz/output \
-    /path/to/my/probes.fa
-    --chromolist oviAri1 \
-    --scaffoldlist ailMel1 myoLuc1
-
+Created on 2021-02-18 T09:56:20-06:00
 """
+
 
 import os
+import sys
+import shutil
 import sqlite3
 import argparse
 import subprocess
-from phyluce.helpers import is_dir, is_file, FullPaths, CreateDir
+
+from phyluce.log import setup_logging
+from phyluce.helpers import is_dir, is_file, FullPaths
 from phyluce.many_lastz import multi_lastz_runner
+
+import colorful as cf
 
 
 import pdb
@@ -35,13 +36,13 @@ def get_args():
     parser.add_argument(
         "--db",
         required=True,
-        type=str,
+        action=FullPaths,
         help="""The database in which to store results (also use --append if adding results to an existing database)""",
     )
     parser.add_argument(
         "--output",
         required=True,
-        action=CreateDir,
+        action=FullPaths,
         help="""The directory in which to store the LASTZ files""",
     )
     parser.add_argument(
@@ -102,11 +103,45 @@ def get_args():
         default=92.5,
         help="""The default percent identity to search for using lastz""",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
+    p = parser.parse_args()
+    pdb.set_trace()
+    if os.path.isfile(p.db) or os.path.isdir(p.output):
+        answer = input(
+            cf.bold_coral("[WARNING] Output files exist, REMOVE [Y/n]? ")
+        )
+        if answer == "Y":
+            try:
+                shutil.rmtree(p.output)
+            except FileNotFoundError:
+                pass
+            try:
+                os.remove(p.db)
+            except FileNotFoundError:
+                pass
+            pdb.set_trace()
+            # create the new directory
+            os.makedirs(p.output)
+        else:
+            print("[QUIT]")
+            sys.exit()
+    return p
 
 
 def create_species_lastz_tables(cur, g):
-    print(("Creating {0} table".format(g)))
     query = """CREATE TABLE {0} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             score INTEGER NOT NULL,
@@ -144,7 +179,6 @@ def create_species_lastz_tables(cur, g):
 
 
 def insert_species_to_lastz_tables(cur, g, input):
-    print(("Inserting data to {0} table".format(g)))
     with open(input, "rU") as data:
         rows = [tuple(line.strip().split("\t")) for line in data]
     query = """INSERT INTO {0} (score, name1, strand1, zstart1, end1,
@@ -158,7 +192,6 @@ def insert_species_to_lastz_tables(cur, g, input):
 
 
 def clean_lastz_data(dirty):
-    print(("Cleaning {0}".format(dirty)))
     clean = dirty + ".clean"
     with open(dirty, "r") as source:
         with open(clean, "w") as target:
@@ -193,7 +226,7 @@ def create_species_table(conn, cur, append):
         pass
 
 
-def align_against_scaffolds(cur, args, path):
+def align_against_scaffolds(log, cur, args, path):
     for g in args.scaffoldlist:
         output = os.path.abspath(
             os.path.join(
@@ -202,38 +235,28 @@ def align_against_scaffolds(cur, args, path):
             )
         )
         target = path.format(g)
-        prefab = False
-        if os.path.isfile(output + ".clean"):
-            inpt = eval(
-                input(
-                    "The output file {0} exists.  Do you want to use it [Y/n]? ".format(
-                        g
-                    )
-                )
-            )
-            if inpt == "Y" or inpt == "Yes":
-                prefab = True
-                clean = output + ".clean"
-            else:
-                prefab = False
-        if not prefab:
-            multi_lastz_runner(
-                output,
-                args.cores,
-                target,
-                args.probefile,
-                True,
-                args.coverage,
-                args.identity,
-            )
-            clean = clean_lastz_data(output)
+        log.info("Aligning against {} scaffolds".format(g))
+        multi_lastz_runner(
+            log,
+            output,
+            args.cores,
+            target,
+            args.probefile,
+            True,
+            args.coverage,
+            args.identity,
+        )
+        log.info("Cleaning the LASTZ output for {}".format(g))
+        clean = clean_lastz_data(output)
         if args.db:
+            log.info("Creating the {} table".format(g))
             create_species_lastz_tables(cur, g)
+            log.info("Inserting data to the {} table".format(g))
             insert_species_to_lastz_tables(cur, g, clean)
             cur.execute("INSERT INTO species (name) VALUES (?)", (g,))
 
 
-def align_against_genomes(cur, args, path):
+def align_against_genomes(log, cur, args, path):
     for g in args.chromolist:
         output = os.path.abspath(
             os.path.join(
@@ -242,33 +265,23 @@ def align_against_genomes(cur, args, path):
             )
         )
         target = path.format(g)
-        prefab = False
-        if os.path.isfile(output + ".clean"):
-            inpt = eval(
-                input(
-                    "The output file {0} exists.  Do you want to use it [Y/n]? ".format(
-                        g
-                    )
-                )
-            )
-            if inpt == "Y" or inpt == "Yes":
-                prefab = True
-                clean = output + ".clean"
-            else:
-                prefab = False
-        if not prefab:
-            multi_lastz_runner(
-                output,
-                args.cores,
-                target,
-                args.probefile,
-                False,
-                args.coverage,
-                args.identity,
-            )
-            clean = clean_lastz_data(output)
+        log.info("Aligning against {} chromosomes".format(g))
+        multi_lastz_runner(
+            log,
+            output,
+            args.cores,
+            target,
+            args.probefile,
+            False,
+            args.coverage,
+            args.identity,
+        )
+        log.info("Cleaning the LASTZ output")
+        clean = clean_lastz_data(output)
         if args.db:
+            log.info("Creating the {} table".format(g))
             create_species_lastz_tables(cur, g)
+            log.info("Inserting data to the {} table".format(g))
             insert_species_to_lastz_tables(cur, g, clean)
             cur.execute("INSERT INTO species (name) VALUES (?)", (g,))
 
@@ -283,6 +296,8 @@ def check_for_all_genome_sequences(chromo, scaffold, path):
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
     # connect to the db
     conn = sqlite3.connect(args.db)
     cur = conn.cursor()
@@ -290,15 +305,20 @@ def main():
         path = os.path.join("{0}".format(args.base_path), "{0}/{0}.2bit")
     else:
         path = os.path.join("{0}".format(args.base_path), "{0}.2bit")
+    log.info("Checking to ensure all genome sequences exist as 2bit files")
     check_for_all_genome_sequences(args.chromolist, args.scaffoldlist, path)
     # create a species table if not exists
+    log.info("Created species table")
     create_species_table(conn, cur, args.append)
     # for each genome, align the probes against the scaffold/readlist passed
-    align_against_scaffolds(cur, args, path)
-    align_against_genomes(cur, args, path)
+    align_against_scaffolds(log, cur, args, path)
+    align_against_genomes(log, cur, args, path)
     conn.commit()
     cur.close()
     conn.close()
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
