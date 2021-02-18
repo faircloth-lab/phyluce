@@ -17,7 +17,8 @@ from bx.seq import twobit
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from phyluce.helpers import FullPaths
+from phyluce.helpers import FullPaths, is_dir, CreateFile
+from phyluce.log import setup_logging
 
 import pdb
 
@@ -27,7 +28,9 @@ def get_args():
     parser = argparse.ArgumentParser(
         description="""Given an input BED file for one taxon, slice out genomic sequence given coordinates"""
     )
-    parser.add_argument("--bed", required=True, help="""The input BED file""")
+    parser.add_argument(
+        "--bed", required=True, action=FullPaths, help="""The input BED file"""
+    )
     parser.add_argument(
         "--twobit",
         required=True,
@@ -56,6 +59,20 @@ def get_args():
         default=None,
         help="""The length to which to buffer the extracted sequences""",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        choices=["INFO", "WARN", "CRITICAL"],
+        default="INFO",
+        help="""The logging level to use.""",
+    )
+    parser.add_argument(
+        "--log-path",
+        action=FullPaths,
+        type=is_dir,
+        default=None,
+        help="""The path to a directory to hold logs.""",
+    )
     return parser.parse_args()
 
 
@@ -81,6 +98,9 @@ def n_count(sequence):
 
 def main():
     args = get_args()
+    # setup logging
+    log, my_name = setup_logging(args)
+    log.info("Creating a BED from the sequences...")
     with open(args.twobit, "rb") as f:
         tb = twobit.TwoBitFile(f)
         filtered = 0
@@ -113,11 +133,14 @@ def main():
                     kept += 1
                 else:
                     filtered += 1
-        print(
+        log.info(
             "Screened {} sequences.  Filtered {} < 160 bp or with > {}% masked bases or > {} N-bases. Kept {}.".format(
                 cnt + 1, filtered, args.mask * 100, args.max_n, kept
             )
         )
+    # end
+    text = " Completed {} ".format(my_name)
+    log.info(text.center(65, "="))
 
 
 if __name__ == "__main__":
