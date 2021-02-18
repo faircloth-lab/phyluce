@@ -46,7 +46,7 @@ def main():
     kept_loci = []
     dropped_loci = []
     excludes = set([i[0] for i in config.items("exclude")])
-    print("There are {} loci to exclude".format(len(excludes)))
+    print(("There are {} loci to exclude".format(len(excludes))))
     for seq in SeqIO.parse(args.probes, "fasta"):
         locus = seq.id.split("_")[0]
         # meta = dict([i.split(":") for i in seq.description.split("|")[1].split(",")])
@@ -59,8 +59,8 @@ def main():
         SeqIO.write(kept, outf, "fasta")
     # pdb.set_trace()
     # done
-    print("Kept {} loci".format(len(set(kept_loci))))
-    print("Dropped {} loci".format(len(set(dropped_loci))))
+    print(("Kept {} loci".format(len(set(kept_loci)))))
+    print(("Dropped {} loci".format(len(set(dropped_loci)))))
 
 
 if __name__ == "__main__":
