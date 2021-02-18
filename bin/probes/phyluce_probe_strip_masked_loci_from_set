@@ -115,14 +115,16 @@ def main():
                     else:
                         filtered += 1
         print(
-            "Screened {} sequences from {}.  Filtered {} with > {}% masked bases or > {} N-bases or < {} length. Kept {}.".format(
-                cnt + 1,
-                os.path.basename(args.bed),
-                filtered,
-                args.mask * 100,
-                args.max_n,
-                args.min_length,
-                kept,
+            (
+                "Screened {} sequences from {}.  Filtered {} with > {}% masked bases or > {} N-bases or < {} length. Kept {}.".format(
+                    cnt + 1,
+                    os.path.basename(args.bed),
+                    filtered,
+                    args.mask * 100,
+                    args.max_n,
+                    args.min_length,
+                    kept,
+                )
             )
         )
 
