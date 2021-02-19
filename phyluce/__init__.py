@@ -2,9 +2,14 @@
 # encoding: utf-8
 
 import os
+import sys
 import subprocess
 
 static_version = "2.0.0"
+__default_config__ = os.path.join(
+    sys.prefix,
+    "lib/python3.6/site-packages/phyluce-2.0.0-py3.6.egg/config/phyluce.conf",
+)
 
 # get a dynamic version number, if possible.  if not running from git
 # should default to static version

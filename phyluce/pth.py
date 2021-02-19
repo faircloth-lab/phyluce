@@ -15,6 +15,8 @@ import os
 import sys
 import configparser
 
+from phyluce import __default_config__
+
 # import pdb
 
 
@@ -23,11 +25,11 @@ def get_user_path(program, binary, package_only=False):
     # make case sensitive
     config.optionxform = str
     if package_only:
-        config.read(os.path.join(sys.prefix, "config/phyluce.conf"))
+        config.read(__default_config__)
     else:
         config.read(
             [
-                os.path.join(sys.prefix, "config/phyluce.conf"),
+                __default_config__,
                 os.path.expanduser("~/.phyluce.conf"),
             ]
         )
@@ -38,7 +40,9 @@ def get_user_path(program, binary, package_only=False):
     if pth.startswith("$CONDA"):
         expand_pth = pth.replace("$CONDA", sys.prefix)
     else:
-        expand_pth = os.path.abspath(os.path.expanduser(os.path.expandvars(pth)))
+        expand_pth = os.path.abspath(
+            os.path.expanduser(os.path.expandvars(pth))
+        )
     return expand_pth
 
 
