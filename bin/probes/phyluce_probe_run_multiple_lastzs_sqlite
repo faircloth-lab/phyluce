@@ -22,7 +22,7 @@ from phyluce.log import setup_logging
 from phyluce.helpers import is_dir, is_file, FullPaths
 from phyluce.many_lastz import multi_lastz_runner
 
-import colorful as cf
+from rich import print
 
 
 # import pdb
@@ -120,7 +120,9 @@ def get_args():
     p = parser.parse_args()
     if os.path.isfile(p.db) or os.path.isdir(p.output):
         answer = input(
-            cf.bold_coral("[WARNING] Output files exist, REMOVE [Y/n]? ")
+            print(
+                "[bold orange_red1][WARNING] Output files exist, REMOVE [Y/n]?[/] "
+            )
         )
         if answer == "Y":
             try:

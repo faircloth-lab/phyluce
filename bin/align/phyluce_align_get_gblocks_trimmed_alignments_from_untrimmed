@@ -20,7 +20,7 @@ import subprocess
 import multiprocessing
 
 from Bio import AlignIO
-import colorful as cf
+from rich import print
 
 from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, CreateDir, is_dir, get_file_extensions
@@ -175,16 +175,16 @@ def write_gblocks_alignments_to_outdir(log, outdir, alignments, format):
 
 def main():
     if platform.processor() == "arm64":
-        print(cf.bold_coral(" NOTICE ".center(65, "!")))
-        print(
-            cf.bold_coral(
-                " Gblocks is not compatible with arm64/Apple Silicon ".center(
-                    65
-                )
-            )
+        notice = " NOTICE ".center(65, "!")
+        print("[bold orange_red1]{}[/]".format(notice))
+        gblock_text = (
+            "Gblocks is not compatible with arm64/Apple Silicon".center(65)
         )
-        print(cf.bold_coral(" Use trimAl ".center(65)))
-        print(cf.bold_coral(".".center(65, ".")))
+        print("[bold orange_red1] {} [/]".format(gblock_text))
+        trimal_text = " Use trimAl ".center(65)
+        print("[bold orange_red1]{}[/]".format(trimal_text))
+        end_text = ".".center(65, ".")
+        print("[bold orange_red1]{}[/]".format(end_text))
         sys.exit()
     args = get_args()
     # setup logging

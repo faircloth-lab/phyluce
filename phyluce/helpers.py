@@ -17,7 +17,7 @@ import shutil
 import configparser
 from collections import defaultdict
 
-import colorful as cf
+from rich import print
 
 from phyluce import lastz
 from phyluce.pth import get_all_user_params
@@ -41,8 +41,8 @@ class CreateDir(argparse.Action):
         # check to see if directory exists
         if os.path.exists(d):
             answer = input(
-                cf.bold_coral(
-                    "[WARNING] Output directory exists, REMOVE [Y/n]? "
+                print(
+                    "[bold orange_red1][WARNING] Output directory exists, REMOVE [Y/n]?[/] "
                 )
             )
             if answer == "Y":
@@ -63,7 +63,9 @@ class CreateFile(argparse.Action):
         # check to see if directory exists
         if os.path.exists(f):
             answer = input(
-                cf.bold_coral("[WARNING] Output file exists, REMOVE [Y/n]? ")
+                print(
+                    "[bold orange_red1][WARNING] Output file exists, REMOVE [Y/n]?[/] "
+                )
             )
             if answer == "Y":
                 os.remove(f)
