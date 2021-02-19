@@ -189,9 +189,27 @@ def contig_count(contig):
     )
 
 
-def get_organism_names_from_fasta_files(ff):
+def get_organism_names_from_fasta_files(log, ff):
     """Given a fasta file name, parse taxon name from file name"""
-    return [os.path.basename(f).split(".")[0].replace("-", "_") for f in ff]
+    names = [os.path.basename(f).split(".")[0].replace("-", "_") for f in ff]
+    # check names for characters that are illegal in SQLite
+    name_check = {}
+    for name in names:
+        match = re.search(
+            "^\d+|\.|\+|\:|\"|'|\-|\?|\!|\*|\@|\%|\^|\&|\#|\=|\/|\\\\", name
+        )
+        if match:
+            name_check[name] = match
+    if name_check != {}:
+        for name, match in name_check.items():
+            log.critical(
+                "The taxon name {} contains or begins with an illegal character: `{}`.  Use only letters, numbers (after a letter), and underscores".format(
+                    name, match.group()
+                )
+            )
+        sys.exit()
+    else:
+        return names
 
 
 def check_contigs_for_dupes(matches):
@@ -279,7 +297,7 @@ def main():
     fasta_files = []
     for t in ftypes:
         fasta_files.extend(glob.glob(os.path.join(args.contigs, t)))
-    organisms = get_organism_names_from_fasta_files(fasta_files)
+    organisms = get_organism_names_from_fasta_files(log, fasta_files)
     conn, c = create_probe_database(
         log, os.path.join(args.output, "probe.matches.sqlite"), organisms, uces
     )
