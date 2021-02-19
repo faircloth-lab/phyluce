@@ -156,23 +156,7 @@ setup(
     #
     # If there are data files included in your packages that need to be
     # installed, specify them here.
-    # package_data={'': extra_files},
-    # package_data={  # Optional
-    #    'config': ['config/phyluce.conf'],
-    #    'workflows': ['workflows/*'],
-    # },
-    # package_data = {
-    #    'phyluce.workflows' : ['workflows/*/*']
-    # },
     package_data={"": d_files},
-    # Although 'package_data' is the preferred approach, in some case you may
-    # need to place data files outside of your packages. See:
-    # http://docs.python.org/distutils/setupscript.html#installing-additional-files
-    #
-    # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    # data_files=df,
-    #    ('phyluce/tests/test-expected', (glob.glob("phyluce/tests/test-expected/*/*/*", recursive=True)))
-    # ],  # Optional
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # `pip` to create the appropriate form of executable for the target
