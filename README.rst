@@ -22,40 +22,7 @@ from UCE loci and also data collection from other types of loci for phylogenomic
 studies at the species, population, and individual levels.
 
 Please see the `Documentation <http://faircloth-lab.github.com/phyluce/>`_ for
-additional information on using phyluce_
-
-.. _Installation:
-
-Installing
-----------
-
-We **strongly** suggest installaing phyluce_ using anaconda_/miniconda_ and the
-conda_ package manager for python_.  We build and test phyluce_ dependencies and
-function on the following platforms.
-
-- Apple OSX 10.9.x
-- CentOS 6.x
-- Ubuntu 14.04 LTS
-
-Quick version
-^^^^^^^^^^^^^
-
-#. Install JAVA for your platform
-#. Install anaconda_ for your platform (Instructions_)
-#. Check that anaconda_/miniconda_ are installed and in your ``$PATH``::
-
-    python -V
-    Python 2.7.6 :: Anaconda 1.8.0 (x86_64)
-
-#. Add the `faircloth-lab binstar`_ repository to your ``.condarc``::
-
-    conda config --add channels http://conda.binstar.org/faircloth-lab
-
-#. Install phyluce_::
-
-    conda install phyluce
-
-For more in-depth installation instructions, see the `Installation documents`_.
+additional information on installing and using phyluce_
 
 License
 -------
