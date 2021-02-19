@@ -1,0 +1,11 @@
+bams:
+    alligator-mississippiensis: ../workflow-mapping/mapped_reads/alligator-mississippiensis.fxm.sorted.md.bam
+    gallus-gallus: ../workflow-mapping/mapped_reads/gallus-gallus.fxm.sorted.md.bam
+    peromyscus-maniculatus: ../workflow-mapping/mapped_reads/peromyscus-maniculatus.fxm.sorted.md.bam
+    rana-sphenocephafa: ../workflow-mapping/mapped_reads/rana-sphenocephafa.fxm.sorted.md.bam
+
+contigs:
+    alligator-mississippiensis: ../../test-expected/spades/contigs/alligator_mississippiensis.contigs.fasta
+    gallus-gallus: ../../test-expected/spades/contigs/gallus_gallus.contigs.fasta
+    peromyscus-maniculatus: ../../test-expected/spades/contigs/peromyscus_maniculatus.contigs.fasta
+    rana-sphenocephafa: ../../test-expected/spades/contigs/rana_sphenocephafa.contigs.fasta

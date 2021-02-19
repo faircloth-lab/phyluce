@@ -1,0 +1,11 @@
+reads:
+    alligator-mississippiensis: ../../test-expected/raw-reads/alligator-mississippiensis/
+    gallus-gallus: ../../test-expected/raw-reads/gallus-gallus
+    peromyscus-maniculatus: ../../test-expected/raw-reads/peromyscus-maniculatus
+    rana-sphenocephafa: ../../test-expected/raw-reads/rana-sphenocephafa
+
+contigs:
+    alligator-mississippiensis: ../../test-expected/spades/contigs/alligator_mississippiensis.contigs.fasta
+    gallus-gallus: ../../test-expected/spades/contigs/gallus_gallus.contigs.fasta
+    peromyscus-maniculatus: ../../test-expected/spades/contigs/peromyscus_maniculatus.contigs.fasta
+    rana-sphenocephafa: ../../test-expected/spades/contigs/rana_sphenocephafa.contigs.fasta

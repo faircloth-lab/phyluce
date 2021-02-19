@@ -1,0 +1,5 @@
+bams:
+    gallus-gallus: ../workflow-mapping/mapped_reads/gallus-gallus.fxm.sorted.md.bam
+
+contigs:
+    gallus-gallus: ../../test-expected/spades/contigs/gallus_gallus.contigs.fasta

@@ -21,8 +21,6 @@ files are retained (these can be input to `contig-correct`).
 
 #import pdb
 
-configfile: "config.yaml"
-
 def get_fq1(wildcards):
     return os.path.join(config['reads'][wildcards.sample], "{}-READ1.fastq.gz".format(wildcards.sample))
 
@@ -56,7 +54,7 @@ rule bwa_map:
         temp("mapped_reads/{sample}.bam")
     params:
         rg=r"@RG\tID:{sample}\tSM:{sample}"
-    threads: 8
+    threads: 1
     shell:
         "bwa mem -R '{params.rg}' -t {threads} {input.ref} {input.r1} {input.r2} | samtools view -Sb - > {output}"
 
@@ -66,7 +64,7 @@ rule samtools_sort_by_read_name:
         "mapped_reads/{sample}.bam"
     output:
         temp("mapped_reads/{sample}.sorted.rn.bam")
-    threads: 8
+    threads: 1
     shell:
         "samtools sort -@ {threads} -n -O bam -o {output} {input}"
 
@@ -76,7 +74,7 @@ rule samtools_fixmate:
         "mapped_reads/{sample}.sorted.rn.bam"
     output:
         temp("mapped_reads/{sample}.sorted.rn.fxm.bam")
-    threads: 8
+    threads: 1
     # note that we're adding mate score tag here (-m)
     shell:
         "samtools fixmate -@ {threads} -m {input} {output}"
@@ -87,7 +85,7 @@ rule samtools_sort:
         "mapped_reads/{sample}.sorted.rn.fxm.bam"
     output:
         temp("mapped_reads/{sample}.fxm.sorted.bam")
-    threads: 8
+    threads: 1
     shell:
         "samtools sort -@ {threads} -O bam -o {output} {input}"
 
@@ -97,7 +95,7 @@ rule samtools_markdupes:
         "mapped_reads/{sample}.fxm.sorted.bam"
     output:
         protected("mapped_reads/{sample}.fxm.sorted.md.bam")
-    threads: 8
+    threads: 1
     shell:
         "samtools markdup -@ {threads} {input} {output}"
 
@@ -107,7 +105,7 @@ rule samtools_flagstat:
         "mapped_reads/{sample}.fxm.sorted.bam"
     output:
         "mapped_reads/{sample}.fxm.sorted.md.bam.flagstats.txt"
-    threads: 8
+    threads: 1
     shell:
         "samtools flagstat -@ {threads} {input} > {output}"
 

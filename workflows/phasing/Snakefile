@@ -21,9 +21,6 @@ Output written to `consensus` folder and filtered SNP calls retained.
 #import pdb
 
 
-configfile: "config.yaml"
-
-
 rule all:
     input:
         expand("bams/{sample}.0.bam", sample=config["contigs"]),

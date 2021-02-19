@@ -5,4 +5,5 @@ max-complexity = 18
 select = B,C,E,F,W,T4,B9
 per-file-ignores =
     # excluding snakemake code snippets because of the way they import snakemake
-    get_coverage_summary.py: F821
+    get_coverage_summary.py: F821,
+    filter_missing_from_bcftools.py: F821

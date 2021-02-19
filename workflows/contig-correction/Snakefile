@@ -16,17 +16,16 @@ DESCRIPTION
 Workflow uses bcftools to generate clean consensus sequences from BAM
 files - ideally filtering low quality/coverage bases in the process.
 Output written to `consensus` folder and filtered SNP calls retained.
+
+Low quality bases converted to IUPAC "N".
 """
 
 #import pdb
 
 
-configfile: "config.yaml"
-
-
 rule all:
     input:
-        expand("consensus/{sample}.consensus.fasta", sample=config["contigs"])
+        expand("consensus/{sample}.consensus.filt.fasta", sample=config["contigs"])
 
 
 rule generate_pileups:
@@ -77,7 +76,17 @@ rule generate_consensus:
         bcf = "filtered_norm_pileups/{sample}.norm.flt-indels.Q20.DP10.bcf",
         idx = "filtered_norm_pileups/{sample}.norm.flt-indels.Q20.DP10.bcf.csi"
     output:
-        "consensus/{sample}.consensus.fasta"
+        temp("consensus-temp/{sample}.consensus.fasta")
     threads: 1
     shell:
-        "bcftools consensus -f {input.contig} --absent '.' {input.bcf} | python ./scripts/filter_missing_from_bcftools.py > {output}"
+        "bcftools consensus -f {input.contig} --absent '.' {input.bcf} > {output}"
+
+
+rule filter_consensus:
+    input:
+        "consensus-temp/{sample}.consensus.fasta"
+    output:
+        "consensus/{sample}.consensus.filt.fasta"
+    threads: 1
+    script:
+        "scripts/filter_missing_from_bcftools.py"

@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+(c) 2021 Brant Faircloth || http://faircloth-lab.org/
+All rights reserved.
+
+This code is distributed under a 3-clause BSD license. Please see
+LICENSE.txt for more information.
+
+Created on 2021-02-19 T06:54:24-06:00
+"""
+
+
+import os
+import argparse
+import configparser
+
+from phyluce.pth import get_user_path
+from phyluce.helpers import FullPaths, CreateDir, is_dir, is_file
+
+import snakemake
+
+
+import pdb
+
+
+def get_args():
+    """Get arguments from CLI"""
+    parser = argparse.ArgumentParser(
+        description="""Use Snakemake to run the bwa+samtools mapping pipeline"""
+    )
+    parser.add_argument(
+        "--config",
+        required=True,
+        type=is_file,
+        action=FullPaths,
+        default=None,
+        help="""A correctly formatted configuration file for the Snakemake workflow""",
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        action=CreateDir,
+        help="""The directory in which to store the output of the workflow""",
+    )
+    parser.add_argument(
+        "--workflow",
+        required=True,
+        choices=["mapping", "correction", "phasing"],
+        help="""The phyluce workflow to run""",
+    )
+
+    parser.add_argument(
+        "--cores",
+        type=int,
+        default=1,
+        help="""The number of compute cores/threads to use""",
+    )
+    parser.add_argument(
+        "--dryrun",
+        action="store_true",
+        help="""Show what the workflow would do""",
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
+    workflow_details = {
+        "mapping": get_user_path("workflows", "mapping"),
+        "correction": get_user_path("workflows", "correction"),
+        "phasing": get_user_path("workflows", "phasing"),
+    }
+    snake_file = workflow_details[args.workflow]
+    snakemake.snakemake(
+        snake_file,
+        cores=args.cores,
+        dryrun=args.dryrun,
+        configfiles=[args.config],
+        workdir=args.output,
+    )
+    # all done!
+
+
+if __name__ == "__main__":
+    main()
