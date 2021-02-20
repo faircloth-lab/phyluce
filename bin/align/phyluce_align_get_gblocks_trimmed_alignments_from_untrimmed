@@ -26,7 +26,7 @@ from phyluce.log import setup_logging
 from phyluce.helpers import FullPaths, CreateDir, is_dir, get_file_extensions
 from phyluce.pth import get_user_path
 
-# import pdb
+import pdb
 
 
 def get_args():
@@ -113,43 +113,38 @@ def get_args():
 def get_and_trim_alignments(params):
     args, align_file = params
     name = os.path.splitext(os.path.basename(align_file))[0]
-    try:
-        # determine the number of sequences in align
-        with open(align_file, "rU") as input_aln:
-            taxa = len(AlignIO.read(input_aln, args.input_format))
-        b1 = int(round(args.b1 * taxa)) + 1
-        b2 = int(round(args.b2 * taxa))
-        if b2 < b1:
-            b2 = b1
-        cmd = [
-            get_user_path("binaries", "gblocks"),
-            align_file,
-            "-t=DNA",
-            "-b1={}".format(b1),
-            "-b2={}".format(b2),
-            "-b3={}".format(args.b3),
-            "-b4={}".format(args.b4),
-            "-b5=h",
-            "-p=n",
-        ]
-        proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        stdout, stderr = proc.communicate()
-        # read new alignment
-        trimmed_aln_file = "{}-gb".format(align_file)
-        with open(trimmed_aln_file, "rU") as trimmed_aln:
-            aln = AlignIO.read(trimmed_aln, "fasta", molecule_type="DNA")
-        # remove the qblocks file
-        os.remove(trimmed_aln_file)
-        sys.stdout.write(".")
-        sys.stdout.flush()
-        return name, aln
-    except ValueError as e:
-        if e.message == "No records found in handle":
-            return name, False
-    except:
-        return name, False
+    # determine the number of sequences in align
+    with open(align_file, "rU") as input_aln:
+        aln = AlignIO.read(input_aln, args.input_format)
+        taxa = len(aln)
+    b1 = int(round(args.b1 * taxa)) + 1
+    b2 = int(round(args.b2 * taxa))
+    if b2 < b1:
+        b2 = b1
+    cmd = [
+        get_user_path("binaries", "gblocks"),
+        align_file,
+        "-t=DNA",
+        "-b1={}".format(b1),
+        "-b2={}".format(b2),
+        "-b3={}".format(args.b3),
+        "-b4={}".format(args.b4),
+        "-b5=h",
+        "-p=n",
+    ]
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    stdout, stderr = proc.communicate()
+    # read new alignment
+    trimmed_aln_file = "{}-gb".format(align_file)
+    with open(trimmed_aln_file, "rU") as trimmed_aln:
+        aln = AlignIO.read(trimmed_aln, "fasta", molecule_type="DNA")
+    # remove the qblocks file
+    os.remove(trimmed_aln_file)
+    sys.stdout.write(".")
+    sys.stdout.flush()
+    return name, aln
 
 
 def write_gblocks_alignments_to_outdir(log, outdir, alignments, format):
@@ -174,6 +169,7 @@ def write_gblocks_alignments_to_outdir(log, outdir, alignments, format):
 
 
 def main():
+    """
     if platform.processor() == "arm64":
         notice = " NOTICE ".center(65, "!")
         print("[bold orange_red1]{}[/]".format(notice))
@@ -186,11 +182,10 @@ def main():
         end_text = ".".center(65, ".")
         print("[bold orange_red1]{}[/]".format(end_text))
         sys.exit()
+    """
     args = get_args()
     # setup logging
     log, my_name = setup_logging(args)
-    text = " Starting {} ".format(my_name)
-    log.info(text.center(65, "="))
     alignments = []
     log.info("Getting aligned sequences for trimming")
     for ftype in get_file_extensions(args.input_format):

@@ -17,7 +17,7 @@ import shutil
 import configparser
 from collections import defaultdict
 
-from rich import print
+from rich import prompt
 
 from phyluce import lastz
 from phyluce.pth import get_all_user_params
@@ -40,10 +40,8 @@ class CreateDir(argparse.Action):
         d = os.path.abspath(os.path.expanduser(values))
         # check to see if directory exists
         if os.path.exists(d):
-            answer = input(
-                print(
-                    "[bold orange_red1][WARNING] Output directory exists, REMOVE [Y/n]?[/] "
-                )
+            answer = prompt.Prompt.ask(
+                "[bold orange_red1][WARNING] Output directory exists, REMOVE [Y/n][/]"
             )
             if answer == "Y":
                 shutil.rmtree(d)
@@ -62,10 +60,8 @@ class CreateFile(argparse.Action):
         f = os.path.abspath(os.path.expanduser(values))
         # check to see if directory exists
         if os.path.exists(f):
-            answer = input(
-                print(
-                    "[bold orange_red1][WARNING] Output file exists, REMOVE [Y/n]?[/] "
-                )
+            answer = prompt.Prompt.ask(
+                "[bold orange_red1][WARNING] Output file exists, REMOVE [Y/n][/] "
             )
             if answer == "Y":
                 os.remove(f)
