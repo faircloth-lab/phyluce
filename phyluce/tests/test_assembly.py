@@ -18,9 +18,9 @@ import glob
 import shutil
 import platform
 import subprocess
-from shared_funcs import get_contig_lengths_and_counts
 
 import pytest
+from Bio import SeqIO
 
 import pdb
 
@@ -82,6 +82,16 @@ def a_conf(request):
         "test-conf",
         "assembly-short.conf",
     )
+
+
+def get_contig_lengths_and_counts(contigs):
+    with open(contigs) as contig_file:
+        contig_count = 0
+        contig_length = 0
+        for seq in SeqIO.parse(contig_file, "fasta"):
+            contig_count += 1
+            contig_length += len(seq)
+    return contig_count, contig_length
 
 
 def test_spades_assembly(o_dir, raw_dir, e_dir, request):
