@@ -21,7 +21,6 @@ import pdb
 
 
 def get_user_path(program, binary, package_only=False):
-    pdb.set_trace()
     config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
