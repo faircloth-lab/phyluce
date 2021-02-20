@@ -49,7 +49,7 @@ jobs:
         shell: bash -l {0}
     steps:
       - name: Check out Git repository
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
       # setup cache for conda files
       - name: Cache conda packages
         uses: actions/cache@v1
@@ -63,7 +63,7 @@ jobs:
             ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('etc/phyluce-testing-environment.yml') }}
       # we'll use the handy conda incubator miniconda package
       - name: Set miniconda up
-      - uses: conda-incubator/setup-miniconda@v2.0.1
+        uses: conda-incubator/setup-miniconda@v2.0.1
         with:
           auto-update-conda: true
           python-version: 3.6
