@@ -39,4 +39,5 @@ jobs:
         run: |
           echo "PYTHONPATH=/home/runner/work/phyluce/phyluce" >> $GITHUB_ENV
       - name: Try to import phyluce
+        run: |
           python -c "import phyluce"
