@@ -52,11 +52,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Get some params
         run: |
-          echo "pwd"
+          echo "--pwd--"
           pwd
-          echo "ls"
+          echo "--ls--"
           ls
-          echo "home"
+          echo "--home--"
           ls $HOME
-          echo "PYTHONPATH=phyluce:$PYTHONPATH" >> $GITHUB_ENV"
+          echo "----"
+          echo "PYTHONPATH=$HOME/work/phyluce/phyluce:$PYTHONPATH" >> $GITHUB_ENV
           echo $GITHUB_ENV
+          echo "--check--"
+          ls $GITHUB_ENV
