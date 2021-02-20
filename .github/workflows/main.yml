@@ -48,6 +48,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
+      - name: Get some params
       run: |
           echo "pwd"
           pwd
@@ -55,5 +56,5 @@ jobs:
           ls
           echo "home"
           ls $HOME
-          echo "PYTHONPATH=phyluce" >> $GITHUB_ENV"
+          echo "PYTHONPATH=phyluce:$PYTHONPATH" >> $GITHUB_ENV"
           echo $GITHUB_ENV
