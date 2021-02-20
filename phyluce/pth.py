@@ -17,10 +17,11 @@ import configparser
 
 from phyluce import __default_config__
 
-# import pdb
+import pdb
 
 
 def get_user_path(program, binary, package_only=False):
+    pdb.set_trace()
     config = configparser.ConfigParser()
     # make case sensitive
     config.optionxform = str
@@ -30,6 +31,7 @@ def get_user_path(program, binary, package_only=False):
         config.read(
             [
                 __default_config__,
+                "config/phyluce.conf",
                 os.path.expanduser("~/.phyluce.conf"),
             ]
         )
