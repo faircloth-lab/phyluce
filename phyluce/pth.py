@@ -30,7 +30,6 @@ def get_user_path(program, binary, package_only=False):
         config.read(
             [
                 __default_config__,
-                "config/phyluce.conf",
                 os.path.expanduser("~/.phyluce.conf"),
             ]
         )
@@ -53,7 +52,7 @@ def get_user_param(section, param):
     config.optionxform = str
     config.read(
         [
-            os.path.join(sys.prefix, "config/phyluce.conf"),
+            __default_config__,
             os.path.expanduser("~/.phyluce.conf"),
         ]
     )
@@ -66,7 +65,7 @@ def get_all_user_params(section):
     config.optionxform = str
     config.read(
         [
-            os.path.join(sys.prefix, "config/phyluce.conf"),
+            __default_config__,
             os.path.expanduser("~/.phyluce.conf"),
         ]
     )
