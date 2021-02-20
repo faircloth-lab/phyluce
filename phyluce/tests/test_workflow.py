@@ -184,4 +184,4 @@ def test_correction_phasing(o_dir, e_dir, c_dir, request):
         observed = SeqIO.to_dict(SeqIO.parse(output_file, "fasta"))
         expected = SeqIO.to_dict(SeqIO.parse(expected_file, "fasta"))
         for name, observed in observed.items():
-            assert expected[name].seq == observed.seq
+            assert str(expected[name].seq) == str(observed.seq)
