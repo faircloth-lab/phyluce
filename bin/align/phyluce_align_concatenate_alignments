@@ -112,6 +112,8 @@ def main():
         temp_dir.cleanup()
         # read those alignments into Nexus format
     log.info("Concatenating files")
+    # sort the files so the outputs are the same across platforms
+    data.sort()
     concatenated = Nexus.combine(data)
     if args.phylip:
         concat_file = os.path.join(
