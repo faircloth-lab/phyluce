@@ -40,7 +40,7 @@ jobs:
           black: true
           flake8: true
   build-and-test:
-    depends: run-linters
+    needs: run-linters
     name: Build and test phyluce
     runs-on: ubuntu-latest
     # If we set the default shell here, it catches the activated conda
