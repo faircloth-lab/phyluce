@@ -15,7 +15,7 @@ import os
 import sys
 import configparser
 
-from phyluce import __default_config__
+from phyluce import __default_config__, __default_workflow_dir__
 
 import pdb
 
@@ -39,6 +39,10 @@ def get_user_path(program, binary, package_only=False):
     # with sys.prefix, otherwise default to normal path expansion
     if pth.startswith("$CONDA"):
         expand_pth = pth.replace("$CONDA", sys.prefix)
+    elif pth.startswith("$WORKFLOWS"):
+        expand_pth = pth.replace(
+            "$WORKFLOWS", os.path.join(sys.prefix, __default_workflow_dir__)
+        )
     else:
         expand_pth = os.path.abspath(
             os.path.expanduser(os.path.expandvars(pth))
