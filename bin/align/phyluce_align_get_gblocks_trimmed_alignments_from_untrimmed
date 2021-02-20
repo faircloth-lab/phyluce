@@ -139,7 +139,9 @@ def get_and_trim_alignments(params):
     # read new alignment
     trimmed_aln_file = "{}-gb".format(align_file)
     with open(trimmed_aln_file, "rU") as trimmed_aln:
-        aln = AlignIO.read(trimmed_aln, "fasta", molecule_type="DNA")
+        aln = AlignIO.read(trimmed_aln, "fasta")
+        for seq in aln:
+            seq.annotations = {"molecule_type": "DNA"}
     # remove the qblocks file
     os.remove(trimmed_aln_file)
     sys.stdout.write(".")
