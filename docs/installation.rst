@@ -204,13 +204,13 @@ use this phyluce environment, you **must** run:
 
 .. code-block:: bash
 
-    source activate phyluce
+    conda activate phyluce
 
 To stop using this phyluce environment, you **must** run:
 
 .. code-block:: bash
 
-    source deactivate
+    conda deactivate
 
 Install phyluce in the default conda environment
 ------------------------------------------------
