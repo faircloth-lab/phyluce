@@ -14,7 +14,33 @@ on:
   workflow_dispatch: 
 
 jobs:
+  run-linters:
+    name: Run linters on phyluce
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+
+      - name: Install Python dependencies
+        run: pip install black flake8
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          continue_on_error: false
+          git_email: "borg@faircloth-lab.org"
+          auto_fix: true
+          # Enable linters
+          black: true
+          flake8: true
   build-and-test:
+    depends: run-linters
     name: Build and test phyluce
     runs-on: ubuntu-latest
     # If we set the default shell here, it catches the activated conda
@@ -25,18 +51,27 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
+      # setup cache for conda files
+      - name: Cache conda packages
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if 
+          # etc/example-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('etc/phyluce-testing-environment.yml') }}
       # we'll use the handy conda incubator miniconda package
       - name: Set miniconda up
         uses: conda-incubator/setup-miniconda@v2.0.1
         with:
           auto-update-conda: true
           python-version: 3.6
-      - name: Install pytest
-        run: |
-          conda install pytest
-      - name: Set env variable
+          environment-file: etc/phyluce-testing-environment.yml
+      - name: Set environment variable
         run: |
           echo "PYTHONPATH=/home/runner/work/phyluce/phyluce" >> $GITHUB_ENV
-      - name: Try to import phyluce
+      - name: Run pytest against phyluce
         run: |
-          python -c "import phyluce"
+          pytest -vv phyluce/
