@@ -69,12 +69,12 @@ jobs:
           auto-update-conda: true
           python-version: 3.6
           environment-file: etc/phyluce-testing-environment.yml
-      - name: Set environment variable
+      - name: Get location of files and paths correct
         run: |
-          echo "PYTHONPATH=/home/runner/work/phyluce/phyluce" >> $GITHUB_ENV
-      - name: Copy the config file
+          python setup.py install
+      - name: Show some paths
         run: |
-          cp config/phyluce.conf /home/runner/.phyluce.conf
+          python -c "import sys; print(sys.path)"
       - name: Run pytest against phyluce
         run: |
           pytest -vv phyluce/
