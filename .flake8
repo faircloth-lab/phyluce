@@ -7,3 +7,14 @@ per-file-ignores =
     # excluding snakemake code snippets because of the way they import snakemake
     get_coverage_summary.py: F821,
     filter_missing_from_bcftools.py: F821
+exclude =
+    # No need to traverse our git directory
+    .git,
+    # There's no value in checking cache directories
+    __pycache__,
+    config,
+    docker,
+    docs,
+    etc,
+    dist,
+    workflows
