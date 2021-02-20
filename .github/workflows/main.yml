@@ -33,6 +33,9 @@ jobs:
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          continue_on_error: false
+          git_email: "borg@faircloth-lab.org"
+          auto_fix: true
           # Enable linters
           black: true
           flake8: true
