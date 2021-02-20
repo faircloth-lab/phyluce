@@ -74,7 +74,7 @@ jobs:
           echo "PYTHONPATH=/home/runner/work/phyluce/phyluce" >> $GITHUB_ENV
       - name: Copy the config file
         run: |
-          cp conf/phyluce.conf /home/runner/.phyluce.conf
+          cp config/phyluce.conf /home/runner/.phyluce.conf
       - name: Run pytest against phyluce
         run: |
           pytest -vv phyluce/
