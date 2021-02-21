@@ -59,7 +59,7 @@ RUN mkdir -p /data
 WORKDIR /data
 
 # setup entrypoint
-COPY entrypoint.sh /usr/local/bin/
+RUN echo '#!/bin/bash --login\nset -e\n\nconda activate phyluce\nexec "$@"' > /usr/local/bin/entrypoint.sh
 # make entrypoint script executable
 RUN chmod u+x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
