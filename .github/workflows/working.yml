@@ -4,7 +4,6 @@ name: CI
 on:
   release:
     types: [edited]
-  workflow_dispatch:
 
  jobs:
   test-job:
