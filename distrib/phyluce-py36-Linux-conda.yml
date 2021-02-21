@@ -1,7 +1,6 @@
-# Sun Feb 21 06:05:38 UTC 2021
+# Sun Feb 21 17:33:30 UTC 2021
 channels:
   - faircloth-lab/label/phyluce
-channels:
   - conda-forge
   - bioconda
   - defaults
