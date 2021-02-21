@@ -27,7 +27,6 @@ RUN wget --quiet -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-
     rm miniconda.sh && \
     ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    # echo "conda activate base" >> ~/.bashrc && \
     find /opt/conda/ -follow -type f -name '*.a' -delete && \
     find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
     /opt/conda/bin/conda clean -afy
@@ -50,8 +49,7 @@ RUN /opt/conda/bin/conda config --add channels conda-forge
 
 # get gatk, setup, and cleanup
 RUN wget --quiet https://raw.githubusercontent.com/faircloth-lab/phyluce/devel/distrib/phyluce-py36-Linux-conda.yml && \
-    /opt/conda/bin/conda env create -n phyluce --file phyluce-py36-Linux-conda.yml && \
-    echo "conda activate phyluce" >> ~/.bashrc
+    /opt/conda/bin/conda env create -n phyluce --file phyluce-py36-Linux-conda.yml
 
 # cleanup
 RUN /opt/conda/bin/conda clean --all --yes
