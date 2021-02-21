@@ -1,6 +1,6 @@
 name: Testing
 on:
-  workflow_dispatch:
+  workflow_dispatch
 
  jobs:
   test-job:
