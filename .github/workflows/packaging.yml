@@ -1,0 +1,29 @@
+name: Packaging
+
+on:
+  push:
+    branches: [ devel ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    # If we set the default shell here, it catches the activated conda
+    # and we don't need to keep calling it.
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+      # setup cache for conda files
+      - name: Add tag name to file and commit
+        run: |
+          mkdir -p distrib
+          echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
+          git remote set-url origin ${{ secrets.ssh }}
+          git add .
+          git commit -m "Auto updating tag"
+          git push origin main%
