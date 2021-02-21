@@ -9,7 +9,7 @@ on:
 
 jobs:
   dependencies:
-    name: Get conda build
+    name: Make conda environment file
     runs-on: ubuntu-latest
     # If we set the default shell here, it catches the activated conda
     # and we don't need to keep calling it.
@@ -53,6 +53,22 @@ jobs:
           git add .
           git commit -m "Auto-updating dependency files"
           git push
+  build:
+    name: Build conda package
+    runs-on: ubuntu-latest
+    # If we set the default shell here, it catches the activated conda
+    # and we don't need to keep calling it.
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+      - name: Set miniconda up
+        uses: conda-incubator/setup-miniconda@v2.0.1
+        with:
+          auto-update-conda: true
+          python-version: 3.6
       - name: Install conda build tools
         run: |
           conda install conda-build anaconda
