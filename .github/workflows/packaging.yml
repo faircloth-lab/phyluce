@@ -43,8 +43,8 @@ jobs:
           mkdir -p distrib
           conda env export | grep -v "^channels: " | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
           echo "# `date`" > distrib/phyluce-py36-${RUNNER_OS}-conda.yml
-          echo "channels:" > distrib/phyluce-py36-${RUNNER_OS}-conda.yml
-          echo "  - faircloth-lab" > > distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          echo "channels:" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          echo "  - faircloth-lab/label/phyluce" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
           cat temp-environment.yml >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
           rm temp-environment.yml
           cat "  - phyluce=2.0" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
@@ -53,9 +53,10 @@ jobs:
           git add .
           git commit -m "Auto-updating dependency files"
           git push
-      - name: publish-to-conda
-        uses: fcakyon/conda-publish-action@v1.3
-        with:
-          subdir: 'conda'
-          anacondatoken: ${{ secrets.ANACONDA_TOKEN }}
-          platforms: 'osx linux'
+      - name: Install conda build tools
+        run: |
+          conda install conda-build anaconda
+      - name: Build phyluce
+        run: |
+          cd conda
+          conda build phyluce --token ${{ secrets.ANACONDA_TOKEN }} --label phyluce
