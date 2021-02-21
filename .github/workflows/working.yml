@@ -33,4 +33,4 @@ jobs:
           fi
           echo "phyluce_outf=distrib/phyluce-py36-${{ runner.os }}-conda.yml" >> $GITHUB_ENV
           echo "phyluce_ver=$VERSION" >> $GITHUB_ENV
-          echo $GITHUB_ENV
+          echo ${{ env.phyluce_outf }}
