@@ -46,8 +46,9 @@ jobs:
             VERSION=$(echo ${GITHUB_REF#refs/tags/} | sed 's/^v//g')
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
             VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-          echo "phyluce_outf=distrib/phyluce-py36-${{ runner.os }}-conda.yml" >> $GITHUB_ENV
-          echo "phyluce_ver=$VERSION" >> $GITHUB_ENV
+          fi
+          echo "phyluce_outf=distrib/phyluce-py36-${{ runner.os }}-conda.yml"
+          echo "phyluce_ver=$VERSION"
       # echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
       - name: Add environment to file and commit
         run: |
