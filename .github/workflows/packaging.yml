@@ -53,7 +53,7 @@ jobs:
           git add .
           git commit -m "Auto-updating dependency files"
           git push
-  build:
+  build-package:
     name: Build conda package
     runs-on: ubuntu-latest
     # If we set the default shell here, it catches the activated conda
@@ -71,7 +71,7 @@ jobs:
           python-version: 3.6
       - name: Install conda build tools
         run: |
-          conda install conda-build anaconda
+          conda install conda-build anaconda-client
       - name: Build phyluce
         run: |
           cd conda
