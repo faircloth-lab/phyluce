@@ -3,8 +3,6 @@ name: Test docker
 on:
   push:
     branches: [ devel ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch: 
 
  jobs:
@@ -19,13 +17,6 @@ on:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
-      # we'll use the handy conda incubator miniconda package
-      - name: Set miniconda up
-        uses: conda-incubator/setup-miniconda@v2.0.1
-        with:
-          auto-update-conda: true
-          python-version: 3.6
-          environment-file: etc/phyluce-testing-environment.yml
       - name: Create environment variables for output		
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
