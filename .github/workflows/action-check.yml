@@ -1,9 +1,8 @@
 name: Testing
 on:
   push:
-    tags:
-      - '*'            # catch when we push any tag
-  # Allows you to run this workflow manually from the Actions tab
+    tags:        
+      - v2.*           # Push events to v2.0, v2.1, and v2.9 tags
   workflow_dispatch: 
 
  jobs:
