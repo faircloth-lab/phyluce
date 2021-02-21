@@ -1,6 +1,10 @@
 name: Testing
 on:
-  workflow_dispatch
+  push:
+    tags:
+      - '*'            # catch when we push any tag
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch: 
 
  jobs:
   test-job:
