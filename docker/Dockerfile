@@ -19,7 +19,6 @@ RUN apt-get update -q && \
         wget \
     && apt-get clean
 
-
 # download conda - code from https://github.com/ContinuumIO/docker-images/blob/master/miniconda3/debian/Dockerfile
 RUN wget --quiet -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     mkdir -p /opt && \
@@ -41,11 +40,6 @@ RUN /opt/conda/bin/conda config --add channels conda-forge
 
 # update conda
 RUN /opt/conda/bin/conda update conda
-
-# set conda REPOS
-RUN /opt/conda/bin/conda config --add channels defaults
-RUN /opt/conda/bin/conda config --add channels bioconda
-RUN /opt/conda/bin/conda config --add channels conda-forge
 
 # get gatk, setup, and cleanup
 RUN wget --quiet https://raw.githubusercontent.com/faircloth-lab/phyluce/devel/distrib/phyluce-py36-Linux-conda.yml && \
