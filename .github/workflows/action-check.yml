@@ -1,8 +1,7 @@
 name: Testing
 on:
-  push:
-    tags:        
-      - v2.*           # Push events to v2.0, v2.1, and v2.9 tags
+  release:
+    types: [created]
   workflow_dispatch: 
 
  jobs:
