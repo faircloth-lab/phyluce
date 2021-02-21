@@ -7,15 +7,8 @@ import subprocess
 
 static_version = "2.0"
 
-conf = "lib/python3.6/site-packages/phyluce-{}-py3.6.egg/config/phyluce.conf".format(
-    static_version
-)
-workflow = "lib/python3.6/site-packages/phyluce-{}-py3.6.egg/workflows".format(
-    static_version
-)
-
-__default_config__ = os.path.join(sys.prefix, conf)
-__default_workflow_dir__ = os.path.join(sys.prefix, workflow)
+__default_config__ = os.path.join(sys.prefix, "config/phyluce.conf")
+__default_workflow_dir__ = os.path.join(sys.prefix, "workflows")
 
 # get a dynamic version number, if possible.  if not running from git
 # should default to static version

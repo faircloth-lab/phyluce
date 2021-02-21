@@ -3,6 +3,7 @@ import os
 import glob
 import pathlib
 from setuptools import setup, find_packages
+from collections import defaultdict
 
 from phyluce import static_version
 
@@ -40,9 +41,32 @@ def package_files(directory):
     return paths
 
 
+t_files = []
+for dir in ["phyluce/tests/test-expected"]:
+    t_files.extend(package_files(dir))
+
+
+# the following function and call are used to grab the data files
+# that we need for workflows and tests
+def data_files(directory):
+    paths = defaultdict(list)
+    for (path, directories, filenames) in os.walk(directory):
+        # skip hidden files and dirs
+        filenames = [f for f in filenames if not f[0] == "."]
+        directories[:] = [d for d in directories if not d[0] == "."]
+        for filename in filenames:
+            # pdb.set_trace()
+            # paths.append([path,os.path.join(path, filename)])
+            paths[path].append(os.path.join(path, filename))
+    return paths
+
+
 d_files = []
-for dir in ["config", "workflows", "phyluce/tests/test-expected"]:
-    d_files.extend(package_files(dir))
+for dir in ["config", "workflows"]:
+    files = data_files(dir)
+    for k, v in files.items():
+        d_files.append((k, v))
+    # pdb.set_trace()
 
 setup(
     name="phyluce",  # Required
@@ -156,7 +180,8 @@ setup(
     #
     # If there are data files included in your packages that need to be
     # installed, specify them here.
-    package_data={"": d_files},
+    package_data={"": t_files},
+    data_files=d_files,
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # `pip` to create the appropriate form of executable for the target

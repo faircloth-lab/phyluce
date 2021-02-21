@@ -69,12 +69,9 @@ jobs:
           auto-update-conda: true
           python-version: 3.6
           environment-file: etc/phyluce-testing-environment.yml
-      - name: Get location of files and paths correct
+      - name: Install phyluce to get config, workflows, and paths correct
         run: |
-          python setup.py install
-      - name: Show some paths
-        run: |
-          python -c "import sys; print(sys.path)"
+          pip install .
       - name: Run pytest against phyluce
         run: |
           pytest -vv phyluce/
