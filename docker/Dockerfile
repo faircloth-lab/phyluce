@@ -1,19 +1,37 @@
-FROM centos:7
+FROM ubuntu:20.04
 MAINTAINER "Brant Faircloth" <brant _at_ faircloth-lab _dot_ org>
 ENV container docker
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
 # update yum
-RUN yum -y update
-RUN yum clean all
-RUN yum -y install bzip2 git ssh which
+RUN apt-get update -q && \
+    apt-get install -q -y \
+        bzip2 \
+        ca-certificates \
+        git \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1 \
+        mercurial \
+        subversion \
+        wget \
+    && apt-get clean
 
-# download conda
-RUN curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
-	&& bash /tmp/miniconda.sh -bfp /usr/local/ \
-	&& rm -rf /tmp/miniconda.sh
 
-RUN yum clean all
-RUN rm -rf /var/cache/yum
+# download conda - code from https://github.com/ContinuumIO/docker-images/blob/master/miniconda3/debian/Dockerfile
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
+    echo "${CONDA_MD5}  miniconda.sh" > miniconda.md5 && \
+    if ! md5sum --status -c miniconda.md5; then exit 1; fi && \
+    mkdir -p /opt && \
+    sh miniconda.sh -b -p /opt/conda && \
+    rm miniconda.sh miniconda.md5 && \
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    # echo "conda activate base" >> ~/.bashrc && \
+    find /opt/conda/ -follow -type f -name '*.a' -delete && \
+    find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
+    /opt/conda/bin/conda clean -afy
 
 # update conda
 RUN conda update conda
@@ -24,14 +42,9 @@ RUN conda config --add channels bioconda
 RUN conda config --add channels conda-forge
 
 # get set of dependencies for phyluce
-RUN conda install nomkl abyss=1.5.2 bcftools bedtools biopython bowtie bwa bx-python dendropy gatk=3.8=py36_0 gblocks jellyfish=2.2.3 lastz mafft muscle pandas picard pysam pytest pyvcf raxml samtools seqtk trimal trinity=2.1.1 velvet=1.2.10 spades=3.12.0
 RUN conda clean --all --yes
 
 # get gatk, setup, and cleanup
-RUN curl -sSL 'https://software.broadinstitute.org/gatk/download/auth?package=GATK-archive&version=3.8-1-0-gf15c1c3ef' -o /usr/local/GATK-archive-3.8-1.tar.bz2 \
-    && cd /usr/local \
-    && tar -xjf GATK-archive-3.8-1.tar.bz2 \
-    && gatk-register /usr/local/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef/GenomeAnalysisTK.jar \
-    && rm -rf /usr/local/GATK-archive-3.8-1.tar.bz2 \
-    && rm -rf /usr/local/GenomeAnalysisTK-3.8-1-0-gf15c1c3ef \
-    && rm -rf /usr/local/LICENSE.txt
+RUN wget --quiet https://raw.githubusercontent.com/faircloth-lab/phyluce/devel/distrib/phyluce-py36-Linux-conda.yml &&
+    conda env create -n phyluce --file phyluce-py36-Linux-conda.yml &&
+    echo "conda activate phyluce" >> ~/.bashrc
