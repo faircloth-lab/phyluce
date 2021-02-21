@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from phyluce import static_version
 
-import pdb
+# import pdb
 
 here = pathlib.Path(__file__).parent.resolve()
 
@@ -28,8 +28,10 @@ for d in [
     scrpt.extend([i for i in glob.glob(os.path.join("bin", d, "*"))])
 
 
+"""
 # the following function and call are used to grab the data files
 # that we need for workflows and tests
+
 def package_files(directory):
     paths = []
     for (path, directories, filenames) in os.walk(directory):
@@ -44,6 +46,7 @@ def package_files(directory):
 t_files = []
 for dir in ["phyluce/tests/test-expected"]:
     t_files.extend(package_files(dir))
+"""
 
 
 # the following function and call are used to grab the data files
@@ -62,11 +65,12 @@ def data_files(directory):
 
 
 d_files = []
-for dir in ["config", "workflows"]:
+for dir in ["config", "workflows", "phyluce/tests/test-expected"]:
     files = data_files(dir)
     for k, v in files.items():
+        if k.startswith("config") or k.startswith("workflows"):
+            k = os.path.join("phyluce", k)
         d_files.append((k, v))
-    # pdb.set_trace()
 
 setup(
     name="phyluce",  # Required
@@ -180,7 +184,7 @@ setup(
     #
     # If there are data files included in your packages that need to be
     # installed, specify them here.
-    package_data={"": t_files},
+    # package_data={"": t_files},
     data_files=d_files,
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
