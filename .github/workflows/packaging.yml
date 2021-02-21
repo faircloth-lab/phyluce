@@ -9,6 +9,7 @@ on:
 
 jobs:
   dependencies:
+    name: Get conda build
     runs-on: ubuntu-latest
     # If we set the default shell here, it catches the activated conda
     # and we don't need to keep calling it.
@@ -19,11 +20,31 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
       # setup cache for conda files
-      - name: Add tag name to file and commit
+      - name: Cache conda packages
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if 
+          # etc/example-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('etc/phyluce-testing-environment.yml') }}
+      # we'll use the handy conda incubator miniconda package
+      - name: Set miniconda up
+        uses: conda-incubator/setup-miniconda@v2.0.1
+        with:
+          auto-update-conda: true
+          python-version: 3.6
+          environment-file: etc/phyluce-testing-environment.yml
+      # echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
+      - name: Add environment to file and commit
         run: |
           mkdir -p distrib
-          echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
-          date > generated.txt
+          conda env create -f environment.yml
+          echo "# `date`" > distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          cat environment.yml >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          rm environment.yml
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
