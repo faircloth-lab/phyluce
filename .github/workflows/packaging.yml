@@ -41,10 +41,10 @@ jobs:
       - name: Add environment to file and commit
         run: |
           mkdir -p distrib
-          conda env create -f environment.yml
+          conda env export | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
           echo "# `date`" > distrib/phyluce-py36-${RUNNER_OS}-conda.yml
-          cat environment.yml >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
-          rm environment.yml
+          cat temp-environment.yml >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          rm temp-environment.yml
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
