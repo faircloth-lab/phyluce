@@ -47,7 +47,7 @@ jobs:
           echo "  - faircloth-lab/label/phyluce" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
           cat temp-environment.yml >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
           rm temp-environment.yml
-          cat "  - phyluce=2.0" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          echo "  - phyluce=2.0" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
