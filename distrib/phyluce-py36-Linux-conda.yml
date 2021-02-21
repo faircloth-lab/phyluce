@@ -1,4 +1,6 @@
-# Sun Feb 21 04:57:49 UTC 2021
+# Sun Feb 21 05:46:17 UTC 2021
+channels:
+  - faircloth-lab/label/phyluce
 channels:
   - conda-forge
   - bioconda
@@ -173,3 +175,4 @@ dependencies:
   - zipp=3.4.0=py_0
   - zlib=1.2.11=h516909a_1010
   - zstd=1.4.8=ha95c52a_1
+  - phyluce=2.0
