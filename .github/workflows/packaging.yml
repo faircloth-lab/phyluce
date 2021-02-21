@@ -38,16 +38,19 @@ jobs:
           python-version: 3.6
           environment-file: etc/phyluce-testing-environment.yml
       # echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
+      - name: Create environment variable for output path
+        run: |
+          echo "phyluce_outf=distrib/phyluce-py36-${{ RUNNER_OS }}-conda.yml" >> $GITHUB_ENV
       - name: Add environment to file and commit
         run: |
           mkdir -p distrib
-          conda env export | grep -v "^channels: " | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
-          echo "# `date`" > distrib/phyluce-py36-${RUNNER_OS}-conda.yml
-          echo "channels:" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
-          echo "  - faircloth-lab/label/phyluce" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
-          cat temp-environment.yml >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          conda env export | grep -v "^channels:" | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
+          echo "# `date`" > ${{ env.phyluce_outf }}
+          echo "channels:" >> ${{ env.phyluce_outf }}
+          echo "  - faircloth-lab/label/phyluce" >> ${{ env.phyluce_outf }}
+          cat temp-environment.yml >> ${{ env.phyluce_outf }}
           rm temp-environment.yml
-          echo "  - phyluce=2.0" >> distrib/phyluce-py36-${RUNNER_OS}-conda.yml
+          echo "  - phyluce=2.0" >> ${{ env.phyluce_outf }}
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
