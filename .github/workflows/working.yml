@@ -31,6 +31,5 @@ jobs:
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
             VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
           fi
-          echo "phyluce_outf=distrib/phyluce-py36-${{ runner.os }}-conda.yml" >> $GITHUB_ENV
-          echo "phyluce_ver=$VERSION" >> $GITHUB_ENV
-          echo ${{ env.phyluce_outf }}
+          echo "phyluce_outf=distrib/phyluce-py36-${{ runner.os }}-conda.yml"
+          echo "phyluce_ver=$VERSION"
