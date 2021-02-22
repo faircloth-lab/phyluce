@@ -22,9 +22,11 @@ Contributed to the code
 =======================
 
 * `Nick Crawford <http://www.ngcrawford.com/>`_ (ngcrawford **at** gmail **dot** com)
+* `Jonathan Chang <https://jonathanchang.org/research/>`_ (me **at** jonathanchang **dot** org)
 * `Mike Harvey <http://www.mharvey.org/>`_ (mharve9 **at** lsu **dot** edu)
-* `Carl Oliveros <http://naturalhistory.ku.edu/ornithology/people/carl-oliveros>`_ (carl **at** ku **dot** edu)
 * `Tobias Hofmann <http://www.antonelli-lab.net/people.php>`_ (tobiashofmann **at** gmx **dot** net)
+* `Carl Oliveros <http://naturalhistory.ku.edu/ornithology/people/carl-oliveros>`_ (carl **at** ku **dot** edu)
+
 
 Developed the UCE approach
 ==========================
