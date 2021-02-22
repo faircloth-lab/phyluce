@@ -61,3 +61,5 @@
 .. _unittests: http://en.wikipedia.org/wiki/Unit_testing
 .. _velvet: http://www.ebi.ac.uk/~zerbino/velvet/
 .. _virtualenv: http://www.virtualenv.org/
+.. _docker: https://www.docker.com
+.. _singularity: https://sylabs.io
