@@ -44,31 +44,13 @@ the run according to your cluster design, job scheduling system, etc.  Clusters
 are simply too heterogenous to do a good job at this part of the analytical
 workflow.
 
-Short-term goals (v1.4.x+)
----------------------------
-
-We are currently working on a new release (this documentation) to:
-
-* ease the burden of installing dependencies using conda_
-* standardize parameters input to various analyses
-* improve logging of what is going on
-* improve and standardize the documentation
-
-
 Longer-term goals (v2.0.0+ and beyond)
 ---------------------------------------
 
 We are also working towards adding:
 
 * simplify the `CLI`_ (command-line interface) of phyluce_
-* improve test coverage of the code by `unittests`_
-* SNP-calling pipelines (sensu [BTS2013]_)
-* sequence capture bait design
-* identification of UCE loci
-
-Much of this code is already written and in use by several of the
-:ref:`Contributors`. As we test and improve these functions, we will add them
-to the code in the future.
+* add additioanl ``workflows`` for multi-step analyses
 
 Who wrote this?
 ---------------
@@ -85,11 +67,5 @@ How do I report bugs?
 
 To report a bug, please post an issue to
 https://github.com/faircloth-lab/phyluce/issues.  Please also ensure that you
-are using one of the "supported" platforms:
-
-- Apple OSX 10.9.x
-- CentOS 6.x
-- Ubuntu 14.04 LTS
-
-and that you have installed phyluce_ and dependencies using conda_ as described
-in the :ref:`Installation` section.
+are using one of the "supported" operating systems and a supported installation
+method.  Please see the :ref:`Installation` section for more details.
