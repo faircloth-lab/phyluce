@@ -55,8 +55,8 @@ Guide
 
    purpose
    installation
-   daily-use/main
-   tutorial/main
+   daily-use/index
+   tutorial/index
 
 
 Project info
