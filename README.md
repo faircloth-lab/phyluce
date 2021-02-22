@@ -1,3 +1,5 @@
+[![Tests](https://github.com/faircloth-lab/phyluce/actions/workflows/main.yml/badge.svg)](https://github.com/faircloth-lab/phyluce/actions/workflows/main.yml)
+
 # phyluce: software for UCE (and general) phylogenomics
 
 [phyluce][1] (phy-**loo**-chee) is a software package that was initially developed for analyzing data collected from ultraconserved elements in organismal genomes.
