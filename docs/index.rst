@@ -71,7 +71,6 @@ Project info
 
    citing
    license
-   changelog
    attributions
    funding
    ack
