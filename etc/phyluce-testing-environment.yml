@@ -32,3 +32,4 @@ dependencies:
   - trimal=1.4.1
   - velvet=1.2.10
   - wget=1.20.1
+  - illumiprocessor=2.10
