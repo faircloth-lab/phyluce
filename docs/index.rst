@@ -51,12 +51,13 @@ Guide
 =====
 
 .. toctree::
-   :maxdepth: 2
+   :caption: Contents:
+   :maxdepth: 3
 
    purpose
    installation
    daily-use/index
-   tutorial/index
+   tutorials/index
 
 
 Project info
