@@ -8,7 +8,7 @@
 phyluce:  software for UCE (and general) phylogenomics
 ======================================================
 
-Release v\ |version|. (:ref:`Changelog`)
+Release v\ |version|
 
 :Author: Brant C. Faircloth
 :Date: |date|
