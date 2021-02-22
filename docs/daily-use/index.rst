@@ -1,7 +1,7 @@
 .. include:: ../global.rst
 .. |date| date:: %d %B %Y %H:%M %Z (%z)
 
-Phyluce in daily use
+Phyluce in Daily Use
 ====================
 
 .. toctree::
