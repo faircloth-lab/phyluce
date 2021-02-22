@@ -35,17 +35,16 @@ Contributions
 --------------
 
 phyluce_ is open-source (see :ref:`License`) and we welcome contributions from
-anyone who is interested.  Please make a pull request on github_.  The issue
-tracker for phyluce_ is also `available on github <https://github.com/faircloth-
-lab/phyluce/issues>`_.
+anyone who is interested.  Please make a pull request on github_.
 
 Issues
 ------
-
-If you have an issue, please ensure that you are experiencing this issue on a
+The issue tracker for phyluce_ is `available on github <https://github.com/faircloth-lab/phyluce/issues>`_.
+If you have an issue, please ensure that you are experiencing this issue on a 
 supported OS (see :ref:`Installation`) using the conda_ installation of
-phyluce_.  If possible, please submit a test case demonstrating the issue and
-indicate which platform, git checkout, and phyluce version you are using.
+phyluce_. When submitting issues, please include a test case demonstrating 
+the issue and indicate which operating system and phyluce version
+you are using.
 
 
 Guide
