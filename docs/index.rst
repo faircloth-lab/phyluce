@@ -19,13 +19,13 @@ for analyzing data collected from ultraconserved elements in organismal genomes
 (see :ref:`References` and http://ultraconserved.org for additional
 information).
 
-The package now includes a number of tools spanning:
+The package includes a number of tools spanning:
 
 * the assembly of raw read data to contigs
 * the separation of UCE loci from assembled contigs
 * parallel alignment generation, alignment trimming, and alignment data summary
   methods in preparation for analysis
-* alignment and SNP calling using UCE or other types of raw-read data.
+* SNP calling and contig correction using raw-read data
 
 As it stands, the phyluce_ package is useful for analyzing both data collected
 from UCE loci and also data collection from other types of loci for phylogenomic
@@ -55,13 +55,9 @@ Guide
 
    purpose
    installation
-   quality-control
-   assembly
-   uce-processing
-   tutorial-one
-   tutorial-two
-   tutorial-three
-   tutorial-four
+   daily-use/main
+   tutorial/main
+
 
 Project info
 ============
