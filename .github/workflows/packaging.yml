@@ -1,11 +1,11 @@
 name: Packaging
 
 on:
-  push:
-    tags:
-      - '*'            # catch when we push any tag
+  release:
+    types: [published]
+    
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   dependencies:
@@ -47,7 +47,7 @@ jobs:
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
             VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
           fi
-          echo "phyluce_outf=distrib/phyluce-py36-${{ runner.os }}-conda.yml"
+          echo "phyluce_outf=distrib/phyluce-${VERSION}-py36-${{ runner.os }}-conda.yml"
           echo "phyluce_ver=$VERSION"
       # echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
       - name: Add environment to file and commit
