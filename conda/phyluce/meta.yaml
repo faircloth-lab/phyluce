@@ -1,9 +1,9 @@
 {% set name = "phyluce" %}
-{% set version = "2.0" %}
+{% set data = load_setup_py_data() %}
 
 package:
   name: '{{name}}'
-  version: '{{version}}'
+  version: '{{ data.get('version') }}'
 
 source:
   path: ../..

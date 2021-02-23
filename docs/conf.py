@@ -13,6 +13,7 @@
 
 import sys
 import os
+from phyluce import __version__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -49,9 +50,9 @@ copyright = u"2012-2021, Brant C. Faircloth"
 # built documents.
 #
 # The short X.Y version.
-version = "1.7"
+version = __version__
 # The full version, including alpha/beta/rc tags.
-release = "1.7.0"
+release = version
 
 # Add fix for unicode characters failing in RTD PDF build.  From
 # https://github.com/rtfd/readthedocs.org/issues/416
