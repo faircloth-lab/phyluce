@@ -1,4 +1,5 @@
 channels:
+  - faircloth-lab/label/phyluce
   - conda-forge
   - bioconda
   - defaults
