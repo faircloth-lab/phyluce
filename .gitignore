@@ -14,5 +14,6 @@ tmp2
 myhtmldocs
 test-out
 docs/build
+docs/_build
 build
 test-observed
