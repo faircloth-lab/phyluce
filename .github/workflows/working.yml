@@ -32,6 +32,6 @@ jobs:
           #  VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
           #fi
           echo $GITHUB_REF
-          VERSION=1.7.0rc1
+          VERSION=$(python setup.py --version)
           echo "phyluce_outf=distrib/phyluce-${VERSION}-py36-${{ runner.os }}-conda.yml"
           echo "phyluce_ver=$VERSION"
