@@ -5,7 +5,7 @@ import pathlib
 from setuptools import setup, find_packages
 from collections import defaultdict
 
-from phyluce import static_version
+from phyluce import __version__
 
 # import pdb
 
@@ -80,7 +80,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version=static_version,  # Required
+    version=__version__,  # Required
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
