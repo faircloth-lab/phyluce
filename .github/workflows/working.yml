@@ -9,29 +9,56 @@ on:
   workflow_dispatch:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  dependencies:
+    name: Make conda environment file
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    # If we set the default shell here, it catches the activated conda
+    # and we don't need to keep calling it.
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Create environment variables for output
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+      # setup cache for conda files
+      - name: Cache conda packages
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if 
+          # etc/example-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{hashFiles('etc/phyluce-testing-environment.yml') }}
+      # we'll use the handy conda incubator miniconda package
+      - name: Set miniconda up
+        uses: conda-incubator/setup-miniconda@v2.0.1
+        with:
+          auto-update-conda: true
+          python-version: 3.6
+          environment-file: etc/phyluce-testing-environment.yml
+      - name: Create environment variables for output		
         run: |
-          #if [[ $GITHUB_REF == refs/tags/* ]]; then
-          #  VERSION=$(echo ${GITHUB_REF#refs/tags/} | sed 's/^v//g')
-          #elif [[ $GITHUB_REF == refs/heads/* ]]; then
-          #  VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-          #fi
-          echo $GITHUB_REF
           VERSION=$(python setup.py --version)
           echo "phyluce_outf=distrib/phyluce-${VERSION}-py36-${{ runner.os }}-conda.yml"
           echo "phyluce_ver=$VERSION"
+      # echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
+      - name: Add environment to file and commit
+        run: |
+          mkdir -p distrib
+          conda env export | grep -v "^channels:" | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
+          echo "# `date`" > ${{ env.phyluce_outf }}
+          echo "channels:" >> ${{ env.phyluce_outf }}
+          cat temp-environment.yml >> ${{ env.phyluce_outf }}
+          rm temp-environment.yml
+          echo "  - phyluce=${{ env.phyluce_ver }}" >> ${{ env.phyluce_outf }}
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git pull
+          git add .
+          git commit -m "Auto-updating dependency files"
+          git push
