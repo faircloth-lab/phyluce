@@ -5,12 +5,11 @@ import os
 import sys
 import subprocess
 
-static_version = "2.0"
-
+__version__ = "1.7.0"
 __default_config__ = os.path.join(sys.prefix, "phyluce/config/phyluce.conf")
 __default_workflow_dir__ = os.path.join(sys.prefix, "phyluce/workflows")
 
-# get a dynamic version number, if possible.  if not running from git
+# get a commit value, if possible.  if not running from git
 # should default to static version
 try:
     possible_git_dir = os.path.dirname(
@@ -21,9 +20,11 @@ try:
     proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
-    stdout, stderr = proc.communicate()
-    __version__ = "{}_r_{}".format(
-        static_version, stdout.strip().decode("utf-8")
-    )
-except:
-    __version__ = static_version
+    if proc.returncode == 0:
+        stdout, stderr = proc.communicate()
+        __git_commit__ = "{}".format(stdout.strip().decode("utf-8"))
+    else:
+        __git_commit__ = "None"
+
+except FileNotFoundError:
+    __git_commit__ = "None"

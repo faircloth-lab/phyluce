@@ -15,7 +15,7 @@ import os
 import sys
 import logging
 
-from phyluce import __version__
+from phyluce import __version__, __git_commit__
 
 # import pdb
 
@@ -81,6 +81,7 @@ def setup_logging(args):
     text = " Starting {} ".format(my_name)
     log.info(text.center(65, "="))
     log.info("Version: {}".format(str(__version__)))
+    log.info("Commit: {}".format(str(__git_commit__)))
     for arg, value in sorted(vars(args).items()):
         log.info("Argument --{}: {}".format(arg, value))
     return log, my_name
