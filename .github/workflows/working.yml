@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Test Workflow
 on:
   release:
     types: [published]
@@ -26,10 +26,12 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Create environment variables for output
         run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/tags/} | sed 's/^v//g')
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-          fi
+          #if [[ $GITHUB_REF == refs/tags/* ]]; then
+          #  VERSION=$(echo ${GITHUB_REF#refs/tags/} | sed 's/^v//g')
+          #elif [[ $GITHUB_REF == refs/heads/* ]]; then
+          #  VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+          #fi
+          echo $GITHUB_REF
+          VERSION=1.7.0rc1
           echo "phyluce_outf=distrib/phyluce-${VERSION}-py36-${{ runner.os }}-conda.yml"
           echo "phyluce_ver=$VERSION"
