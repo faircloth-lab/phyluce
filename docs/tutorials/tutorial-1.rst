@@ -6,10 +6,7 @@
 Tutorial I: UCE Phylogenomics
 *****************************
 
-In the following example, we are going to process raw read data from UCE
-enrichments performed against several divergent taxa so that you can get a feel
-for how a typical analysis goes.  I'm also going to use several tricks that I
-did not cover in the :ref:`UCE Processing` section.
+In the following example, we are going to process raw read data from UCE enrichments performed against several divergent taxa so that you can get a feel for how a typical analysis goes.  For more general analysis notes, see the :ref:`UCE Processing` chapter.  That said, this is a good place to start.
 
 The taxa we are working with will be:
 
@@ -21,9 +18,7 @@ The taxa we are working with will be:
 Download the data
 =================
 
-You can download the data from figshare
-(http://dx.doi.org/10.6084/m9.figshare.1284521).  If you want to use the command
-line, you can use something like:
+You can download the data from figshare (http://dx.doi.org/10.6084/m9.figshare.1284521).  If you want to use the command line, you can use something like:
 
 .. code-block:: bash
 
@@ -34,7 +29,7 @@ line, you can use something like:
     cd uce-tutorial
 
     # download the data into a file names fastq.zip
-    wget -O fastq.zip https://ndownloader.figshare.com/articles/1284521/versions/1
+    wget -O fastq.zip https://ndownloader.figshare.com/articles/1284521/versions/2
 
     # make a directory to hold the data
     mkdir raw-fastq
@@ -54,17 +49,16 @@ line, you can use something like:
     # you should see 6 files in this directory now
     ls -l
 
-    -rw-r--r--. 1 bcf data 152M Apr 11 14:03 Alligator_mississippiensis_GGAGCTATGG_L001_R1_001.fastq.gz
-    -rw-r--r--. 1 bcf data 147M Apr 11 14:03 Alligator_mississippiensis_GGAGCTATGG_L001_R2_001.fastq.gz
-    -rw-r--r--. 1 bcf data 173M Apr 11 14:03 Anolis_carolinensis_GGCGAAGGTT_L001_R1_001.fastq.gz
-    -rw-r--r--. 1 bcf data 174M Apr 11 14:03 Anolis_carolinensis_GGCGAAGGTT_L001_R2_001.fastq.gz
-    -rw-r--r--. 1 bcf data  67M Apr 11 14:03 Gallus_gallus_TTCTCCTTCA_L001_R1_001.fastq.gz
-    -rw-r--r--. 1 bcf data  73M Apr 11 14:03 Gallus_gallus_TTCTCCTTCA_L001_R2_001.fastq.gz
-    -rw-r--r--. 1 bcf data 122M Apr 11 14:03 Mus_musculus_CTACAACGGC_L001_R1_001.fastq.gz
-    -rw-r--r--. 1 bcf data 121M Apr 11 14:03 Mus_musculus_CTACAACGGC_L001_R2_001.fastq.gz
+    -rw-r--r--. 1 bcf users 4.4M Feb 22 14:14 Alligator_mississippiensis_GGAGCTATGG_L001_R1_001.fastq.gz
+    -rw-r--r--. 1 bcf users 4.3M Feb 22 14:14 Alligator_mississippiensis_GGAGCTATGG_L001_R2_001.fastq.gz
+    -rw-r--r--. 1 bcf users 4.9M Feb 22 14:14 Anolis_carolinensis_GGCGAAGGTT_L001_R1_001.fastq.gz
+    -rw-r--r--. 1 bcf users 4.9M Feb 22 14:15 Anolis_carolinensis_GGCGAAGGTT_L001_R2_001.fastq.gz
+    -rw-r--r--. 1 bcf users 7.6M Feb 22 14:15 Gallus_gallus_TTCTCCTTCA_L001_R1_001.fastq.gz
+    -rw-r--r--. 1 bcf users 8.4M Feb 22 14:15 Gallus_gallus_TTCTCCTTCA_L001_R2_001.fastq.gz
+    -rw-r--r--. 1 bcf users 4.9M Feb 22 14:16 Mus_musculus_CTACAACGGC_L001_R1_001.fastq.gz
+    -rw-r--r--. 1 bcf users 4.9M Feb 22 14:16 Mus_musculus_CTACAACGGC_L001_R2_001.fastq.gz
 
-Alternatively, if you think of the filesystem as a tree-like structure, the
-directory in which we are working (`uce-tutorial`) would look like:
+Alternatively, if you think of the filesystem as a tree-like structure, the directory in which we are working (`uce-tutorial`) would look like:
 
 .. code-block:: bash
 
@@ -80,20 +74,14 @@ directory in which we are working (`uce-tutorial`) would look like:
         └── Mus_musculus_CTACAACGGC_L001_R2_001.fastq.gz
 
 
-If you do not want to use the command line, you can download the data using the
-figshare interface or by clicking:
+If you do not want to use the command line, you can download the data using the figshare interface or by clicking:
 
 http://downloads.figshare.com/article/public/1284521
 
 Count the read data
 ===================
 
-Usually, we want a count of the actual number of reads in a given sequence file
-for a given species.  As mentioned in the :ref:`UCE Processing` section, we can
-do this several ways.  We'll use tools from unix, because they are fast. The
-next line of code will count the lines in each R1 file (which should be equal to
-the reads in the R2 file) and divide that number by 4 to get the number of
-sequence reads.
+Usually, we want a count of the actual number of reads in a given sequence file for a given species. We can do this several ways, but here, we'll use tools from  unix, because they are fast. The next line of code will count the lines in each R1 file (which should be equal to the reads in the R2 file) and divide that number by 4 to get the number of sequence reads.
 
 .. code-block:: bash
 
@@ -104,30 +92,22 @@ You should see:
 .. code-block:: bash
 
     Alligator_mississippiensis_GGAGCTATGG_L001_R1_001.fastq.gz
-    1750000
+    50000
     Anolis_carolinensis_GGCGAAGGTT_L001_R1_001.fastq.gz
-    1874362
+    50000
     Gallus_gallus_TTCTCCTTCA_L001_R1_001.fastq.gz
-    376559
+    50000
     Mus_musculus_CTACAACGGC_L001_R1_001.fastq.gz
-    1298196
+    50000
+
+Notice that all the read counts are equal - that is because these 50,000 reads in each R1 and R2 file were subsampled, randomly, from a file of many more reads.
 
 Clean the read data
 ===================
 
-The data you just downloaded are actual, raw, untrimmed fastq data.  This means
-they contain adapter contamination and low quality bases.  We need to remove
-these - which you can do several ways.  We'll use another program that I
-wrote (illumiprocessor_) because it allows us to trim many different indexed
-adapters from individual-specific fastq files - something that is a pain to do
-by hand.  That said, you can certainly trim your reads however you would like.
-See the illumiprocessor_ website for instructions on installing the program.
-
-To use this program, we will create a configuration file that we will use to
-inform the program about which adapters are in which READ1 and READ2 files.  The
-data we are trimming, here, are from TruSeq v3 libraries, but the indexes are 10
-nucleotides long.  We will set up the trimming file with these parameters, but
-please see the illumiprocessor_ documentation for other options.
+The data you just downloaded are actual, raw, untrimmed fastq data.  This means they contain adapter contamination and low quality bases.  We need to remove these - which you can do several ways.  We'll use another program that I wrote (illumiprocessor_) because it allows us to trim many different indexed adapters from individual-specific fastq files - something that is a pain to do by hand.  That said, you can certainly trim your reads however you would like. See the illumiprocessor_ website for instructions on installing the program.
+ 
+To use this program, we will create a configuration file that we will use to inform the program about which adapters are in which READ1 and READ2 files.  The data we are trimming, here, are from TruSeq v3 libraries, but the indexes are 10 nucleotides long.  We will set up the trimming file with these parameters, but please see the illumiprocessor_ documentation for other options.
 
 .. code-block:: bash
 
@@ -176,9 +156,7 @@ structure looks like:
         ├── Mus_musculus_CTACAACGGC_L001_R1_001.fastq.gz
         └── Mus_musculus_CTACAACGGC_L001_R2_001.fastq.gz
 
-Now I run illumiprocessor_ against the data.  Note that I am using **4 physical
-CPU cores** to do this work.  You need to use the number of physical cores
-available on your machine.
+Now I run illumiprocessor_ against the data.  Note that I am using **4 physical CPU cores** to do this work.  You need to use the number of physical cores available on your machine, although there is not sense in using more cores than you have taxa (in this case).
 
 .. code-block:: bash
 
@@ -197,31 +175,26 @@ The output should look like the following:
 
 .. code-block:: bash
 
-    2015-04-11 14:23:57,912 - illumiprocessor - INFO - ==================== Starting illumiprocessor ===================
-    2015-04-11 14:23:57,913 - illumiprocessor - INFO - Version: 2.0.6
-    2015-04-11 14:23:57,913 - illumiprocessor - INFO - Argument --config: illumiprocessor.conf
-    2015-04-11 14:23:57,913 - illumiprocessor - INFO - Argument --cores: 4
-    2015-04-11 14:23:57,913 - illumiprocessor - INFO - Argument --input: /scratch/bfaircloth-uce-tutorial/raw-fastq
-    2015-04-11 14:23:57,913 - illumiprocessor - INFO - Argument --log_path: None
-    2015-04-11 14:23:57,913 - illumiprocessor - INFO - Argument --min_len: 40
-    2015-04-11 14:23:57,914 - illumiprocessor - INFO - Argument --no_merge: False
-    2015-04-11 14:23:57,914 - illumiprocessor - INFO - Argument --output: /scratch/bfaircloth-uce-tutorial/clean-fastq
-    2015-04-11 14:23:57,914 - illumiprocessor - INFO - Argument --phred: phred33
-    2015-04-11 14:23:57,914 - illumiprocessor - INFO - Argument --r1_pattern: None
-    2015-04-11 14:23:57,914 - illumiprocessor - INFO - Argument --r2_pattern: None
-    2015-04-11 14:23:57,914 - illumiprocessor - INFO - Argument --se: False
-    2015-04-11 14:23:57,914 - illumiprocessor - INFO - Argument --trimmomatic: /home/bcf/anaconda/jar/trimmomatic.jar
-    2015-04-11 14:23:57,915 - illumiprocessor - INFO - Argument --verbosity: INFO
-    2015-04-11 14:23:57,942 - illumiprocessor - INFO - Trimming samples with Trimmomatic
+    2021-02-22 14:59:26,488 - illumiprocessor - INFO - ==================== Starting illumiprocessor ===================
+    2021-02-22 14:59:26,489 - illumiprocessor - INFO - Version: 2.0.9
+    2021-02-22 14:59:26,489 - illumiprocessor - INFO - Argument --config: illumiprocessor.conf
+    2021-02-22 14:59:26,489 - illumiprocessor - INFO - Argument --cores: 4
+    2021-02-22 14:59:26,489 - illumiprocessor - INFO - Argument --input: /scratch/bfaircloth/uce-tutorial/raw-fastq
+    2021-02-22 14:59:26,490 - illumiprocessor - INFO - Argument --log_path: None
+    2021-02-22 14:59:26,490 - illumiprocessor - INFO - Argument --min_len: 40
+    2021-02-22 14:59:26,490 - illumiprocessor - INFO - Argument --no_merge: False
+    2021-02-22 14:59:26,490 - illumiprocessor - INFO - Argument --output: /scratch/bfaircloth/uce-tutorial/clean-fastq
+    2021-02-22 14:59:26,490 - illumiprocessor - INFO - Argument --phred: phred33
+    2021-02-22 14:59:26,491 - illumiprocessor - INFO - Argument --r1_pattern: None
+    2021-02-22 14:59:26,491 - illumiprocessor - INFO - Argument --r2_pattern: None
+    2021-02-22 14:59:26,491 - illumiprocessor - INFO - Argument --se: False
+    2021-02-22 14:59:26,491 - illumiprocessor - INFO - Argument --trimmomatic: /home/bcf/conda/envs/phyluce/bin/trimmomatic
+    2021-02-22 14:59:26,491 - illumiprocessor - INFO - Argument --verbosity: INFO
+    2021-02-22 14:59:26,904 - illumiprocessor - INFO - Trimming samples with Trimmomatic
     Running....
-    2015-04-11 14:25:17,714 - illumiprocessor - INFO - =================== Completed illumiprocessor ===================
+    2021-02-22 14:59:36,754 - illumiprocessor - INFO - =================== Completed illumiprocessor ===================
 
-Notice that the program has created a `log` file showing what it did, and it has
-also created a new directory holding the clean data that has the name `clean-
-fastq` (what you told it to name the directory). Within that new directory,
-there are taxon-specific folder for the cleaned reads. More specifically, your
-directory structure should look similar to the following (I've collapsed the
-list of raw-reads):
+Notice that the program has created a ``log`` file showing what it did, and it has also created a new directory holding the clean data that has the name ``clean-fastq`` (what you told it to name the directory). Within that new directory, there are taxon-specific folder for the cleaned reads. More specifically, your directory structure should look similar to the following (I've collapsed the list of raw-reads):
 
 .. code-block:: bash
 
@@ -265,8 +238,7 @@ Within each organism specific directory, there are more files and folders:
     ├── illumiprocessor.log
     └── raw-fastq
 
-And, within each of those directories nested within the species-specific
-directory, there are additional files or links to files:
+And, within each of those directories nested within the species-specific directory, there are additional files or links to files:
 
 .. code-block:: bash
 
@@ -292,26 +264,14 @@ directory, there are additional files or links to files:
 
 I have collapsed the listing to show only the first taxon.
 
-The `->` in the `raw-reads` directory above means there are symlinks_ to the
-files. I have removed the file paths and replaced them with `<PATH>` so that the
-figure will fit on a page.
+The `->` in the `raw-reads` directory above means there are symlinks_ to the files. I have removed the file paths and replaced them with `<PATH>` so that the figure will fit on a page.
 
-The really important information is in the `split-adapter-quality-trimmed`
-directory - which now holds our reads that have had adapter-contamination and
-low-quality bases removed. Within this `split-adapter-quality-trimmed`
-directory,  the `READ1` and `READ2` files hold reads that remain in a pair (the
-reads are in the same consecutive order in each file).  The `READ-singleton`
-file holds READ1 reads **OR** READ2 reads that lost their "mate" or "paired-
-read" because of trimming or removal.
+The really important information is in the `split-adapter-quality-trimmed` directory - which now holds our reads that have had adapter-contamination and low-quality bases removed. Within this `split-adapter-quality-trimmed` directory,  the `READ1` and `READ2` files hold reads that remain in a pair (the reads are in the same consecutive order in each file).  The `READ-singleton` file holds READ1 reads **OR** READ2 reads that lost their "mate" or "paired-read" because of trimming or removal.
 
 Quality control
 ---------------
 
-You might want to get some idea of what effect the trimming has on read counts
-and overall read lengths. There are certainly other (better) tools out there to
-do this (like FastQC_), but you can get a reasonable idea of how good your reads
-are by running the following, which will output a CSV listing of read stats by
-sample:
+You might want to get some idea of what effect the trimming has on read counts and overall read lengths. There are certainly other (better) tools out there to do this (like FastQC_), but you can get a reasonable idea of how good your reads are by running the following, which will output a CSV listing of read stats by sample:
 
 .. code-block:: bash
 
@@ -329,11 +289,10 @@ The output you see should look like this:
 
 .. code-block:: bash
 
-    # sample,reads,total bp,mean length, 95 CI length,min,max,median
-    All files in dir with alligator_mississippiensis-READ1.fastq.gz,3279362,294890805,89.9232243955,0.01003996813,40,100,100.0
-    All files in dir with anolis_carolinensis-READ2.fastq.gz,3456457,314839345,91.0873026917,0.00799863728974,40,100,100.0
-    All files in dir with gallus_gallus-READ2.fastq.gz,749026,159690692,213.197795537,0.0588973605567,40,251,250.0
-    All files in dir with mus_musculus-READ-singleton.fastq.gz,2332785,211828511,90.8049867433,0.0102813002698,40,100,100.0
+    All files in dir with alligator_mississippiensis-READ1.fastq.gz,93699,8418476,89.84595353205476,0.059508742244529164,40,100,100.0
+    All files in dir with anolis_carolinensis-READ-singleton.fastq.gz,92184,8401336,91.13659637247244,0.048890234925557836,40,100,100.0
+    All files in dir with gallus_gallus-READ1.fastq.gz,99444,21218771,213.37406982824504,0.16122899415574637,40,251,250.0
+    All files in dir with mus_musculus-READ2.fastq.gz,89841,8165734,90.89095179261139,0.052266485638855914,40,100,100.
 
 Now, we're ready to assemble our reads.
 
@@ -342,15 +301,9 @@ Now, we're ready to assemble our reads.
 Assemble the data
 =================
 
-phyluce_ has a lot of options for assembly - you can use velvet_, abyss_, or
-trinity_.  For this tutorial, we are going to use trinity_, because I believe it
-works best for most purposes.  The helper programs for the other assemblers use
-the same config file, too, so you can easily experiment with all of the
-assemblers.
+phyluce_ has a lot of options for assembly - you can use velvet_, abyss_, or spades_.  For this tutorial, we are going to use spades_, because it seems to works best for most purposes, it is easy to install and run, and it works consistently.  The helper programs for the other assemblers use the same config file, so you can easily experiment with all of the assemblers.
 
-To run an assembly, we need to create a another configuration file.  The
-assembly configuration file looks like the following, assuming we want to
-assemble all of our data from the organisms above:
+To run an assembly, we need to create a another configuration file.  The assembly configuration file looks like the following, assuming we want to assemble all of our data from the organisms above:
 
 .. code-block:: bash
 
@@ -360,8 +313,7 @@ assemble all of our data from the organisms above:
     gallus_gallus:/scratch/bfaircloth-uce-tutorial/clean-fastq/gallus_gallus/split-adapter-quality-trimmed/
     mus_musculus:/scratch/bfaircloth-uce-tutorial/clean-fastq/mus_musculus/split-adapter-quality-trimmed/
 
-We will save this into a file named `assembly.conf` at the top of our
-`uce-tutorial` directory:
+You need to modify this file to have the path to the clean read data **on your computer (not mine).You will save this into a file named ``assembly.conf`` at the top of our ``uce-tutorial`` directory:
 
 .. code-block:: bash
 
@@ -374,10 +326,7 @@ We will save this into a file named `assembly.conf` at the top of our
     ├── raw-fastq
     └── trinity-assemblies
 
-If you want to change the names on the left hand side of the colon in the config
-file, you can do so, but the `PATHs` on the right hand side need to point to our
-"clean" UCE raw reads.  If you have files in multiple locations, you can use
-different `PATHs` on the right-hand side.
+If you want to change the names on the left hand side of the colon in the config file, you can do so, but the paths on the right hand side need to point to our "clean" UCE raw reads.  If you have files in multiple locations, you can use different paths on the right-hand side.
 
 .. attention:: Although you can easily input new PATHs in this file, the
     **structure** of the data below the PATH you use must be the same - meaning
@@ -387,7 +336,7 @@ different `PATHs` on the right-hand side.
     .. code-block:: bash
 
         some-random-data
-        ├── clean-fastq
+        └── clean-fastq
             ├── alligator_mississippiensis
             │    └── split-adapter-quality-trimmed
             │       ├── alligator_mississippiensis-READ1.fastq.gz
@@ -399,8 +348,7 @@ different `PATHs` on the right-hand side.
                     ├── anolis_carolinensis-READ2.fastq.gz
                     └── anolis_carolinensis-READ-singleton.fastq.gz
 
-Now that we have that file created, copy it to our working directory, and run
-the `phyluce_assembly_assemblo_trinity` program:
+Now that we have that file created, copy it to our working directory, and run the ``phyluce_assembly_assemblo_spades`` program:
 
 .. code-block:: bash
 
@@ -408,49 +356,41 @@ the `phyluce_assembly_assemblo_trinity` program:
     cd uce-tutorial
 
     # run the assembly
-    phyluce_assembly_assemblo_trinity \
+    phyluce_assembly_assemblo_spades \
         --conf assembly.conf \
-        --output trinity-assemblies \
-        --clean \
+        --output spades-assemblies \
         --cores 12
 
 .. warning:: Note that I am using 12 physical CPU cores to do this work.  You
     need to use the number of physical cores available on *your* machine. The
-    `phyluce.conf` file also assumes you have **at least** 8 GB of RAM on your
+    ``phyluce.conf`` file also assumes you have **at least** 4 GB of RAM on your
     system, and it is better to have much more.  If you use more CPU cores than
-    you have or you specify more RAM than you have, bad things will happen.
+    you have or you specify more RAM than you have, the job can fail.
 
-.. note:: Trinity is no longer supported on MacOS (generally, or in phyluce_), 
-    so substitute `phyluce_assembly_assemblo_trinity` for 
-    `phyluce_assembly_assemblo_trinity`.
+.. note:: If you are wondering, Trinity_ is no longer supported in phyluce_
 
 As the assembly proceeds, you should see output similar to the following:
 
 .. code-block:: bash
 
-    2015-04-11 18:22:41,128 - phyluce_assembly_assemblo_trinity - INFO - -------------------- Processing gallus_gallus ----
-    2015-04-11 15:30:54,183 - phyluce_assembly_assemblo_trinity - INFO - Argument --dir: None
-    2015-04-11 15:30:54,183 - phyluce_assembly_assemblo_trinity - INFO - Argument --log_path: None
-    2015-04-11 15:30:54,183 - phyluce_assembly_assemblo_trinity - INFO - Argument --min_kmer_coverage: 2
-    2015-04-11 15:30:54,183 - phyluce_assembly_assemblo_trinity - INFO - Argument --output: /scratch/bfaircloth-uce-tutorial/trinity-assemblies
-    2015-04-11 15:30:54,183 - phyluce_assembly_assemblo_trinity - INFO - Argument --subfolder:
-    2015-04-11 15:30:54,183 - phyluce_assembly_assemblo_trinity - INFO - Argument --verbosity: INFO
-    2015-04-11 15:30:54,184 - phyluce_assembly_assemblo_trinity - INFO - Getting input filenames and creating output directories
-    2015-04-11 15:30:54,186 - phyluce_assembly_assemblo_trinity - INFO - ------------- Processing alligator_mississippiensis -------------
-    2015-04-11 15:30:54,186 - phyluce_assembly_assemblo_trinity - INFO - Finding fastq/fasta files
-    2015-04-11 15:30:54,189 - phyluce_assembly_assemblo_trinity - INFO - File type is fastq
-    2015-04-11 15:30:54,190 - phyluce_assembly_assemblo_trinity - INFO - Copying raw read data to /scratch/bfaircloth-uce-tutorial/trinity-assemblies/alligator_mississippiensis_trinity
-    2015-04-11 15:30:54,561 - phyluce_assembly_assemblo_trinity - INFO - Combining singleton reads with R1 data
-    2015-04-11 15:30:54,576 - phyluce_assembly_assemblo_trinity - INFO - Running Trinity.pl for PE data
-    2015-04-11 16:29:19,127 - phyluce_assembly_assemblo_trinity - INFO - Removing extraneous Trinity files
-    2015-04-11 16:29:20,957 - phyluce_assembly_assemblo_trinity - INFO - Symlinking assembled contigs into /scratch/bfaircloth-uce-tutorial/trinity-assemblies/contigs
-    2015-04-11 16:29:20,957 - phyluce_assembly_assemblo_trinity - INFO - ----------------- Processing anolis_carolinensis ----------------
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - =========== Starting phyluce_assembly_assemblo_spades ===========
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Version: 2.0_r_fatal: Not a git repository: '/home/bcf/conda/envs/phyluce-1.7/lib/python3.6/site-packages/.git'
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --config: /scratch/bfaircloth/uce-tutorial/assembly.conf
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --cores: 12
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --dir: None
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --do_not_clean: False
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --log_path: None
+    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --output: /scratch/bfaircloth/uce-tutorial/spades-assemblies
+    2021-02-22 15:10:47,571 - phyluce_assembly_assemblo_spades - INFO - Argument --subfolder:
+    2021-02-22 15:10:47,571 - phyluce_assembly_assemblo_spades - INFO - Argument --verbosity: INFO
+    2021-02-22 15:10:47,571 - phyluce_assembly_assemblo_spades - INFO - Getting input filenames and creating output directories
+    2021-02-22 15:10:47,587 - phyluce_assembly_assemblo_spades - INFO - ------------- Processing alligator_mississippiensis -------------
+    2021-02-22 15:10:47,588 - phyluce_assembly_assemblo_spades - INFO - Finding fastq/fasta files
+    2021-02-22 15:10:47,590 - phyluce_assembly_assemblo_spades - INFO - File type is fastq
+    2021-02-22 15:10:47,591 - phyluce_assembly_assemblo_spades - INFO - Running SPAdes for PE data
+    2021-02-22 15:11:23,417 - phyluce_assembly_assemblo_spades - INFO - Symlinking assembled contigs into /scratch/bfaircloth/uce-tutorial/spades-assemblies/contigs
     ...[continued]...
-    2015-04-11 22:30:19,558 - phyluce_assembly_assemblo_trinity - INFO - ========== Completed phyluce_assembly_assemblo_trinity ==========
-
-.. attention:: This is not a toy tutorial - the data you downloaded contain
-    roughly 100 MB for each of READ1 and READ2, which means it's going to take
-    some time for these samples to assemble.
+    2021-02-22 15:13:27,554 - phyluce_assembly_assemblo_spades - INFO - =========== Completed phyluce_assembly_assemblo_spades ==========
 
 One the assembly is finished, have a look at the directory structure:
 
@@ -463,28 +403,28 @@ One the assembly is finished, have a look at the directory structure:
     ├── illumiprocessor.log
     ├── phyluce_assembly_assemblo_trinity.log
     ├── raw-fastq
-    └── trinity-assemblies
+    └── spades-assemblies
         ├── alligator_mississippiensis_trinity
-        │   ├── contigs.fasta -> Trinity.fasta
-        │   ├── Trinity.fasta
-        │   └── trinity.log
+        │   ├── contigs.fasta
+        │   ├── scaffolds.fasta
+        │   └── spades.log
         ├── anolis_carolinensis_trinity
-        │   ├── contigs.fasta -> Trinity.fasta
-        │   ├── Trinity.fasta
-        │   └── trinity.log
+        │   ├── contigs.fasta
+        │   ├── scaffolds.fasta
+        │   └── spades.log
         ├── contigs
-        │   ├── alligator_mississippiensis.contigs.fasta -> ../alligator_mississippiensis_trinity/Trinity.fasta
-        │   ├── anolis_carolinensis.contigs.fasta -> ../anolis_carolinensis_trinity/Trinity.fasta
-        │   ├── gallus_gallus.contigs.fasta -> ../gallus_gallus_trinity/Trinity.fasta
-        │   └── mus_musculus.contigs.fasta -> ../mus_musculus_trinity/Trinity.fasta
+        │   ├── alligator_mississippiensis.contigs.fasta -> ../alligator_mississippiensis_trinity/contigs.fasta
+        │   ├── anolis_carolinensis.contigs.fasta -> ../anolis_carolinensis_trinity/contigs.fasta
+        │   ├── gallus_gallus.contigs.fasta -> ../gallus_gallus_trinity/contigs.fasta
+        │   └── mus_musculus.contigs.fasta -> ../mus_musculus_trinity/contigs.fasta
         ├── gallus_gallus_trinity
-        │   ├── contigs.fasta -> Trinity.fasta
-        │   ├── Trinity.fasta
-        │   └── trinity.log
+        │   ├── contigs.fasta
+        │   ├── scaffolds.fasta
+        │   └── spades.log
         └── mus_musculus_trinity
-            ├── contigs.fasta -> Trinity.fasta
-            ├── Trinity.fasta
-            └── trinity.log
+            ├── contigs.fasta
+            ├── scaffolds.fasta
+            └── spades.log
 
 Your species-specific assembly files are in the `trinity-assemblies` directory
 nested within species-specific directories that correspond to the name you used
