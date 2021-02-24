@@ -11,7 +11,6 @@ on:
 jobs:
   build-docker:
     name: Build docker image
-    needs: [dependencies, build-package]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
