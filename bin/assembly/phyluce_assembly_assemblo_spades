@@ -43,8 +43,8 @@ def get_args():
     parser.add_argument(
         "--memory",
         type=int,
-        default=1,
-        help="""The amount of RAM to use with SPAdes""",
+        default=8,
+        help="""The amount of RAM (in GB) to use with SPAdes""",
     )
     parser.add_argument(
         "--subfolder",
@@ -108,7 +108,7 @@ def run_spades_pe(spades, reads, sample_dir, memory, cores, do_not_clean, log):
         "--careful",
         "--sc",
         "--memory",
-        str(int(memory))
+        str(int(memory)),
         "--threads",
         str(cores),
         "--cov-cutoff",
