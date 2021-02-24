@@ -151,15 +151,16 @@ within the docker container with, e.g.:
 
 .. code-block:: bash
 
-    docker run phyluce <phyluce_program_name>
+    docker run fairclothlab/phyluce:<tag> phyluce <phyluce_program_name>
 
-When you run this, all commands are run in the default directory ``/work``.  So,
+Where tag corresponds to the version of phyluce you are using. When you run this, 
+all commands are run in the default directory ``/work``.  So,
 you will very likely want to mount a local directory to the docker container like
 so:
 
 .. code-block:: bash
 
-    docker run -v $(pwd):/data phyluce <phyluce_program_name>
+    docker run -v $(pwd):/data fairclothlab/phyluce:<tag> phyluce <phyluce_program_name>
 
 Which will store the output of the commands you are running the direcotry 
 from which you ran the command.
