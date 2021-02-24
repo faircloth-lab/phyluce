@@ -119,6 +119,8 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
+          build-args: |
+            PHYLUCE_VERSION=$(python setup.py --version)
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
