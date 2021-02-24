@@ -63,3 +63,4 @@
 .. _virtualenv: http://www.virtualenv.org/
 .. _docker: https://www.docker.com
 .. _singularity: https://sylabs.io
+.. _spades: https://cab.spbu.ru/software/spades/
