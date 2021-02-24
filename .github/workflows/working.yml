@@ -44,8 +44,8 @@ jobs:
       - name: Create environment variables for output		
         run: |
           VERSION=$(python setup.py --version)
-          echo "phyluce_outf=distrib/phyluce-${VERSION}-py36-${{ runner.os }}-conda.yml"
-          echo "phyluce_ver=$VERSION"
+          echo "phyluce_outf=distrib/phyluce-${VERSION}-py36-${{ runner.os }}-conda.yml" >> $GITHUB_ENV
+          echo "phyluce_ver=$VERSION" >> $GITHUB_ENV
       # echo ${{ github.event.release.tag_name }} >> distrib/linux.yml
       - name: Add environment to file and commit
         run: |
