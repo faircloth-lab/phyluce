@@ -53,7 +53,6 @@ jobs:
           conda env export | grep -v "^channels:" | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
           echo "# `date`" > ${{ env.phyluce_outf }}
           echo "channels:" >> ${{ env.phyluce_outf }}
-          echo "  - faircloth-lab/label/phyluce" >> ${{ env.phyluce_outf }}
           cat temp-environment.yml >> ${{ env.phyluce_outf }}
           rm temp-environment.yml
           echo "  - phyluce=${{ env.phyluce_ver }}" >> ${{ env.phyluce_outf }}
