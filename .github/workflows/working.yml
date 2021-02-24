@@ -41,7 +41,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          build-args: ${{ env.PHYLUCE_VERSION }}
+          build-args: PHYLUCE_VERSION=${{ env.PHYLUCE_VERSION }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
