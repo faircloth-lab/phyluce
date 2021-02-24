@@ -97,6 +97,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
+          echo "PHYLUCE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
           DOCKER_IMAGE=fairclothlab/phyluce
           VERSION=$(python setup.py --version)
           TAGS="${DOCKER_IMAGE}:${VERSION},${DOCKER_IMAGE}:latest"
@@ -119,8 +120,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          build-args: |
-            PHYLUCE_VERSION=$(python setup.py --version)
+          build-args: PHYLUCE_VERSION=${{ env.PHYLUCE_VERSION }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
