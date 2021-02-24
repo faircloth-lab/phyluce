@@ -53,34 +53,17 @@ Count reads using shell tools
 
 You can get a quick and dirty idea of the number of reads you have for each
 sample using simple shell or "terminal" tools - counting lines in lots of files
-is a task that's really suited to UNIX-like operating systems.
-
-Because FASTQ files contain 4 lines for each read, we can count all the lines
-in every file and divide each by 4 to get the count of reads in a given file.
-
-Assuming your reads are in a directory structure like::
-
-    some-directory-name/
-        sample1_R1.fastq.gz
-        sample1_R2.fastq.gz
-        sample2_R1.fastq.gz
-        sample2_R2.fastq.gz
-
-you can count lines across all files in all directories, using:
+is a task that's really suited to UNIX-like operating systems. As mentioned in 
+:ref:`TutorialOne` section, we can do this several ways.  We'll use tools from 
+unix, because they are fast. The next line of code will count the lines in each 
+R1 file (which should be equal to the reads in the R2 file) and divide that 
+number by 4 to get the number of sequence reads.
 
 .. code-block:: bash
 
-    for i in some-directory-name/*_R1.fastq.gz; do echo $i; gunzip -c $i | wc -l; done
+    for i in *_R1_*.fastq.gz; do echo $i; gunzip -c $i | wc -l | awk '{print $1/4}'; done
 
-This will output a list of results like::
-
-    bfidt-000_R1.fastq.gz
-    10000000
-    bfidt-000_R2.fastq.gz
-    16000000
-
-If you **divide these numbers by 4**, then that is the count of R1 reads.  The
-number of reads in the R2 files, if you have paired-end data, should **always**
+The number of reads in the R2 files, if you have paired-end data, should **always**
 be equal.
 
 Get read counts using phyluce_
@@ -133,11 +116,7 @@ with your taxon names)::
             genus_species2-READ2.fastq.gz
             genus_species2-READ-singleton.fastq.gz
 
-.. note:: We not longer create `interleaved` fastq files because most programs
-    assume that PE (paired-end) reads are maintained as read pairs.  Rather than
-    create an interleaved set of data and a non-interleaved set of data, we
-    have decided to keep files for each of R1, R2, and singleton reads (those
-    that have lost their mates) and never produce an interleaved file.
+This can be accomplished in an automated fashion using illumiprocessor_.
 
 Trimming with illumiprocessor
 -----------------------------
@@ -146,9 +125,6 @@ You can run your adapter and quality trimming and output the files in the
 correct format using a program I wrote called illumiprocessor_. It automates
 these processes over hundred of files and produces output in the format we want
 downstream.
-
-.. attention:: Prior to running illumiprocessor_, if you used Casava, it will
-    be easiest to place all of the demuliplexed reads into a single directory.
 
 You need to generate a configuration file ``your-illumiprocessor.conf``, that
 gives details of your reads, how you want them processed, and what renaming
@@ -159,7 +135,7 @@ depending on the library preparation method that you used.
     information.
 
 You can run illumiprocessor against your data (in `demultiplexed`) with the
-following.  If you do not have a multicore machine, you may with to run with
+following.  If you do not have a multicore machine, you may want to run with
 ``--cores=1``.  Additionally, multicore operations require a fair amount of RAM,
 so if you're low on RAM, run with fewer cores:
 
@@ -171,7 +147,9 @@ so if you're low on RAM, run with fewer cores:
         --config your-illumiprocesser.conf \
         --cores 12
 
-The clean data will appear in ``uce-clean`` with the following structure::
+The clean data will appear in ``uce-clean`` with the following structure:
+
+.. code-block:: bash
 
     uce-clean/
         genus_species1/
@@ -198,4 +176,4 @@ The clean data will appear in ``uce-clean`` with the following structure::
             stats/
                 genus_species2-adapter-contam.txt
 
-You are now ready to move onto processing the cleaned read data.
+You are now ready to move onto :ref:`Assembly` of the cleaned read data.

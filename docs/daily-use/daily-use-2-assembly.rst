@@ -10,15 +10,13 @@ Setup
 =====
 
 Once your reads are clean, you're ready to assemble. At the moment, you can use
-velvet_, ABySS_, and Trinity_ for assembly. However, be aware that there is not
-a conda_ install package for Trinity_ due to some difficulties in how that
-package is structured.
+velvet_, ABySS_, and spades_ for assembly.
 
 Most of the assembly process is automated using code within phyluce_,
 specifically the following 3 scripts:
 
 - `phyluce_assembly_assemblo_abyss`
-- `phyluce_assembly_assemblo_trinity`
+- `phyluce_assembly_assemblo_spades`
 - `phyluce_assembly_assemblo_velvet`
 
 The code of each of the above programs **always** expects your input directories
@@ -78,15 +76,20 @@ directory containing read data in a format similar to that described above.
         anas_platyrhynchos_KGH2267
         anas_carolinensis_KGH2269
         dendrocygna_bicolor_DWF4597
+    
+    The above is the recommended working format. When you search for UCE contigs
+    phyluce_ should screen your taxon name to ensure they do not contain 
+    restricted characters.  This includes ``.+:"'-?!*@%^&#=/\`` or names that **begin**
+    with a number.  It's probably best to get that all squared away now.
+
 
 Running the assembly
 ====================
 
-Once your configuration file is created (best to use a decent text editor) that
-will not cause you grief, you are ready to start assembling your read data into
+Once your configuration file is created (best to use a decent text editor that
+will not cause you grief), you are ready to start assembling your read data into
 contigs that we will search for UCEs.  The code to do this for the three helper
-scripts is below (remember, we are using `$HOME/anaconda/bin` generically to
-refer to your anaconda_ or miniconda_ install).
+scripts is below.
 
 General process
 ---------------
@@ -99,11 +102,12 @@ The general process that the helper scripts use is:
    file entries
 #. Find the correct fastq files for a given sample
 #. Input those fastq files to whichever assembly program
-#. Assemble reads using user-defined/static ``--kmer`` value
+#. Assemble reads
 #. Strip contigs of potentially problematic bases (ABySS-only)
 #. Normalize contig names
-#. Link assembly file with normalized names in $ASSEMBLY/genus-species/ into
-   $ASSEMBLY/contigs/genus-species
+#. Link all assembly files with normalized names in $ASSEMBLY/genus-species/ into
+   $ASSEMBLY/contigs/genus-species.contigs.fasta, so that all assemblies are linked
+   in the same output directory.
 
 velvet
 ------
@@ -164,8 +168,9 @@ ABySS
     degenerate code by selecting the appropriate nucleotide encoding randomly.
     The code also renames the ABySS assemblies using the velvet_ naming
     convention.  The modified contigs are them symlinked into
-    `$ASSEMBLY/contigs`.  Unmodified contigs are available in `$ASSEMBLY/genus-
-    species/out_k*-contigs.fa`
+    ``$ASSEMBLY/contigs``.  Unmodified contigs are available in ``$ASSEMBLY/genus-
+    species/out_k*-contigs.fa``
+
 
 Results
 ^^^^^^^
@@ -187,15 +192,15 @@ The directory structure created for ABySS_-based assemblies looks like::
             out_k31-stats
 
 
-Trinity
--------
+Spades
+------
 
 .. code-block:: bash
 
     # make a directory for log files
     mkdir log
     # run the assembly
-    phyluce_assembly_assemblo_trinity \
+    phyluce_assembly_assemblo_spades \
         --config config_file_you_created.conf \
         --output /path/where/you/want/assemblies \
         --subfolder split-adapter-quality-trimmed \
@@ -204,28 +209,14 @@ Trinity
         --log-path log
 
 
-.. admonition:: Question: Why do I not use the `--kmer` flag with phyluce_assembly_assemblo_trinity?
-    :class: admonition tip
-
-    Trinity assembles using a "static" or "program-defined" (i.e., not user-
-    defined) kmer value of 25.
-
-.. admonition:: Question: What is the `--clean` option?
-    :class: admonition tip
-
-    The `--clean` option removes extraneous temporary files that Trinity creates
-    during the assembly process.  This results in a vastly smaller `assemblies`
-    directory.
-
-
 Results
 ^^^^^^^
 
-The directory structure created for Trinity_-based assemblies looks like::
+The directory structure created for spades_-based assemblies looks like::
 
     path-to-output-directory/
         contigs/
-            genus-species1 -> ../genus-species1/Trinity.fasta
+            genus-species1 -> ../genus-species1/scaffolds.fasta
         genus-species1/
             contigs.fasta -> Trinity.fasta
             Trinity.fasta
