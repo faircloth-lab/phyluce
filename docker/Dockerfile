@@ -1,10 +1,16 @@
 FROM ubuntu:20.04
 
-MAINTAINER "Brant Faircloth" <brant _at_ faircloth-lab _dot_ org>
+LABEL maintainer="Brant Faircloth <brant _at_ faircloth-lab _dot_ org>"
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
+
+ARG PHYLUCE_VERSION
+
+# add a user and a group for phyluce
+RUN groupadd -g 999 phyluce && \
+    useradd -r -u 999 -g phyluce phyluce
 
 # update yum
 RUN apt-get update -q && \
@@ -42,14 +48,15 @@ RUN /opt/conda/bin/conda config --add channels conda-forge
 RUN /opt/conda/bin/conda update conda
 
 # get gatk, setup, and cleanup
-RUN wget --quiet https://raw.githubusercontent.com/faircloth-lab/phyluce/devel/distrib/phyluce-py36-Linux-conda.yml && \
-    /opt/conda/bin/conda env create -n phyluce --file phyluce-py36-Linux-conda.yml
+RUN wget --quiet https://raw.githubusercontent.com/faircloth-lab/phyluce/devel/distrib/phyluce-$PHYLUCE_VERSION-py36-Linux-conda.yml
+RUN /opt/conda/bin/conda env create -n phyluce --file phyluce-$PHYLUCE_VERSION-py36-Linux-conda.yml
 
 # cleanup
 RUN /opt/conda/bin/conda clean --all --yes
 
 # setup working dir in /data
 RUN mkdir -p /data
+RUN chown phyluce:phyluce /data
 WORKDIR /data
 
 # setup entrypoint
@@ -57,3 +64,6 @@ RUN echo '#!/bin/bash --login\nset -e\n\nconda activate phyluce\nexec "$@"' > /u
 # make entrypoint script executable
 RUN chmod u+x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+#switch to phyluce user
+USER phyluce
