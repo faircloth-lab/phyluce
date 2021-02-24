@@ -1,4 +1,4 @@
-# Wed Feb 24 15:36:52 UTC 2021
+# Wed Feb 24 20:27:52 UTC 2021
 channels:
   - faircloth-lab/label/phyluce
   - conda-forge
@@ -41,8 +41,8 @@ dependencies:
   - htslib=1.11=h422799e_2
   - idna=2.10=pyh9f0ad1d_0
   - illumiprocessor=2.10=py_0
-  - importlib-metadata=3.6.0=py36h79c6626_0
-  - importlib_metadata=3.6.0=hd8ed1ab_0
+  - importlib-metadata=3.7.0=py36h79c6626_0
+  - importlib_metadata=3.7.0=hd8ed1ab_0
   - iniconfig=1.1.1=pyh9f0ad1d_0
   - ipython_genutils=0.2.0=py_1
   - jsonschema=3.2.0=py_2
