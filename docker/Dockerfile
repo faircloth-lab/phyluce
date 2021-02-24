@@ -36,9 +36,6 @@ RUN wget --quiet -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-
     find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
     /opt/conda/bin/conda clean -afy
 
-# update conda
-RUN /opt/conda/bin/conda update conda
-
 # set conda REPOS
 RUN /opt/conda/bin/conda config --add channels defaults
 RUN /opt/conda/bin/conda config --add channels bioconda
