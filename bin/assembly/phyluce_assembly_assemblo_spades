@@ -41,6 +41,12 @@ def get_args():
         help="""The number of compute cores/threads to run with SPAdes""",
     )
     parser.add_argument(
+        "--memory",
+        type=int,
+        default=1,
+        help="""The amount of RAM to use with SPAdes""",
+    )
+    parser.add_argument(
         "--subfolder",
         type=str,
         default="",
@@ -85,7 +91,7 @@ def get_args():
     return parser.parse_args()
 
 
-def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
+def run_spades_pe(spades, reads, sample_dir, memory, cores, do_not_clean, log):
     log.info("Running SPAdes for PE data")
     # we're using "single-cell" mode here due to coverage variance
     # spades.py --careful
@@ -102,7 +108,7 @@ def run_spades_pe(spades, reads, sample_dir, cores, do_not_clean, log):
         "--careful",
         "--sc",
         "--memory",
-        get_user_param("spades", "max_memory"),
+        str(int(memory))
         "--threads",
         str(cores),
         "--cov-cutoff",
@@ -199,7 +205,7 @@ def main():
         # the read data over and run the assembly for PE data
         if reads.r1 and reads.r2:
             output = run_spades_pe(
-                spades, reads, sample_dir, args.cores, args.do_not_clean, log
+                spades, reads, sample_dir, args.memory, args.cores, args.do_not_clean, log
             )
             # generate symlinks to assembled contigs
             generate_symlinks(contig_dir, sample_dir, sample, reads, log)
