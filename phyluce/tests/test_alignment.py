@@ -49,7 +49,7 @@ def test_seqcap_align_mafft_untrim(o_dir, e_dir, request):
     output = os.path.join(o_dir, "mafft")
     cmd = [
         os.path.join(request.config.rootdir, program),
-        "--fasta",
+        "--input",
         os.path.join(e_dir, "taxon-set.incomplete.fasta"),
         "--output",
         output,
@@ -83,7 +83,7 @@ def test_seqcap_align_muscle_untrim(o_dir, e_dir, request):
     output = os.path.join(o_dir, "muscle")
     cmd = [
         os.path.join(request.config.rootdir, program),
-        "--fasta",
+        "--input",
         os.path.join(e_dir, "taxon-set.incomplete.fasta"),
         "--output",
         output,
