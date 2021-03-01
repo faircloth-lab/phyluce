@@ -138,38 +138,66 @@ on the command-line, with, e.g.,:
 Using Docker
 ------------
 
-We also provide phyluce_ as a docker_ image, which means you can run the phyluce_
-installation anywhere that you can run docker_. The docker_ image is built on
-Ubuntu 20.04 LTS using conda_.  To pull the docker image:
+We also provide phyluce_ as a docker_ image, which means you can run the phyluce_ installation anywhere that you can run docker_. The docker_ image is built on Ubuntu 20.04 LTS using conda_.  To pull the docker image:
 
 #. Go to the `phyluce github release page <https://github.com/faircloth-lab/phyluce/releases>`_
 #. Find the phyluce_ release you want (usually the most recent)
 #. Run the ``docker pull`` command listed
 
-Although using docker_ is beyond the scope of this guide, you can run phyluce_
-within the docker container with, e.g.:
+Although using docker_ is beyond the scope of this guide, you can run phyluce_ within a docker using a command similar to the following, e.g.:
 
 .. code-block:: bash
 
     docker run fairclothlab/phyluce:<tag> phyluce <phyluce_program_name>
 
-Where tag corresponds to the version of phyluce you are using. When you run this, 
-all commands are run in the default directory ``/work``.  So,
-you will very likely want to mount a local directory to the docker container like
-so:
+Where ``<tag>`` corresponds to the version of phyluce you are using. When you run this, all commands are run in the default directory ``/work`` and the user within the container is named ``phyluce``.
+
+You will very likely want to mount a local directory (on your computer) to this ``/work`` directory in the docker container and make yourself the owner of the result files.  If you are working in ``/home/you/phyluce`` on your computer, you can accomplish all of by running phyluce like:
 
 .. code-block:: bash
 
-    docker run -v $(pwd):/data fairclothlab/phyluce:<tag> phyluce <phyluce_program_name>
+    docker run \
+        -v /home/you/phyluce:/data \
+        --user $(id -u):$(id -g) \
+        fairclothlab/phyluce:1.7.0 \
+        phyluce_assembly_assemblo_spades \
+        --output spades-test \
+        --config assembly.conf \
+        --cores 12
 
-Which will store the output of the commands you are running the direcotry 
-from which you ran the command.
+The ``-v /home/you/phyluce:/data`` maps your directory (``/home/you/phyluce``) onto the container working directory (``/work``), the ``--user $(id -u):$(id -g)`` makes the owner of the files in the container your user and group, the ``fairclothlab/phyluce:1.7.0`` is the name of the image to use, and the rest are standard phyluce command.
+
+Finally, you may want to run many commands in the docker_ container (e.g. as in an entire analysis run).  This can be accomplished by starting a bash_ shell in the container, and working from within the container's bash prompt, as in:
+
+.. code-block:: bash
+
+    docker run \
+        -v /home/you/phyluce:/data \
+        --user $(id -u):$(id -g) \
+        -i -t fairclothlab/phyluce:1.7.0 \
+        /bin/bash
+    
+    # this drops you into the shell, where you can run commands, e.g.:
+    @d51aa2f2d565:/data$
+
+
+Using Singularity
+-----------------
+
+If you are using Singularity_, you should be able to pull the Docker_ image, and convert it for use, although this is not tested and is not supported. For example:
+
+.. code-block:: bash
+
+    singularity pull docker://fairclothlab/phyluce:1.7.0
+
+
+If that does not work, you could also use the `phyluce Dockerfile <https://raw.githubusercontent.com/faircloth-lab/phyluce/main/docker/Dockerfile>`_ to create a Singularity_ definition file, and build a Singularity_ image.
 
 
 phyluce configuration
 =====================
 
-As of v1.5, phyluce_ uses a configuration file to keep track of paths to relevant
+As of v1.5.x, phyluce_ uses a configuration file to keep track of paths to relevant
 binaries, as well as some configuration information.  This file is located at
 ``$CONDA_PREFIX/phyluce/config``.  Although you can edit this file directly, you
 can also create a user-specific configuration file at `~/.phyluce.conf` (**note the
@@ -187,7 +215,7 @@ file rather than deal with hard-coded paths.
     substantially, so please use with caution. If you are making changes, 
     edit the copy at ``~/.phyluce.conf``) rather than the default copy.
 
-The format of the config file as of v1.7 looks like the following:
+The format of the config file as of v1.7 looks similar to the following:
 
 .. code-block:: bash
 
