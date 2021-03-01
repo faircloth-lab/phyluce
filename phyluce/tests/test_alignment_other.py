@@ -366,7 +366,7 @@ def test_align_explode_alignments_by_taxon(o_dir, e_dir, request):
 
 
 def test_align_remove_locus_name(o_dir, e_dir, request):
-    program = "bin/align/phyluce_align_remove_locus_name_from_nexus_lines"
+    program = "bin/align/phyluce_align_remove_locus_name_from_files"
     output = os.path.join(o_dir, "mafft-gblocks-clean")
     cmd = [
         os.path.join(request.config.rootdir, program),

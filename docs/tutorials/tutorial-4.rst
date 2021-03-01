@@ -2010,7 +2010,7 @@ And, remove the locus names from each of the resulting alignments:
 
 .. code-block:: python
 
-    phyluce_align_remove_locus_name_from_nexus_lines \
+    phyluce_align_remove_locus_name_from_files \
         --alignments mafft-gblocks \
         --output mafft-gblocks-clean \
         --cores 12 \

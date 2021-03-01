@@ -1258,7 +1258,7 @@ If you look in one of the files for the alignments we currently have, you will n
     cd uce-tutorial/taxon-sets/all
 
     # align the data - turn off trimming and output FASTA
-    phyluce_align_remove_locus_name_from_nexus_lines \
+    phyluce_align_remove_locus_name_from_files \
         --alignments mafft-nexus-internal-trimmed-gblocks \
         --output mafft-nexus-internal-trimmed-gblocks-clean \
         --cores 12 \
@@ -1268,21 +1268,21 @@ The output should be similar to:
 
 .. code-block:: bash
 
-    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - === Starting phyluce_align_remove_locus_name_from_nexus_lines ===
-    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Version: 1.7.0
-    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Commit: None
-    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
-    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --cores: 12
-    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --input_format: nexus
-    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --log_path: /data/taxon-sets/all/log
-    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --output: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean
-    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --output_format: nexus
-    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --taxa: None
-    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --verbosity: INFO
-    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Getting alignment files
+    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_files - INFO - === Starting phyluce_align_remove_locus_name_from_files ===
+    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_files - INFO - Version: 1.7.0
+    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_files - INFO - Commit: None
+    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_files - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
+    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_files - INFO - Argument --cores: 12
+    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_files - INFO - Argument --input_format: nexus
+    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_files - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_files - INFO - Argument --output: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean
+    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_files - INFO - Argument --output_format: nexus
+    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_files - INFO - Argument --taxa: None
+    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_files - INFO - Argument --verbosity: INFO
+    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_files - INFO - Getting alignment files
     Running...............[continued]
-    2021-03-01 16:05:12,848 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Taxon names in alignments: gallus_gallus,mus_musculus,anolis_carolinensis,alligator_mississippiensis
-    2021-03-01 16:05:12,849 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - === Completed phyluce_align_remove_locus_name_from_nexus_lines ==
+    2021-03-01 16:05:12,848 - phyluce_align_remove_locus_name_from_files - INFO - Taxon names in alignments: gallus_gallus,mus_musculus,anolis_carolinensis,alligator_mississippiensis
+    2021-03-01 16:05:12,849 - phyluce_align_remove_locus_name_from_files - INFO - === Completed phyluce_align_remove_locus_name_from_files ==
 
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
@@ -1476,3 +1476,8 @@ Downstream Analysis
 The above data are ready to analyze in a program like RAxML_ or IQTree_.  See the documentation for those programs to learn how to use them.  
 
 If you are performing locus-based inference (e.g. so-called gene-tree, species-tree methods, you can analyze the individual locus alignments present in the folder you created just prior to concatenation (e.g. ``mafft-nexus-internal-trimmed-gblocks-clean-75p``).  If you need to convert those files into another format (by default, they are in ``NEXUS`` format), you can use ``phyluce_align_convert_one_align_to_another``.  For performing analyses to infer a locus-tree from individual alignments, you might look into a program like pargenes_.  You can also reasonably script IQTree_ to do this on, for example, an HPC system (we do it using GNU Parallel to send each alignment to one compute core, where we run IQTree_ on that alignment).
+
+Next Steps
+==========
+
+After completing the tutorial, you should have a reasonably good idea of how to use phyluce_ in a day-to-day situation.  If you want to know more about specifics, you can read through the :ref:`Daily Use` sections, which provide additional detail.  Also be sure to poke around the other programs that come with phyluce_ - short list of which you can find in the :ref:`List of Programs`.

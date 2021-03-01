@@ -764,7 +764,7 @@ this, run:
 
  .. code-block:: bash
 
-    phyluce_align_remove_locus_name_from_nexus_lines \
+    phyluce_align_remove_locus_name_from_files \
         --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
         --output /path/to/uce/taxon-set1/mafft-nexus-clean/ \
         --taxa 3
@@ -873,7 +873,7 @@ this, run:
 
  .. code-block:: bash
 
-    phyluce_align_remove_locus_name_from_nexus_lines \
+    phyluce_align_remove_locus_name_from_files \
         --alignments /path/to/uce/taxon-set1/mafft-nexus/ \
         --output /path/to/uce/taxon-set1/mafft-nexus-clean/ \
         --cores 12
