@@ -22,6 +22,7 @@ from phyluce.helpers import (
     is_file,
     FullPaths,
     CreateDir,
+    CreateFile,
     get_contig_header_string,
 )
 from phyluce.pth import get_user_param
@@ -102,12 +103,13 @@ def get_args():
         "--keep-duplicates",
         type=str,
         default=None,
+        action=CreateFile,
         help="""A optional output file in which to store those loci that appear to be duplicates.""",
     )
     parser.add_argument(
         "--csv",
-        type=str,
         default=None,
+        action=CreateFile,
         help="""A optional output file in which to store the search results.""",
     )
     args = parser.parse_args()
@@ -235,7 +237,7 @@ def check_loci_for_dupes(revmatches):
 
 
 def pretty_log_output(
-    log, csvwriter, critter, matches, contigs, pd, mc, uce_dupe_uces
+    log, critter, matches, contigs, pd, mc, uce_dupe_uces, csvwriter=False
 ):
     """Write some nice output to the logfile/stdout"""
     unique_matches = sum([1 for node, uce in matches.items()])
@@ -255,16 +257,17 @@ def pretty_log_output(
             len(mc),
         )
     )
-    csvwriter.writerow(
-        [
-            critter,
-            unique_matches,
-            contigs,
-            len(pd),
-            len(uce_dupe_uces),
-            len(mc),
-        ]
-    )
+    if csvwriter:
+        csvwriter.writerow(
+            [
+                critter,
+                unique_matches,
+                contigs,
+                len(pd),
+                len(uce_dupe_uces),
+                len(mc),
+            ]
+        )
 
 
 def get_contig_name(header):
@@ -324,6 +327,8 @@ def main():
                 "contigs-dropped",
             ]
         )
+    else:
+        csvwriter = False
     for contig in sorted(fasta_files):
         critter = os.path.basename(contig).split(".")[0].replace("-", "_")
         output = os.path.join(
@@ -389,13 +394,13 @@ def main():
         conn.commit()
         pretty_log_output(
             log,
-            csvwriter,
             critter,
             matches,
             contigs,
             probe_dupes,
             contigs_matching_mult_uces,
             uce_dupe_uces,
+            csvwriter,
         )
     if dupefile is not None:
         dupefile.close()
