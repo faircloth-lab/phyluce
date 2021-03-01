@@ -40,7 +40,7 @@
 .. _phyluce: https://github.com/faircloth-lab/phyluce
 .. _Python: http://www.python.org
 .. _RAD-seq: http://en.wikipedia.org/wiki/Restriction_site_associated_DNA_markers
-.. _raxml: http://sco.h-its.org/exelixis/web/software/raxml/index.html
+.. _raxml: https://github.com/amkozlov/raxml-ng
 .. _relational database: http://en.wikipedia.org/wiki/Relational_database
 .. _RNA-seq: http://en.wikipedia.org/wiki/RNA-Seq
 .. _SAM: https://samtools.github.io/hts-specs/SAMv1.pdf
@@ -64,3 +64,5 @@
 .. _docker: https://www.docker.com
 .. _singularity: https://sylabs.io
 .. _spades: https://cab.spbu.ru/software/spades/
+.. _IQTree: http://www.iqtree.org
+.. _pargenes: https://github.com/BenoitMorel/ParGenes

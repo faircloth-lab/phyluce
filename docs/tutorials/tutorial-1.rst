@@ -301,19 +301,19 @@ Now, we're ready to assemble our reads.
 Assemble the data
 =================
 
-phyluce_ has a lot of options for assembly - you can use velvet_, abyss_, or spades_.  For this tutorial, we are going to use spades_, because it seems to works best for most purposes, it is easy to install and run, and it works consistently.  The helper programs for the other assemblers use the same config file, so you can easily experiment with all of the assemblers.
+phyluce_ has several options for assembly - you can use velvet_, abyss_, or spades_.  For this tutorial, we are going to use spades_, because it seems to works best for most purposes, it is easy to install and run, and it works consistently.  The helper programs for the other assemblers use the same config file, so you can easily experiment with all of the assemblers.
 
 To run an assembly, we need to create a another configuration file.  The assembly configuration file looks like the following, assuming we want to assemble all of our data from the organisms above:
 
 .. code-block:: bash
 
     [samples]
-    alligator_mississippiensis:/scratch/bfaircloth-uce-tutorial/clean-fastq/alligator_mississippiensis/split-adapter-quality-trimmed/
-    anolis_carolinensis:/scratch/bfaircloth-uce-tutorial/clean-fastq/anolis_carolinensis/split-adapter-quality-trimmed/
-    gallus_gallus:/scratch/bfaircloth-uce-tutorial/clean-fastq/gallus_gallus/split-adapter-quality-trimmed/
+    alligator_mississippiensis:/path/to/the/uce-tutorial/clean-fastq/alligator_mississippiensis/split-adapter-quality-trimmed/
+    anolis_carolinensis:/path/to/the/uce-tutorial/clean-fastq/anolis_carolinensis/split-adapter-quality-trimmed/
+    gallus_gallus:/path/to/the/uce-tutorial/clean-fastq/gallus_gallus/split-adapter-quality-trimmed/
     mus_musculus:/scratch/bfaircloth-uce-tutorial/clean-fastq/mus_musculus/split-adapter-quality-trimmed/
 
-You need to modify this file to have the path to the clean read data **on your computer (not mine).You will save this into a file named ``assembly.conf`` at the top of our ``uce-tutorial`` directory:
+You need to modify this file to use the path to the clean read data **on your computer** (``/path/to/the/`` is a placeholder, here). You will save this into a file named ``assembly.conf`` at the top of our ``uce-tutorial`` directory:
 
 .. code-block:: bash
 
@@ -326,16 +326,17 @@ You need to modify this file to have the path to the clean read data **on your c
     ├── raw-fastq
     └── trinity-assemblies
 
-If you want to change the names on the left hand side of the colon in the config file, you can do so, but the paths on the right hand side need to point to our "clean" UCE raw reads.  If you have files in multiple locations, you can use different paths on the right-hand side.
+If you want to change the names on the left hand side of the colon in the config file, you can do so, but the paths on the right hand side need to point to our "clean" UCE raw reads.  If you have files in multiple locations, you can use any number of different paths on the right-hand side of the colon.
 
 .. attention:: Although you can easily input new PATHs in this file, the
     **structure** of the data below the PATH you use must be the same - meaning
     that the structure and naming scheme for READ1, READ2, and READ-singleton
-    must be the same.  Or, put another way, it must look like the following:
+    must be the same.  Or, put another way, the assembly programs for phyluce
+    assume the data **always** look like the following:
 
     .. code-block:: bash
 
-        some-random-data
+        <some working folder name>
         └── clean-fastq
             ├── alligator_mississippiensis
             │    └── split-adapter-quality-trimmed
@@ -362,10 +363,13 @@ Now that we have that file created, copy it to our working directory, and run th
         --cores 12
 
 .. warning:: Note that I am using 12 physical CPU cores to do this work.  You
-    need to use the number of physical cores available on *your* machine. The
-    ``phyluce.conf`` file also assumes you have **at least** 4 GB of RAM on your
-    system, and it is better to have much more.  If you use more CPU cores than
-    you have or you specify more RAM than you have, the job can fail.
+    need to use the number of physical cores available on **your** machine. ``phyluce_assembly_assemblo_spades`` assumes you have **at least** 8 GB of RAM 
+    on your system, and it is better to have much more.  If you use more 
+    CPU cores than you have or you specify more RAM than you have, the job 
+    can fail.
+
+    You can adjust the RAM dedicated to the job using the ``--memory`` option,
+    which takes an integer value (in GB RAM).
 
 .. note:: If you are wondering, Trinity_ is no longer supported in phyluce_
 
@@ -373,24 +377,27 @@ As the assembly proceeds, you should see output similar to the following:
 
 .. code-block:: bash
 
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - =========== Starting phyluce_assembly_assemblo_spades ===========
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Version: 2.0_r_fatal: Not a git repository: '/home/bcf/conda/envs/phyluce-1.7/lib/python3.6/site-packages/.git'
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --config: /scratch/bfaircloth/uce-tutorial/assembly.conf
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --cores: 12
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --dir: None
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --do_not_clean: False
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --log_path: None
-    2021-02-22 15:10:47,570 - phyluce_assembly_assemblo_spades - INFO - Argument --output: /scratch/bfaircloth/uce-tutorial/spades-assemblies
-    2021-02-22 15:10:47,571 - phyluce_assembly_assemblo_spades - INFO - Argument --subfolder:
-    2021-02-22 15:10:47,571 - phyluce_assembly_assemblo_spades - INFO - Argument --verbosity: INFO
-    2021-02-22 15:10:47,571 - phyluce_assembly_assemblo_spades - INFO - Getting input filenames and creating output directories
-    2021-02-22 15:10:47,587 - phyluce_assembly_assemblo_spades - INFO - ------------- Processing alligator_mississippiensis -------------
-    2021-02-22 15:10:47,588 - phyluce_assembly_assemblo_spades - INFO - Finding fastq/fasta files
-    2021-02-22 15:10:47,590 - phyluce_assembly_assemblo_spades - INFO - File type is fastq
-    2021-02-22 15:10:47,591 - phyluce_assembly_assemblo_spades - INFO - Running SPAdes for PE data
-    2021-02-22 15:11:23,417 - phyluce_assembly_assemblo_spades - INFO - Symlinking assembled contigs into /scratch/bfaircloth/uce-tutorial/spades-assemblies/contigs
+    2021-02-26 21:12:16,615 - phyluce_assembly_assemblo_spades - INFO - =========== Starting phyluce_assembly_assemblo_spades ===========
+    2021-02-26 21:12:16,615 - phyluce_assembly_assemblo_spades - INFO - Version: 1.7.0
+    2021-02-26 21:12:16,615 - phyluce_assembly_assemblo_spades - INFO - Commit: None
+    2021-02-26 21:12:16,615 - phyluce_assembly_assemblo_spades - INFO - Argument --config: /data/assembly.conf
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --cores: 12
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --dir: None
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --do_not_clean: False
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --log_path: None
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --memory: 8
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --output: /data/spades-assemblies
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --subfolder:
+    2021-02-26 21:12:16,616 - phyluce_assembly_assemblo_spades - INFO - Argument --verbosity: INFO
+    2021-02-26 21:12:16,617 - phyluce_assembly_assemblo_spades - INFO - Getting input filenames and creating output directories
+    2021-02-26 21:12:16,765 - phyluce_assembly_assemblo_spades - INFO - ------------- Processing alligator_mississippiensis -------------
+    2021-02-26 21:12:16,775 - phyluce_assembly_assemblo_spades - INFO - Finding fastq/fasta files
+    2021-02-26 21:12:16,787 - phyluce_assembly_assemblo_spades - INFO - File type is fastq
+    2021-02-26 21:12:16,787 - phyluce_assembly_assemblo_spades - INFO - Running SPAdes for PE data
+    2021-02-26 21:13:35,643 - phyluce_assembly_assemblo_spades - INFO - Symlinking assembled contigs into /data/spades-assemblies/contigs
     ...[continued]...
-    2021-02-22 15:13:27,554 - phyluce_assembly_assemblo_spades - INFO - =========== Completed phyluce_assembly_assemblo_spades ==========
+    2021-02-26 21:19:06,618 - phyluce_assembly_assemblo_spades - INFO - Symlinking assembled contigs into /data/spades-assemblies/contigs
+    2021-02-26 21:19:06,624 - phyluce_assembly_assemblo_spades - INFO - =========== Completed phyluce_assembly_assemblo_spades ==========
 
 One the assembly is finished, have a look at the directory structure:
 
@@ -426,12 +433,9 @@ One the assembly is finished, have a look at the directory structure:
             ├── scaffolds.fasta
             └── spades.log
 
-Your species-specific assembly files are in the `trinity-assemblies` directory
+Your species-specific assembly files are in the `spades-assemblies` directory
 nested within species-specific directories that correspond to the name you used
-in the `assembly.conf` file (to the left of the colon).  Each name is appended
-with `_trinity` because that's what trinity_ requires.  There is a symlink_
-within each species-specific folder so that you now the "contigs" you assembled
-are in `Trinity.fasta`.  `trinity.log` holds the log output from trinity_.
+in the `assembly.conf` file (to the left of the colon).
 
 There is also a `contigs` directory within this folder.  The `contigs` directory
 is the important one, because it contains symlinks_ to all of the species-
@@ -448,7 +452,7 @@ the top of our working directory:
 
     # run this script against all directories of reads
 
-    for i in trinity-assemblies/contigs/*.fasta;
+    for i in spades-assemblies/contigs/*.fasta;
     do
         phyluce_assembly_get_fasta_lengths --input $i --csv;
     done
@@ -459,10 +463,10 @@ a comment:
 .. code-block:: bash
 
     # samples,contigs,total bp,mean length,95 CI length,min length,max length,median legnth,contigs >1kb
-    alligator_mississippiensis.contigs.fasta,10587,5820479,549.776046094,3.5939422934,224,11285,413.0,1182
-    anolis_carolinensis.contigs.fasta,2458,1067208,434.177379984,5.72662897806,224,4359,319.0,34
-    gallus_gallus.contigs.fasta,19905,8841661,444.192966591,2.06136172068,224,9883,306.0,1530
-    mus_musculus.contigs.fasta,2162,1126231,520.920906568,7.75103292163,224,6542,358.0,186
+    alligator_mississippiensis.contigs.fasta,870,220436,253.37471264367815,6.9967833874072225,56,3831,236.0,5
+    anolis_carolinensis.contigs.fasta,1136,355837,313.2367957746479,8.00195622090676,56,3182,243.0,9
+    gallus_gallus.contigs.fasta,5228,2841631,543.5407421576128,2.8905564028218618,56,4117,495.5,107
+    mus_musculus.contigs.fasta,1395,324498,232.61505376344087,6.895305881534584,56,1646,88.0,13
 
 .. admonition:: Question: Why are my numbers slightly different than your numbers?
     :class: admonition tip
@@ -524,7 +528,7 @@ Now, run the `phyluce_assembly_match_contigs_to_probes` program:
 .. code-block:: bash
 
     phyluce_assembly_match_contigs_to_probes \
-        --contigs trinity-assemblies/contigs \
+        --contigs spades-assemblies/contigs \
         --probes uce-5k-probes.fasta \
         --output uce-search-results
 
@@ -533,56 +537,53 @@ You should see output similar to the following (also stored in
 
 .. code-block:: bash
 
-    2015-04-12 12:44:58,951 - phyluce_assembly_match_contigs_to_probes - INFO - ======= Starting phyluce_assembly_match_contigs_to_probes =======
-    2015-04-12 12:44:58,951 - phyluce_assembly_match_contigs_to_probes - INFO - Version: git 2a9c49d
-    2015-04-12 12:44:58,951 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --contigs: /scratch/uce-tutorial/trinity-assemblies/contigs
-    2015-04-12 12:44:58,951 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --dupefile: None
-    2015-04-12 12:44:58,952 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --keep_duplicates: None
-    2015-04-12 12:44:58,952 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --log_path: None
-    2015-04-12 12:44:58,952 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --min_coverage: 80
-    2015-04-12 12:44:58,952 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --min_identity: 80
-    2015-04-12 12:44:58,952 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --output: /scratch/uce-tutorial/uce-search-results
-    2015-04-12 12:44:58,952 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --probes: /scratch/uce-tutorial/uce-5k-probes.fasta
-    2015-04-12 12:44:58,952 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --regex: ^(uce-\d+)(?:_p\d+.*)
-    2015-04-12 12:44:58,953 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --verbosity: INFO
-    2015-04-12 12:44:59,111 - phyluce_assembly_match_contigs_to_probes - INFO - Creating the UCE-match database
-    2015-04-12 12:44:59,405 - phyluce_assembly_match_contigs_to_probes - INFO - Processing contig data
-    2015-04-12 12:44:59,405 - phyluce_assembly_match_contigs_to_probes - INFO - -----------------------------------------------------------------
-    2015-04-12 12:45:12,735 - phyluce_assembly_match_contigs_to_probes - INFO - alligator_mississippiensis: 4315 (40.76%) uniques of 10587 contigs, 0 dupe probe matches, 230 UCE loci removed for matching multiple contigs, 40 contigs removed for matching multiple UCE loci
-    2015-04-12 12:45:15,919 - phyluce_assembly_match_contigs_to_probes - INFO - anolis_carolinensis: 703 (28.60%) uniques of 2458 contigs, 0 dupe probe matches, 138 UCE loci removed for matching multiple contigs, 2 contigs removed for matching multiple UCE loci
-    2015-04-12 12:45:33,479 - phyluce_assembly_match_contigs_to_probes - INFO - gallus_gallus: 3923 (19.71%) uniques of 19905 contigs, 0 dupe probe matches, 625 UCE loci removed for matching multiple contigs, 47 contigs removed for matching multiple UCE loci
-    2015-04-12 12:45:36,604 - phyluce_assembly_match_contigs_to_probes - INFO - mus_musculus: 825 (38.16%) uniques of 2162 contigs, 0 dupe probe matches, 93 UCE loci removed for matching multiple contigs, 1 contigs removed for matching multiple UCE loci
-    2015-04-12 12:45:36,604 - phyluce_assembly_match_contigs_to_probes - INFO - -----------------------------------------------------------------
-    2015-04-12 12:45:36,605 - phyluce_assembly_match_contigs_to_probes - INFO - The LASTZ alignments are in /scratch/uce-tutorial/uce-search-results
-    2015-04-12 12:45:36,605 - phyluce_assembly_match_contigs_to_probes - INFO - The UCE match database is in /scratch/uce-tutorial/uce-search-results/probe.matches.sqlite
-    2015-04-12 12:45:36,605 - phyluce_assembly_match_contigs_to_probes - INFO - ======= Completed phyluce_assembly_match_contigs_to_probes ======
+    2021-02-26 21:37:43,108 - phyluce_assembly_match_contigs_to_probes - INFO - ======= Starting phyluce_assembly_match_contigs_to_probes =======
+    2021-02-26 21:37:43,108 - phyluce_assembly_match_contigs_to_probes - INFO - Version: 1.7.0
+    2021-02-26 21:37:43,109 - phyluce_assembly_match_contigs_to_probes - INFO - Commit: None
+    2021-02-26 21:37:43,109 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --contigs: /data/spades-assemblies/contigs
+    2021-02-26 21:37:43,109 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --csv: test-output.csv
+    2021-02-26 21:37:43,109 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --dupefile: None
+    2021-02-26 21:37:43,110 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --keep_duplicates: None
+    2021-02-26 21:37:43,110 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --log_path: None
+    2021-02-26 21:37:43,110 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --min_coverage: 80
+    2021-02-26 21:37:43,110 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --min_identity: 80
+    2021-02-26 21:37:43,110 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --output: /data/uce-search-results
+    2021-02-26 21:37:43,111 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --probes: /data/uce-5k-probes.fasta
+    2021-02-26 21:37:43,111 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --regex: ^(uce-\d+)(?:_p\d+.*)
+    2021-02-26 21:37:43,111 - phyluce_assembly_match_contigs_to_probes - INFO - Argument --verbosity: INFO
+    2021-02-26 21:37:43,225 - phyluce_assembly_match_contigs_to_probes - INFO - Creating the UCE-match database
+    2021-02-26 21:37:43,266 - phyluce_assembly_match_contigs_to_probes - INFO - Processing contig data
+    2021-02-26 21:37:43,266 - phyluce_assembly_match_contigs_to_probes - INFO - -----------------------------------------------------------------
+    2021-02-26 21:37:44,680 - phyluce_assembly_match_contigs_to_probes - INFO - alligator_mississippiensis: 422 (48.51%) uniques of 870 contigs, 0 dupe probe matches, 3 UCE loci removed for matching multiple contigs, 2 contigs removed for matching multiple UCE loci
+    2021-02-26 21:37:45,940 - phyluce_assembly_match_contigs_to_probes - INFO - anolis_carolinensis: 399 (35.12%) uniques of 1136 contigs, 0 dupe probe matches, 0 UCE loci removed for matching multiple contigs, 2 contigs removed for matching multiple UCE loci
+    2021-02-26 21:37:53,686 - phyluce_assembly_match_contigs_to_probes - INFO - gallus_gallus: 3492 (66.79%) uniques of 5228 contigs, 0 dupe probe matches, 22 UCE loci removed for matching multiple contigs, 37 contigs removed for matching multiple UCE loci
+    2021-02-26 21:37:54,853 - phyluce_assembly_match_contigs_to_probes - INFO - mus_musculus: 324 (23.23%) uniques of 1395 contigs, 0 dupe probe matches, 0 UCE loci removed for matching multiple contigs, 1 contigs removed for matching multiple UCE loci
+    2021-02-26 21:37:54,853 - phyluce_assembly_match_contigs_to_probes - INFO - -----------------------------------------------------------------
+    2021-02-26 21:37:54,853 - phyluce_assembly_match_contigs_to_probes - INFO - The LASTZ alignments are in /data/uce-search-results
+    2021-02-26 21:37:54,854 - phyluce_assembly_match_contigs_to_probes - INFO - The UCE match database is in /data/uce-search-results/probe.matches.sqlite
+    2021-02-26 21:37:54,854 - phyluce_assembly_match_contigs_to_probes - INFO - ======= Completed phyluce_assembly_match_contigs_to_probes ======
 
 The header info at the top tells us exactly what version of the code we are
 running and keeps track of our options.  The important output is:
 
 .. code-block:: bash
 
-    alligator_mississippiensis: 4315 (40.76%) uniques of 10587 contigs, 0 dupe probe matches, 230 UCE loci removed for matching multiple contigs, 40 contigs removed for matching multiple UCE loci
-    anolis_carolinensis: 703 (28.60%) uniques of 2458 contigs, 0 dupe probe matches, 138 UCE loci removed for matching multiple contigs, 2 contigs removed for matching multiple UCE loci
-    gallus_gallus: 3923 (19.71%) uniques of 19905 contigs, 0 dupe probe matches, 625 UCE loci removed for matching multiple contigs, 47 contigs removed for matching multiple UCE loci
-    mus_musculus: 825 (38.16%) uniques of 2162 contigs, 0 dupe probe matches, 93 UCE loci removed for matching multiple contigs, 1 contigs removed for matching multiple UCE loci
+    alligator_mississippiensis: 422 (48.51%) uniques of 870 contigs, 0 dupe probe matches, 3 UCE loci removed for matching multiple contigs, 2 contigs removed for matching multiple UCE loci
+    anolis_carolinensis: 399 (35.12%) uniques of 1136 contigs, 0 dupe probe matches, 0 UCE loci removed for matching multiple contigs, 2 contigs removed for matching multiple UCE loci
+    gallus_gallus: 3492 (66.79%) uniques of 5228 contigs, 0 dupe probe matches, 22 UCE loci removed for matching multiple contigs, 37 contigs removed for matching multiple UCE loci
+    mus_musculus: 324 (23.23%) uniques of 1395 contigs, 0 dupe probe matches, 0 UCE loci removed for matching multiple contigs, 1 contigs removed for matching multiple UCE loci
 
 Which we can break down to the following (for `alligator_mississippiensis`):
 
 .. code-block:: bash
 
     alligator_mississippiensis:
-        4315 (40.76%) uniques of 10587 contigs
+        422 (48.51%) uniques of 870 contigs
         0 dupe probe matches
-        230 UCE loci removed for matching multiple contigs
-        40 contigs removed for matching multiple UCE loci
+        3 UCE loci removed for matching multiple contigs
+        2 contigs removed for matching multiple UCE loci
 
-These are the capture data for the `alligator_mississippiensis` sample.  We
-targeted 5k UCE loci in this sample and recovered roughly 4484 of those loci.
-Before reaching that total of 4484 loci, we removed 45 and 44 loci from the data
-set because they looked like duplicates (probes supposedly targeting different
-loci hit the same contig or two supposedly different contigs hit probes
-designed for a single UCE locus).
+These are the capture data for the `alligator_mississippiensis` sample.  We targeted 5k UCE loci in this sample and recovered roughly 422 of those loci **in this subsampled set of reads**. Before reaching that total of 422 loci, we removed 3 UCE loci and 2 contigs from the data set because they looked like duplicates (probes supposedly targeting different loci hit the same contig or two supposedly different contigs hit probes designed for a single UCE locus).
 
 .. admonition:: Question: Why is the count of UCE loci different by sample?
     :class: admonition tip
@@ -590,7 +591,11 @@ designed for a single UCE locus).
     For these example data, we enriched some samples (alligator_mississippiensis
     and gallus_gallus) for 5k UCE loci, while we enriched others
     (anolis_carolinensis and mus_musculus) for 2.5k UCE loci.  Additionally, the
-    2.5k UCE enrichments did not work very well (operator error).
+    2.5k UCE enrichments did not work very well (operator error).  Finally, because
+    we have subsampled the data to make the files of reasonable size for the 
+    tutorial, that process removes lots of read that **would** have assembled 
+    into UCE contigs (e.g., if we use ALL the data, we recover 4000+ UCE contigs
+    for alligator).
 
 The directory structure now looks like the following (everything collapsed but
 the `uce-search-results directory`):
@@ -624,7 +629,7 @@ Extracting UCE loci
 ===================
 
 Now that we have located UCE loci, we need to determine which taxa we want in
-our analysis, create a list of those taxa, and then generated a list of which
+our analysis, create a list of those taxa, and then generate a list of which
 UCE loci we enriched in each taxon (the "data matrix configuration file").  We
 will then use this list to extract FASTA data for each taxon for each UCE locus.
 
@@ -683,29 +688,30 @@ The output should look like the following:
 
 .. code-block:: bash
 
-    2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - =========== Starting phyluce_assembly_get_match_counts ==========
-    2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - Version: git 2a9c49d
-    2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - Argument --extend_locus_db: None
-    2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - Argument --incomplete_matrix: True
-    2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - Argument --keep_counts: False
-    2015-04-12 12:56:11,835 - phyluce_assembly_get_match_counts - INFO - Argument --locus_db: /scratch/uce-tutorial/uce-search-results/probe.matches.sqlite
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --log_path: None
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --optimize: False
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.conf
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --random: False
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --sample_size: 10
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --samples: 10
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --silent: False
-    2015-04-12 12:56:11,836 - phyluce_assembly_get_match_counts - INFO - Argument --taxon_group: all
-    2015-04-12 12:56:11,837 - phyluce_assembly_get_match_counts - INFO - Argument --taxon_list_config: /scratch/uce-tutorial/taxon-set.conf
-    2015-04-12 12:56:11,837 - phyluce_assembly_get_match_counts - INFO - Argument --verbosity: INFO
-    2015-04-12 12:56:11,837 - phyluce_assembly_get_match_counts - INFO - There are 4 taxa in the taxon-group '[all]' in the config file taxon-set.conf
-    2015-04-12 12:56:11,838 - phyluce_assembly_get_match_counts - INFO - Getting UCE names from database
-    2015-04-12 12:56:11,844 - phyluce_assembly_get_match_counts - INFO - There are 5041 total UCE loci in the database
-    2015-04-12 12:56:11,946 - phyluce_assembly_get_match_counts - INFO - Getting UCE matches by organism to generate a INCOMPLETE matrix
-    2015-04-12 12:56:11,948 - phyluce_assembly_get_match_counts - INFO - There are 4710 UCE loci in an INCOMPLETE matrix
-    2015-04-12 12:56:11,949 - phyluce_assembly_get_match_counts - INFO - Writing the taxa and loci in the data matrix to /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.conf
-    2015-04-12 12:56:11,952 - phyluce_assembly_get_match_counts - INFO - ========== Completed phyluce_assembly_get_match_counts ==========
+    2021-03-01 15:46:14,277 - phyluce_assembly_get_match_counts - INFO - =========== Starting phyluce_assembly_get_match_counts ==========
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Version: 1.7.0
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Commit: None
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Argument --extend_locus_db: None
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Argument --incomplete_matrix: True
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Argument --keep_counts: False
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Argument --locus_db: /data/uce-search-results/probe.matches.sqlite
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Argument --log_path: None
+    2021-03-01 15:46:14,278 - phyluce_assembly_get_match_counts - INFO - Argument --optimize: False
+    2021-03-01 15:46:14,279 - phyluce_assembly_get_match_counts - INFO - Argument --output: /data/taxon-sets/all/all-taxa-incomplete.conf
+    2021-03-01 15:46:14,279 - phyluce_assembly_get_match_counts - INFO - Argument --random: False
+    2021-03-01 15:46:14,279 - phyluce_assembly_get_match_counts - INFO - Argument --sample_size: 10
+    2021-03-01 15:46:14,279 - phyluce_assembly_get_match_counts - INFO - Argument --samples: 10
+    2021-03-01 15:46:14,279 - phyluce_assembly_get_match_counts - INFO - Argument --silent: False
+    2021-03-01 15:46:14,279 - phyluce_assembly_get_match_counts - INFO - Argument --taxon_group: all
+    2021-03-01 15:46:14,279 - phyluce_assembly_get_match_counts - INFO - Argument --taxon_list_config: /data/taxon-set.conf
+    2021-03-01 15:46:14,280 - phyluce_assembly_get_match_counts - INFO - Argument --verbosity: INFO
+    2021-03-01 15:46:14,319 - phyluce_assembly_get_match_counts - INFO - There are 4 taxa in the taxon-group '[all]' in the config file taxon-set.conf
+    2021-03-01 15:46:14,319 - phyluce_assembly_get_match_counts - INFO - Getting UCE names from database
+    2021-03-01 15:46:44,488 - phyluce_assembly_get_match_counts - INFO - There are 5041 total UCE loci in the database
+    2021-03-01 15:46:44,567 - phyluce_assembly_get_match_counts - INFO - Getting UCE matches by organism to generate a INCOMPLETE matrix
+    2021-03-01 15:46:44,569 - phyluce_assembly_get_match_counts - INFO - There are 3653 UCE loci in an INCOMPLETE matrix
+    2021-03-01 15:46:44,569 - phyluce_assembly_get_match_counts - INFO - Writing the taxa and loci in the data matrix to /data/taxon-sets/all/all-taxa-incomplete.conf
+    2021-03-01 15:46:44,574 - phyluce_assembly_get_match_counts - INFO - ========== Completed phyluce_assembly_get_match_counts ==========
 
 And, our directory structure should now look like this (collapsing all but
 `taxon-sets`):
@@ -741,7 +747,7 @@ Now, we need to extract FASTA data that correspond to the loci in
 
     # get FASTA data for taxa in our taxon set
     phyluce_assembly_get_fastas_from_match_counts \
-        --contigs ../../trinity-assemblies/contigs \
+        --contigs ../../spades-assemblies/contigs \
         --locus-db ../../uce-search-results/probe.matches.sqlite \
         --match-count-output all-taxa-incomplete.conf \
         --output all-taxa-incomplete.fasta \
@@ -752,36 +758,38 @@ The output should look something like the following:
 
 .. code-block:: bash
 
-    2015-04-12 12:58:40,646 - phyluce_assembly_get_fastas_from_match_counts - INFO - ===== Starting phyluce_assembly_get_fastas_from_match_counts ====
-    2015-04-12 12:58:40,646 - phyluce_assembly_get_fastas_from_match_counts - INFO - Version: git a6a957a
-    2015-04-12 12:58:40,646 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --contigs: /scratch/uce-tutorial/trinity-assemblies/contigs
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --extend_locus_contigs: None
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --extend_locus_db: None
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --incomplete_matrix: /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.incomplete
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --locus_db: /scratch/uce-tutorial/uce-search-results/probe.matches.sqlite
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --match_count_output: /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.conf
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.fasta
-    2015-04-12 12:58:40,647 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --verbosity: INFO
-    2015-04-12 12:58:40,702 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 4 taxa in the match-count-config file named all-taxa-incomplete.conf
-    2015-04-12 12:58:40,716 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 4710 UCE loci in an INCOMPLETE matrix
-    2015-04-12 12:58:40,717 - phyluce_assembly_get_fastas_from_match_counts - INFO - ---------Getting UCE loci for alligator_mississippiensis---------
-    2015-04-12 12:58:40,773 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 4315 UCE loci for alligator_mississippiensis
-    2015-04-12 12:58:40,774 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for alligator_mississippiensis
-    2015-04-12 12:58:51,084 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.incomplete
-    2015-04-12 12:58:51,086 - phyluce_assembly_get_fastas_from_match_counts - INFO - -------------Getting UCE loci for anolis_carolinensis------------
-    2015-04-12 12:58:51,120 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 703 UCE loci for anolis_carolinensis
-    2015-04-12 12:58:51,121 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for anolis_carolinensis
-    2015-04-12 12:58:51,693 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.incomplete
-    2015-04-12 12:58:51,701 - phyluce_assembly_get_fastas_from_match_counts - INFO - ----------------Getting UCE loci for gallus_gallus---------------
-    2015-04-12 12:58:51,753 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 3923 UCE loci for gallus_gallus
-    2015-04-12 12:58:51,753 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for gallus_gallus
-    2015-04-12 12:59:10,959 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.incomplete
-    2015-04-12 12:59:10,962 - phyluce_assembly_get_fastas_from_match_counts - INFO - ----------------Getting UCE loci for mus_musculus----------------
-    2015-04-12 12:59:10,997 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 825 UCE loci for mus_musculus
-    2015-04-12 12:59:10,997 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for mus_musculus
-    2015-04-12 12:59:11,610 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.incomplete
-    2015-04-12 12:59:11,618 - phyluce_assembly_get_fastas_from_match_counts - INFO - ==== Completed phyluce_assembly_get_fastas_from_match_counts ====
+    2021-03-01 15:47:55,574 - phyluce_assembly_get_fastas_from_match_counts - INFO - ===== Starting phyluce_assembly_get_fastas_from_match_counts ====
+    2021-03-01 15:47:55,575 - phyluce_assembly_get_fastas_from_match_counts - INFO - Version: 1.7.0
+    2021-03-01 15:47:55,575 - phyluce_assembly_get_fastas_from_match_counts - INFO - Commit: None
+    2021-03-01 15:47:55,575 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --contigs: /data/spades-assemblies/contigs
+    2021-03-01 15:47:55,575 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --extend_locus_contigs: None
+    2021-03-01 15:47:55,575 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --extend_locus_db: None
+    2021-03-01 15:47:55,575 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --incomplete_matrix: /data/taxon-sets/all/all-taxa-incomplete.incomplete
+    2021-03-01 15:47:55,576 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --locus_db: /data/uce-search-results/probe.matches.sqlite
+    2021-03-01 15:47:55,576 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 15:47:55,576 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --match_count_output: /data/taxon-sets/all/all-taxa-incomplete.conf
+    2021-03-01 15:47:55,576 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --output: /data/taxon-sets/all/all-taxa-incomplete.fasta
+    2021-03-01 15:47:55,576 - phyluce_assembly_get_fastas_from_match_counts - INFO - Argument --verbosity: INFO
+    2021-03-01 15:47:55,609 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 4 taxa in the match-count-config file named all-taxa-incomplete.conf
+    2021-03-01 15:47:55,612 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 3653 UCE loci in an INCOMPLETE matrix
+    2021-03-01 15:47:55,614 - phyluce_assembly_get_fastas_from_match_counts - INFO - ---------Getting UCE loci for alligator_mississippiensis---------
+    2021-03-01 15:47:55,925 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 422 UCE loci for alligator_mississippiensis
+    2021-03-01 15:47:55,925 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for alligator_mississippiensis
+    2021-03-01 15:47:56,396 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /data/taxon-sets/all/all-taxa-incomplete.incomplete
+    2021-03-01 15:47:56,399 - phyluce_assembly_get_fastas_from_match_counts - INFO - -------------Getting UCE loci for anolis_carolinensis------------
+    2021-03-01 15:47:56,638 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 399 UCE loci for anolis_carolinensis
+    2021-03-01 15:47:56,638 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for anolis_carolinensis
+    2021-03-01 15:47:57,077 - phyluce_assembly_get_fastas_from_match_counts - INFO - Replaced <20 ambiguous bases (N) in 7 contigs for anolis_carolinensis
+    2021-03-01 15:47:57,077 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /data/taxon-sets/all/all-taxa-incomplete.incomplete
+    2021-03-01 15:47:57,079 - phyluce_assembly_get_fastas_from_match_counts - INFO - ----------------Getting UCE loci for gallus_gallus---------------
+    2021-03-01 15:47:58,940 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 3492 UCE loci for gallus_gallus
+    2021-03-01 15:47:58,940 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for gallus_gallus
+    2021-03-01 15:48:01,965 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /data/taxon-sets/all/all-taxa-incomplete.incomplete
+    2021-03-01 15:48:01,966 - phyluce_assembly_get_fastas_from_match_counts - INFO - ----------------Getting UCE loci for mus_musculus----------------
+    2021-03-01 15:48:02,168 - phyluce_assembly_get_fastas_from_match_counts - INFO - There are 324 UCE loci for mus_musculus
+    2021-03-01 15:48:02,168 - phyluce_assembly_get_fastas_from_match_counts - INFO - Parsing and renaming contigs for mus_musculus
+    2021-03-01 15:48:02,508 - phyluce_assembly_get_fastas_from_match_counts - INFO - Writing missing locus information to /data/taxon-sets/all/all-taxa-incomplete.incomplete
+    2021-03-01 15:48:02,519 - phyluce_assembly_get_fastas_from_match_counts - INFO - ==== Completed phyluce_assembly_get_fastas_from_match_counts ====
 
 And, our directory structure should now look like this (collapsing all but
 `taxon-sets`):
@@ -826,7 +834,7 @@ files.  To do that, run the following:
 
     # explode the monolithic FASTA by taxon (you can also do by locus)
     phyluce_assembly_explode_get_fastas_file \
-        --alignments all-taxa-incomplete.fasta \
+        --input all-taxa-incomplete.fasta \
         --output exploded-fastas \
         --by-taxon
 
@@ -837,10 +845,10 @@ files.  To do that, run the following:
     done
 
     # samples,contigs,total bp,mean length,95 CI length,min length,max length,median legnth,contigs >1kb
-    alligator-mississippiensis.unaligned.fasta,4315,3465679,803.170104287,3.80363492428,224,1794,823.0,980
-    anolis-carolinensis.unaligned.fasta,703,400214,569.294452347,9.16433421241,224,1061,546.0,7
-    gallus-gallus.unaligned.fasta,3923,3273674,834.482283966,4.26048496461,231,1864,852.0,1149
-    mus-musculus.unaligned.fasta,825,594352,720.426666667,9.85933217965,225,1178,823.0,139
+    alligator-mississippiensis.unaligned.fasta,422,118864,281.66824644549763,9.03914154267783,206,3831,250.5,1
+    anolis-carolinensis.unaligned.fasta,399,206926,518.6115288220551,11.261692813904311,206,1115,525.0,1
+    gallus-gallus.unaligned.fasta,3492,2157267,617.7740549828179,3.075870593111506,307,1503,607.0,81
+    mus-musculus.unaligned.fasta,324,188082,580.5,13.930004844688803,207,1058,623.5,6
 
 Aligning UCE loci
 =================
@@ -853,7 +861,7 @@ algorithm. It's hard to say what is best in all situations.  When taxa are
 is reasonable.  When the taxa you are interested in span a wider range of
 divergence times (> 50 MYA), you may want to think about internal trimming.
 
-How you accomplish you edge- or internal trimming is also a decision you need to
+How you accomplish you edge- or internal-trimming is also a decision you need to
 make. In phyluce_, we implement our edge-trimming algorithm by running the
 alignment program "as-is" (i.e., without the `--no-trim`) option.  We do
 internal-trimming by turning off trimming using `--no-trim`, then passing the
@@ -880,7 +888,7 @@ trimming, as follows:
 
     # align the data
     phyluce_align_seqcap_align \
-        --fasta all-taxa-incomplete.fasta \
+        --input all-taxa-incomplete.fasta \
         --output mafft-nexus-edge-trimmed \
         --taxa 4 \
         --aligner mafft \
@@ -895,34 +903,35 @@ The output should look like this:
 
 .. code-block:: bash
 
-    2015-04-12 13:01:31,919 - phyluce_align_seqcap_align - INFO - ============== Starting phyluce_align_seqcap_align ==============
-    2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Version: git a6a957a
-    2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Argument --aligner: mafft
-    2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Argument --ambiguous: False
-    2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Argument --cores: 12
-    2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Argument --fasta: /scratch/uce-tutorial/taxon-sets/all/all-taxa-incomplete.fasta
-    2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 13:01:31,920 - phyluce_align_seqcap_align - INFO - Argument --max_divergence: 0.2
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --min_length: 100
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --no_trim: False
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --notstrict: True
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-edge-trimmed
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --output_format: nexus
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --proportion: 0.65
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --taxa: 4
-    2015-04-12 13:01:31,921 - phyluce_align_seqcap_align - INFO - Argument --threshold: 0.65
-    2015-04-12 13:01:31,922 - phyluce_align_seqcap_align - INFO - Argument --verbosity: INFO
-    2015-04-12 13:01:31,922 - phyluce_align_seqcap_align - INFO - Argument --window: 20
-    2015-04-12 13:01:31,922 - phyluce_align_seqcap_align - INFO - Building the locus dictionary
-    2015-04-12 13:01:31,922 - phyluce_align_seqcap_align - INFO - Removing ALL sequences with ambiguous bases...
-    2015-04-12 13:01:34,051 - phyluce_align_seqcap_align - WARNING - DROPPED locus uce-6169. Too few taxa (N < 3).
+    2021-03-01 15:51:21,854 - phyluce_align_seqcap_align - INFO - ============== Starting phyluce_align_seqcap_align ==============
+    2021-03-01 15:51:21,855 - phyluce_align_seqcap_align - INFO - Version: 1.7.0
+    2021-03-01 15:51:21,855 - phyluce_align_seqcap_align - INFO - Commit: None
+    2021-03-01 15:51:21,856 - phyluce_align_seqcap_align - INFO - Argument --aligner: mafft
+    2021-03-01 15:51:21,856 - phyluce_align_seqcap_align - INFO - Argument --ambiguous: False
+    2021-03-01 15:51:21,856 - phyluce_align_seqcap_align - INFO - Argument --cores: 12
+    2021-03-01 15:51:21,856 - phyluce_align_seqcap_align - INFO - Argument --input: /data/taxon-sets/all/all-taxa-incomplete.fasta
+    2021-03-01 15:51:21,857 - phyluce_align_seqcap_align - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 15:51:21,857 - phyluce_align_seqcap_align - INFO - Argument --max_divergence: 0.2
+    2021-03-01 15:51:21,857 - phyluce_align_seqcap_align - INFO - Argument --min_length: 100
+    2021-03-01 15:51:21,857 - phyluce_align_seqcap_align - INFO - Argument --no_trim: False
+    2021-03-01 15:51:21,857 - phyluce_align_seqcap_align - INFO - Argument --notstrict: True
+    2021-03-01 15:51:21,858 - phyluce_align_seqcap_align - INFO - Argument --output: /data/taxon-sets/all/mafft-nexus-edge-trimmed
+    2021-03-01 15:51:21,858 - phyluce_align_seqcap_align - INFO - Argument --output_format: nexus
+    2021-03-01 15:51:21,858 - phyluce_align_seqcap_align - INFO - Argument --proportion: 0.65
+    2021-03-01 15:51:21,858 - phyluce_align_seqcap_align - INFO - Argument --taxa: 4
+    2021-03-01 15:51:21,858 - phyluce_align_seqcap_align - INFO - Argument --threshold: 0.65
+    2021-03-01 15:51:21,859 - phyluce_align_seqcap_align - INFO - Argument --verbosity: INFO
+    2021-03-01 15:51:21,859 - phyluce_align_seqcap_align - INFO - Argument --window: 20
+    2021-03-01 15:51:21,859 - phyluce_align_seqcap_align - INFO - Building the locus dictionary
+    2021-03-01 15:51:21,859 - phyluce_align_seqcap_align - INFO - Removing ALL sequences with ambiguous bases...
+    2021-03-01 15:51:22,328 - phyluce_align_seqcap_align - WARNING - DROPPED locus uce-4698. Too few taxa (N < 3).
     [many more loci dropped here]
-    2015-04-12 13:01:34,596 - phyluce_align_seqcap_align - INFO - Aligning with MAFFT
-    2015-04-12 13:01:34,598 - phyluce_align_seqcap_align - INFO - Alignment begins. 'X' indicates dropped alignments (these are reported after alignment)
+    2021-03-01 15:51:22,750 - phyluce_align_seqcap_align - INFO - Aligning with MAFFT
+    2021-03-01 15:51:22,751 - phyluce_align_seqcap_align - INFO - Alignment begins. 'X' indicates dropped alignments (these are reported after alignment)
     .................[continued]
-    2015-04-12 13:02:05,847 - phyluce_align_seqcap_align - INFO - Alignment ends
-    2015-04-12 13:02:05,848 - phyluce_align_seqcap_align - INFO - Writing output files
-    2015-04-12 13:02:06,567 - phyluce_align_seqcap_align - INFO - ============== Completed phyluce_align_seqcap_align =============
+    2021-03-01 15:51:28,544 - phyluce_align_seqcap_align - INFO - Alignment ends
+    2021-03-01 15:51:28,545 - phyluce_align_seqcap_align - INFO - Writing output files
+    2021-03-01 15:51:28,788 - phyluce_align_seqcap_align - INFO - ============== Completed phyluce_align_seqcap_align =============
 
 The `.` values that you see represent loci that were aligned and succesfully
 trimmed. Any `X` values that you see represent loci that were removed
@@ -972,62 +981,71 @@ The output from the program should look like:
 
 .. code-block:: bash
 
-    2015-04-12 13:40:56,410 - phyluce_align_get_align_summary_data - INFO - ========= Starting phyluce_align_get_align_summary_data =========
-    2015-04-12 13:40:56,410 - phyluce_align_get_align_summary_data - INFO - Version: git a6a957a
-    2015-04-12 13:40:56,410 - phyluce_align_get_align_summary_data - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-edge-trimmed
-    2015-04-12 13:40:56,410 - phyluce_align_get_align_summary_data - INFO - Argument --cores: 12
-    2015-04-12 13:40:56,410 - phyluce_align_get_align_summary_data - INFO - Argument --input_format: nexus
-    2015-04-12 13:40:56,411 - phyluce_align_get_align_summary_data - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 13:40:56,411 - phyluce_align_get_align_summary_data - INFO - Argument --show_taxon_counts: False
-    2015-04-12 13:40:56,411 - phyluce_align_get_align_summary_data - INFO - Argument --verbosity: INFO
-    2015-04-12 13:40:56,411 - phyluce_align_get_align_summary_data - INFO - Getting alignment files
-    2015-04-12 13:40:56,416 - phyluce_align_get_align_summary_data - INFO - Computing summary statistics using 12 cores
-    2015-04-12 13:40:56,716 - phyluce_align_get_align_summary_data - INFO - ----------------------- Alignment summary -----------------------
-    2015-04-12 13:40:56,717 - phyluce_align_get_align_summary_data - INFO - [Alignments] loci:      913
-    2015-04-12 13:40:56,717 - phyluce_align_get_align_summary_data - INFO - [Alignments] length:    559,055
-    2015-04-12 13:40:56,717 - phyluce_align_get_align_summary_data - INFO - [Alignments] mean:      612.33
-    2015-04-12 13:40:56,717 - phyluce_align_get_align_summary_data - INFO - [Alignments] 95% CI:    13.92
-    2015-04-12 13:40:56,717 - phyluce_align_get_align_summary_data - INFO - [Alignments] min:       157
-    2015-04-12 13:40:56,717 - phyluce_align_get_align_summary_data - INFO - [Alignments] max:       1,266
-    2015-04-12 13:40:56,719 - phyluce_align_get_align_summary_data - INFO - ------------------------- Taxon summary -------------------------
-    2015-04-12 13:40:56,719 - phyluce_align_get_align_summary_data - INFO - [Taxa] mean:        3.38
-    2015-04-12 13:40:56,719 - phyluce_align_get_align_summary_data - INFO - [Taxa] 95% CI:      0.03
-    2015-04-12 13:40:56,719 - phyluce_align_get_align_summary_data - INFO - [Taxa] min:         3
-    2015-04-12 13:40:56,719 - phyluce_align_get_align_summary_data - INFO - [Taxa] max:         4
-    2015-04-12 13:40:56,720 - phyluce_align_get_align_summary_data - INFO - ----------------- Missing data from trim summary ----------------
-    2015-04-12 13:40:56,720 - phyluce_align_get_align_summary_data - INFO - [Missing] mean:     9.61
-    2015-04-12 13:40:56,720 - phyluce_align_get_align_summary_data - INFO - [Missing] 95% CI:   0.42
-    2015-04-12 13:40:56,720 - phyluce_align_get_align_summary_data - INFO - [Missing] min:      0.00
-    2015-04-12 13:40:56,720 - phyluce_align_get_align_summary_data - INFO - [Missing] max:      27.98
-    2015-04-12 13:40:56,732 - phyluce_align_get_align_summary_data - INFO - -------------------- Character count summary --------------------
-    2015-04-12 13:40:56,732 - phyluce_align_get_align_summary_data - INFO - [All characters]    1,852,854
-    2015-04-12 13:40:56,732 - phyluce_align_get_align_summary_data - INFO - [Nucleotides]       1,600,577
-    2015-04-12 13:40:56,733 - phyluce_align_get_align_summary_data - INFO - ---------------- Data matrix completeness summary ---------------
-    2015-04-12 13:40:56,733 - phyluce_align_get_align_summary_data - INFO - [Matrix 50%]        913 alignments
-    2015-04-12 13:40:56,733 - phyluce_align_get_align_summary_data - INFO - [Matrix 55%]        913 alignments
-    2015-04-12 13:40:56,733 - phyluce_align_get_align_summary_data - INFO - [Matrix 60%]        913 alignments
-    2015-04-12 13:40:56,733 - phyluce_align_get_align_summary_data - INFO - [Matrix 65%]        913 alignments
-    2015-04-12 13:40:56,734 - phyluce_align_get_align_summary_data - INFO - [Matrix 70%]        913 alignments
-    2015-04-12 13:40:56,734 - phyluce_align_get_align_summary_data - INFO - [Matrix 75%]        913 alignments
-    2015-04-12 13:40:56,734 - phyluce_align_get_align_summary_data - INFO - [Matrix 80%]        346 alignments
-    2015-04-12 13:40:56,734 - phyluce_align_get_align_summary_data - INFO - [Matrix 85%]        346 alignments
-    2015-04-12 13:40:56,734 - phyluce_align_get_align_summary_data - INFO - [Matrix 90%]        346 alignments
-    2015-04-12 13:40:56,734 - phyluce_align_get_align_summary_data - INFO - [Matrix 95%]        346 alignments
-    2015-04-12 13:40:56,735 - phyluce_align_get_align_summary_data - INFO - ------------------------ Character counts -----------------------
-    2015-04-12 13:40:56,735 - phyluce_align_get_align_summary_data - INFO - [Characters] '-' is present 72,168 times
-    2015-04-12 13:40:56,735 - phyluce_align_get_align_summary_data - INFO - [Characters] '?' is present 180,109 times
-    2015-04-12 13:40:56,735 - phyluce_align_get_align_summary_data - INFO - [Characters] 'A' is present 494,411 times
-    2015-04-12 13:40:56,735 - phyluce_align_get_align_summary_data - INFO - [Characters] 'C' is present 308,796 times
-    2015-04-12 13:40:56,735 - phyluce_align_get_align_summary_data - INFO - [Characters] 'G' is present 295,171 times
-    2015-04-12 13:40:56,735 - phyluce_align_get_align_summary_data - INFO - [Characters] 'T' is present 502,199 times
-    2015-04-12 13:40:56,736 - phyluce_align_get_align_summary_data - INFO - ========= Completed phyluce_align_get_align_summary_data ========
+    2021-03-01 15:58:43,241 - phyluce_align_get_align_summary_data - INFO - ========= Starting phyluce_align_get_align_summary_data =========
+    2021-03-01 15:58:43,241 - phyluce_align_get_align_summary_data - INFO - Version: 1.7.0
+    2021-03-01 15:58:43,241 - phyluce_align_get_align_summary_data - INFO - Commit: None
+    2021-03-01 15:58:43,241 - phyluce_align_get_align_summary_data - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-edge-trimmed
+    2021-03-01 15:58:43,241 - phyluce_align_get_align_summary_data - INFO - Argument --cores: 12
+    2021-03-01 15:58:43,241 - phyluce_align_get_align_summary_data - INFO - Argument --input_format: nexus
+    2021-03-01 15:58:43,242 - phyluce_align_get_align_summary_data - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 15:58:43,242 - phyluce_align_get_align_summary_data - INFO - Argument --output: None
+    2021-03-01 15:58:43,242 - phyluce_align_get_align_summary_data - INFO - Argument --show_taxon_counts: False
+    2021-03-01 15:58:43,242 - phyluce_align_get_align_summary_data - INFO - Argument --verbosity: INFO
+    2021-03-01 15:58:43,242 - phyluce_align_get_align_summary_data - INFO - Getting alignment files
+    2021-03-01 15:58:43,251 - phyluce_align_get_align_summary_data - INFO - Computing summary statistics using 12 cores
+    2021-03-01 15:58:43,596 - phyluce_align_get_align_summary_data - INFO - ----------------------- Alignment summary -----------------------
+    2021-03-01 15:58:43,597 - phyluce_align_get_align_summary_data - INFO - [Alignments] loci:	190
+    2021-03-01 15:58:43,597 - phyluce_align_get_align_summary_data - INFO - [Alignments] length:	86,032
+    2021-03-01 15:58:43,597 - phyluce_align_get_align_summary_data - INFO - [Alignments] mean:	452.80
+    2021-03-01 15:58:43,597 - phyluce_align_get_align_summary_data - INFO - [Alignments] 95% CI:	21.51
+    2021-03-01 15:58:43,597 - phyluce_align_get_align_summary_data - INFO - [Alignments] min:	126
+    2021-03-01 15:58:43,598 - phyluce_align_get_align_summary_data - INFO - [Alignments] max:	907
+    2021-03-01 15:58:43,598 - phyluce_align_get_align_summary_data - INFO - ------------------- Informative Sites summary -------------------
+    2021-03-01 15:58:43,598 - phyluce_align_get_align_summary_data - INFO - [Sites] loci:	190
+    2021-03-01 15:58:43,598 - phyluce_align_get_align_summary_data - INFO - [Sites] total:	58
+    2021-03-01 15:58:43,598 - phyluce_align_get_align_summary_data - INFO - [Sites] mean:	0.31
+    2021-03-01 15:58:43,598 - phyluce_align_get_align_summary_data - INFO - [Sites] 95% CI:	0.18
+    2021-03-01 15:58:43,598 - phyluce_align_get_align_summary_data - INFO - [Sites] min:	0
+    2021-03-01 15:58:43,599 - phyluce_align_get_align_summary_data - INFO - [Sites] max:	12
+    2021-03-01 15:58:43,600 - phyluce_align_get_align_summary_data - INFO - ------------------------- Taxon summary -------------------------
+    2021-03-01 15:58:43,600 - phyluce_align_get_align_summary_data - INFO - [Taxa] mean:	3.15
+    2021-03-01 15:58:43,600 - phyluce_align_get_align_summary_data - INFO - [Taxa] 95% CI:	0.05
+    2021-03-01 15:58:43,600 - phyluce_align_get_align_summary_data - INFO - [Taxa] min:		3
+    2021-03-01 15:58:43,600 - phyluce_align_get_align_summary_data - INFO - [Taxa] max:		4
+    2021-03-01 15:58:43,601 - phyluce_align_get_align_summary_data - INFO - ----------------- Missing data from trim summary ----------------
+    2021-03-01 15:58:43,601 - phyluce_align_get_align_summary_data - INFO - [Missing] mean:	    9.36
+    2021-03-01 15:58:43,601 - phyluce_align_get_align_summary_data - INFO - [Missing] 95% CI:	0.84
+    2021-03-01 15:58:43,601 - phyluce_align_get_align_summary_data - INFO - [Missing] min:	    0.00
+    2021-03-01 15:58:43,601 - phyluce_align_get_align_summary_data - INFO - [Missing] max:	    32.67
+    2021-03-01 15:58:43,603 - phyluce_align_get_align_summary_data - INFO - -------------------- Character count summary --------------------
+    2021-03-01 15:58:43,603 - phyluce_align_get_align_summary_data - INFO - [All characters]	268,288
+    2021-03-01 15:58:43,603 - phyluce_align_get_align_summary_data - INFO - [Nucleotides]		235,385
+    2021-03-01 15:58:43,603 - phyluce_align_get_align_summary_data - INFO - ---------------- Data matrix completeness summary ---------------
+    2021-03-01 15:58:43,604 - phyluce_align_get_align_summary_data - INFO - [Matrix 50%]		190 alignments
+    2021-03-01 15:58:43,604 - phyluce_align_get_align_summary_data - INFO - [Matrix 55%]		190 alignments
+    2021-03-01 15:58:43,604 - phyluce_align_get_align_summary_data - INFO - [Matrix 60%]		190 alignments
+    2021-03-01 15:58:43,604 - phyluce_align_get_align_summary_data - INFO - [Matrix 65%]		190 alignments
+    2021-03-01 15:58:43,604 - phyluce_align_get_align_summary_data - INFO - [Matrix 70%]		190 alignments
+    2021-03-01 15:58:43,604 - phyluce_align_get_align_summary_data - INFO - [Matrix 75%]		190 alignments
+    2021-03-01 15:58:43,604 - phyluce_align_get_align_summary_data - INFO - [Matrix 80%]		29 alignments
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - [Matrix 85%]		29 alignments
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - [Matrix 90%]		29 alignments
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - [Matrix 95%]		29 alignments
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - ------------------------ Character counts -----------------------
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - [Characters] '-' is present 7,819 times
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - [Characters] '?' is present 25,084 times
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - [Characters] 'A' is present 70,371 times
+    2021-03-01 15:58:43,605 - phyluce_align_get_align_summary_data - INFO - [Characters] 'C' is present 48,431 times
+    2021-03-01 15:58:43,606 - phyluce_align_get_align_summary_data - INFO - [Characters] 'G' is present 41,941 times
+    2021-03-01 15:58:43,606 - phyluce_align_get_align_summary_data - INFO - [Characters] 'T' is present 74,642 times
+    2021-03-01 15:58:43,606 - phyluce_align_get_align_summary_data - INFO - ========= Completed phyluce_align_get_align_summary_data ========
 
-.. attention:: Note that there are only 2 sets of counts in the `Data matrix
-    completeness` section because (1) we dropped all loci having fewer than 3
+.. attention:: Note that there are only 2 sets of counts in the ``Data matrix
+    completeness`` section because (1) we dropped all loci having fewer than 3
     taxa and (2) that only leaves two remaining options.
 
 The most important data here are the number of loci we have and the number of
-loci in data matrices of different completeness.  The locus length stats are
+loci in data matrices of different completeness. The locus length stats are
 also reasonably important, but they can also be misleading because edge-trimming
 does not remove internal gaps that often inflate the length of alignments.
 
@@ -1045,7 +1063,7 @@ FASTA formatted alignments with `--output-format fasta`.
 
     # align the data - turn off trimming and output FASTA
     phyluce_align_seqcap_align \
-        --fasta all-taxa-incomplete.fasta \
+        --input all-taxa-incomplete.fasta \
         --output mafft-nexus-internal-trimmed \
         --taxa 4 \
         --aligner mafft \
@@ -1102,29 +1120,30 @@ The output should look like this:
 
 .. code-block:: bash
 
-    2015-04-12 13:51:52,450 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO -  Starting phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed
-    2015-04-12 13:51:52,450 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Version: git a6a957a
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b1: 0.5
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b2: 0.85
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b3: 8
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b4: 10
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --cores: 12
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --input_format: fasta
-    2015-04-12 13:51:52,451 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 13:51:52,452 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
-    2015-04-12 13:51:52,452 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --output_format: nexus
-    2015-04-12 13:51:52,452 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --verbosity: INFO
-    2015-04-12 13:51:52,452 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO -  Starting phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed
-    2015-04-12 13:51:52,452 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Getting aligned sequences for trimming
-    2015-04-12 13:51:52,460 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Alignment trimming begins.
+    2021-03-01 16:01:38,320 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO -  Starting phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed
+    2021-03-01 16:01:38,321 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Version: 1.7.0
+    2021-03-01 16:01:38,321 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Commit: None
+    2021-03-01 16:01:38,321 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-internal-trimmed
+    2021-03-01 16:01:38,321 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b1: 0.5
+    2021-03-01 16:01:38,321 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b2: 0.85
+    2021-03-01 16:01:38,322 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b3: 8
+    2021-03-01 16:01:38,322 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --b4: 10
+    2021-03-01 16:01:38,322 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --cores: 12
+    2021-03-01 16:01:38,322 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --input_format: fasta
+    2021-03-01 16:01:38,323 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 16:01:38,323 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --output: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
+    2021-03-01 16:01:38,323 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --output_format: nexus
+    2021-03-01 16:01:38,323 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Argument --verbosity: INFO
+    2021-03-01 16:01:38,323 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Getting aligned sequences for trimming
+    2021-03-01 16:01:38,338 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Alignment trimming begins.
     .................[continued]
-    2015-04-12 13:51:53,063 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Alignment trimming ends
-    2015-04-12 13:51:53,063 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Writing output files
-    2015-04-12 13:51:53,725 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO -  Completed phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed
+    2021-03-01 16:01:38,729 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Alignment trimming ends
+    2021-03-01 16:01:38,730 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO - Writing output files
+    2021-03-01 16:01:38,901 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - WARNING - Unable to write uce-816 - alignment too short
+    2021-03-01 16:01:39,099 - phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed - INFO -  Completed phyluce_align_get_gblocks_trimmed_alignments_from_untrimmed
 
 The `.` values that you see represent loci that were aligned and succesfully
-trimmed. Andy `X` values that you see represent loci that were aligned and
+trimmed. Any `X` values that you see represent loci that were aligned and
 trimmed so much that there was nothing left.
 
 The current directory structure should look like (I've collapsed a number of
@@ -1170,64 +1189,68 @@ The output from the program should look like:
 
 .. code-block:: bash
 
-    2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - ========= Starting phyluce_align_get_align_summary_data =========
-    2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - Version: git a6a957a
-    2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
-    2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - Argument --cores: 12
-    2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - Argument --input_format: nexus
-    2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 13:54:48,251 - phyluce_align_get_align_summary_data - INFO - Argument --show_taxon_counts: False
-    2015-04-12 13:54:48,252 - phyluce_align_get_align_summary_data - INFO - Argument --verbosity: INFO
-    2015-04-12 13:54:48,252 - phyluce_align_get_align_summary_data - INFO - Getting alignment files
-    2015-04-12 13:54:48,257 - phyluce_align_get_align_summary_data - INFO - Computing summary statistics using 12 cores
-    2015-04-12 13:54:48,523 - phyluce_align_get_align_summary_data - INFO - ----------------------- Alignment summary -----------------------
-    2015-04-12 13:54:48,523 - phyluce_align_get_align_summary_data - INFO - [Alignments] loci:      913
-    2015-04-12 13:54:48,523 - phyluce_align_get_align_summary_data - INFO - [Alignments] length:    499,929
-    2015-04-12 13:54:48,523 - phyluce_align_get_align_summary_data - INFO - [Alignments] mean:      547.57
-    2015-04-12 13:54:48,523 - phyluce_align_get_align_summary_data - INFO - [Alignments] 95% CI:    14.10
-    2015-04-12 13:54:48,523 - phyluce_align_get_align_summary_data - INFO - [Alignments] min:       101
-    2015-04-12 13:54:48,524 - phyluce_align_get_align_summary_data - INFO - [Alignments] max:       1,180
-    2015-04-12 13:54:48,525 - phyluce_align_get_align_summary_data - INFO - ------------------------- Taxon summary -------------------------
-    2015-04-12 13:54:48,525 - phyluce_align_get_align_summary_data - INFO - [Taxa] mean:        3.38
-    2015-04-12 13:54:48,525 - phyluce_align_get_align_summary_data - INFO - [Taxa] 95% CI:      0.03
-    2015-04-12 13:54:48,525 - phyluce_align_get_align_summary_data - INFO - [Taxa] min:         3
-    2015-04-12 13:54:48,526 - phyluce_align_get_align_summary_data - INFO - [Taxa] max:         4
-    2015-04-12 13:54:48,526 - phyluce_align_get_align_summary_data - INFO - ----------------- Missing data from trim summary ----------------
-    2015-04-12 13:54:48,526 - phyluce_align_get_align_summary_data - INFO - [Missing] mean:     0.00
-    2015-04-12 13:54:48,527 - phyluce_align_get_align_summary_data - INFO - [Missing] 95% CI:   0.00
-    2015-04-12 13:54:48,527 - phyluce_align_get_align_summary_data - INFO - [Missing] min:      0.00
-    2015-04-12 13:54:48,527 - phyluce_align_get_align_summary_data - INFO - [Missing] max:      0.00
-    2015-04-12 13:54:48,537 - phyluce_align_get_align_summary_data - INFO - -------------------- Character count summary --------------------
-    2015-04-12 13:54:48,538 - phyluce_align_get_align_summary_data - INFO - [All characters]    1,717,433
-    2015-04-12 13:54:48,538 - phyluce_align_get_align_summary_data - INFO - [Nucleotides]       1,621,491
-    2015-04-12 13:54:48,538 - phyluce_align_get_align_summary_data - INFO - ---------------- Data matrix completeness summary ---------------
-    2015-04-12 13:54:48,538 - phyluce_align_get_align_summary_data - INFO - [Matrix 50%]        913 alignments
-    2015-04-12 13:54:48,538 - phyluce_align_get_align_summary_data - INFO - [Matrix 55%]        913 alignments
-    2015-04-12 13:54:48,538 - phyluce_align_get_align_summary_data - INFO - [Matrix 60%]        913 alignments
-    2015-04-12 13:54:48,539 - phyluce_align_get_align_summary_data - INFO - [Matrix 65%]        913 alignments
-    2015-04-12 13:54:48,539 - phyluce_align_get_align_summary_data - INFO - [Matrix 70%]        913 alignments
-    2015-04-12 13:54:48,539 - phyluce_align_get_align_summary_data - INFO - [Matrix 75%]        913 alignments
-    2015-04-12 13:54:48,539 - phyluce_align_get_align_summary_data - INFO - [Matrix 80%]        346 alignments
-    2015-04-12 13:54:48,539 - phyluce_align_get_align_summary_data - INFO - [Matrix 85%]        346 alignments
-    2015-04-12 13:54:48,539 - phyluce_align_get_align_summary_data - INFO - [Matrix 90%]        346 alignments
-    2015-04-12 13:54:48,539 - phyluce_align_get_align_summary_data - INFO - [Matrix 95%]        346 alignments
-    2015-04-12 13:54:48,540 - phyluce_align_get_align_summary_data - INFO - ------------------------ Character counts -----------------------
-    2015-04-12 13:54:48,540 - phyluce_align_get_align_summary_data - INFO - [Characters] '-' is present 95,942 times
-    2015-04-12 13:54:48,540 - phyluce_align_get_align_summary_data - INFO - [Characters] 'A' is present 498,643 times
-    2015-04-12 13:54:48,540 - phyluce_align_get_align_summary_data - INFO - [Characters] 'C' is present 314,200 times
-    2015-04-12 13:54:48,540 - phyluce_align_get_align_summary_data - INFO - [Characters] 'G' is present 300,494 times
-    2015-04-12 13:54:48,540 - phyluce_align_get_align_summary_data - INFO - [Characters] 'T' is present 508,154 times
-    2015-04-12 13:54:48,540 - phyluce_align_get_align_summary_data - INFO - ========= Completed phyluce_align_get_align_summary_data ========
+    2021-03-01 16:03:34,322 - phyluce_align_get_align_summary_data - INFO - ========= Starting phyluce_align_get_align_summary_data =========
+    2021-03-01 16:03:34,322 - phyluce_align_get_align_summary_data - INFO - Version: 1.7.0
+    2021-03-01 16:03:34,322 - phyluce_align_get_align_summary_data - INFO - Commit: None
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Argument --cores: 12
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Argument --input_format: nexus
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Argument --output: None
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Argument --show_taxon_counts: False
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Argument --verbosity: INFO
+    2021-03-01 16:03:34,323 - phyluce_align_get_align_summary_data - INFO - Getting alignment files
+    2021-03-01 16:03:34,334 - phyluce_align_get_align_summary_data - INFO - Computing summary statistics using 12 cores
+    2021-03-01 16:03:34,641 - phyluce_align_get_align_summary_data - INFO - ----------------------- Alignment summary -----------------------
+    2021-03-01 16:03:34,642 - phyluce_align_get_align_summary_data - INFO - [Alignments] loci:	189
+    2021-03-01 16:03:34,642 - phyluce_align_get_align_summary_data - INFO - [Alignments] length:	70,380
+    2021-03-01 16:03:34,643 - phyluce_align_get_align_summary_data - INFO - [Alignments] mean:	372.38
+    2021-03-01 16:03:34,643 - phyluce_align_get_align_summary_data - INFO - [Alignments] 95% CI:	21.61
+    2021-03-01 16:03:34,643 - phyluce_align_get_align_summary_data - INFO - [Alignments] min:	140
+    2021-03-01 16:03:34,643 - phyluce_align_get_align_summary_data - INFO - [Alignments] max:	797
+    2021-03-01 16:03:34,644 - phyluce_align_get_align_summary_data - INFO - ------------------- Informative Sites summary -------------------
+    2021-03-01 16:03:34,645 - phyluce_align_get_align_summary_data - INFO - [Sites] loci:	189
+    2021-03-01 16:03:34,645 - phyluce_align_get_align_summary_data - INFO - [Sites] total:	69
+    2021-03-01 16:03:34,645 - phyluce_align_get_align_summary_data - INFO - [Sites] mean:	0.37
+    2021-03-01 16:03:34,645 - phyluce_align_get_align_summary_data - INFO - [Sites] 95% CI:	0.19
+    2021-03-01 16:03:34,646 - phyluce_align_get_align_summary_data - INFO - [Sites] min:	0
+    2021-03-01 16:03:34,646 - phyluce_align_get_align_summary_data - INFO - [Sites] max:	12
+    2021-03-01 16:03:34,648 - phyluce_align_get_align_summary_data - INFO - ------------------------- Taxon summary -------------------------
+    2021-03-01 16:03:34,649 - phyluce_align_get_align_summary_data - INFO - [Taxa] mean:		3.15
+    2021-03-01 16:03:34,649 - phyluce_align_get_align_summary_data - INFO - [Taxa] 95% CI:	0.05
+    2021-03-01 16:03:34,649 - phyluce_align_get_align_summary_data - INFO - [Taxa] min:		3
+    2021-03-01 16:03:34,650 - phyluce_align_get_align_summary_data - INFO - [Taxa] max:		4
+    2021-03-01 16:03:34,650 - phyluce_align_get_align_summary_data - INFO - ----------------- Missing data from trim summary ----------------
+    2021-03-01 16:03:34,651 - phyluce_align_get_align_summary_data - INFO - [Missing] mean:	0.00
+    2021-03-01 16:03:34,651 - phyluce_align_get_align_summary_data - INFO - [Missing] 95% CI:	0.00
+    2021-03-01 16:03:34,651 - phyluce_align_get_align_summary_data - INFO - [Missing] min:	0.00
+    2021-03-01 16:03:34,651 - phyluce_align_get_align_summary_data - INFO - [Missing] max:	0.00
+    2021-03-01 16:03:34,655 - phyluce_align_get_align_summary_data - INFO - -------------------- Character count summary --------------------
+    2021-03-01 16:03:34,655 - phyluce_align_get_align_summary_data - INFO - [All characters]	222,814
+    2021-03-01 16:03:34,655 - phyluce_align_get_align_summary_data - INFO - [Nucleotides]		215,091
+    2021-03-01 16:03:34,656 - phyluce_align_get_align_summary_data - INFO - ---------------- Data matrix completeness summary ---------------
+    2021-03-01 16:03:34,656 - phyluce_align_get_align_summary_data - INFO - [Matrix 50%]		189 alignments
+    2021-03-01 16:03:34,656 - phyluce_align_get_align_summary_data - INFO - [Matrix 55%]		189 alignments
+    2021-03-01 16:03:34,657 - phyluce_align_get_align_summary_data - INFO - [Matrix 60%]		189 alignments
+    2021-03-01 16:03:34,657 - phyluce_align_get_align_summary_data - INFO - [Matrix 65%]		189 alignments
+    2021-03-01 16:03:34,657 - phyluce_align_get_align_summary_data - INFO - [Matrix 70%]		189 alignments
+    2021-03-01 16:03:34,657 - phyluce_align_get_align_summary_data - INFO - [Matrix 75%]		189 alignments
+    2021-03-01 16:03:34,658 - phyluce_align_get_align_summary_data - INFO - [Matrix 80%]		29 alignments
+    2021-03-01 16:03:34,658 - phyluce_align_get_align_summary_data - INFO - [Matrix 85%]		29 alignments
+    2021-03-01 16:03:34,658 - phyluce_align_get_align_summary_data - INFO - [Matrix 90%]		29 alignments
+    2021-03-01 16:03:34,658 - phyluce_align_get_align_summary_data - INFO - [Matrix 95%]		29 alignments
+    2021-03-01 16:03:34,659 - phyluce_align_get_align_summary_data - INFO - ------------------------ Character counts -----------------------
+    2021-03-01 16:03:34,659 - phyluce_align_get_align_summary_data - INFO - [Characters] '-' is present 7,723 times
+    2021-03-01 16:03:34,659 - phyluce_align_get_align_summary_data - INFO - [Characters] 'A' is present 64,167 times
+    2021-03-01 16:03:34,659 - phyluce_align_get_align_summary_data - INFO - [Characters] 'C' is present 44,488 times
+    2021-03-01 16:03:34,660 - phyluce_align_get_align_summary_data - INFO - [Characters] 'G' is present 37,901 times
+    2021-03-01 16:03:34,660 - phyluce_align_get_align_summary_data - INFO - [Characters] 'T' is present 68,535 times
+    2021-03-01 16:03:34,660 - phyluce_align_get_align_summary_data - INFO - ========= Completed phyluce_align_get_align_summary_data ========
 
 Alignment cleaning
 ==================
 
-If you look at the alignments we currently have, you will notice that each
-alignment contains the locus name along with the taxon name.  This is not what
-we want downstream, but it does enable us to ensure the correct data went into
-each alignment.  So, we need to clean our alignments. For the remainder of
-this tutorial, we will work with the Gblocks_ trimmed alignments, so we will
-clean those alignments:
+If you look in one of the files for the alignments we currently have, you will notice that each alignment contains a name that is a combination of the taxon name + the locus name for that taxon.  This is not what we want downstream, but it does enable us to ensure the correct data went into each alignment.  So, we need to clean our alignments. For the remainder of this tutorial, we will work with the Gblocks_ trimmed alignments, so we will clean those alignments:
 
  .. code-block:: bash
 
@@ -1245,20 +1268,21 @@ The output should be similar to:
 
 .. code-block:: bash
 
-    2015-04-12 14:08:19,925 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - === Starting phyluce_align_remove_locus_name_from_nexus_lines ===
-    2015-04-12 14:08:19,925 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Version: git a6a957a
-    2015-04-12 14:08:19,925 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
-    2015-04-12 14:08:19,925 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --cores: 1
-    2015-04-12 14:08:19,926 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --input_format: nexus
-    2015-04-12 14:08:19,926 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --log_path: None
-    2015-04-12 14:08:19,926 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean
-    2015-04-12 14:08:19,926 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --output_format: nexus
-    2015-04-12 14:08:19,926 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --taxa: None
-    2015-04-12 14:08:19,926 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --verbosity: INFO
-    2015-04-12 14:08:19,926 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Getting alignment files
-    Running............[continued]
-    2015-04-12 14:08:22,001 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Taxon names in alignments: alligator_mississippiensis,anolis_carolinensis,gallus_gallus,mus_musculus
-    2015-04-12 14:08:22,001 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - === Completed phyluce_align_remove_locus_name_from_nexus_lines ==
+    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - === Starting phyluce_align_remove_locus_name_from_nexus_lines ===
+    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Version: 1.7.0
+    2021-03-01 16:05:12,605 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Commit: None
+    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks
+    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --cores: 12
+    2021-03-01 16:05:12,606 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --input_format: nexus
+    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --output: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean
+    2021-03-01 16:05:12,607 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --output_format: nexus
+    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --taxa: None
+    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Argument --verbosity: INFO
+    2021-03-01 16:05:12,608 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Getting alignment files
+    Running...............[continued]
+    2021-03-01 16:05:12,848 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - Taxon names in alignments: gallus_gallus,mus_musculus,anolis_carolinensis,alligator_mississippiensis
+    2021-03-01 16:05:12,849 - phyluce_align_remove_locus_name_from_nexus_lines - INFO - === Completed phyluce_align_remove_locus_name_from_nexus_lines ==
 
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
@@ -1287,20 +1311,19 @@ branches in the tree):
     ...
     └── uce-search-results
 
-Now, if you look at the alignments, you will see that the locus names are
-removed.  We're ready to generate our final data matrices.
+Now, if you look in one of the individual alignment files, you will see that the locus names are removed.  We're ready to generate our final data matrices.
 
 Final data matrices
 ===================
 
 For the most part, I analyze 75% and 95% complete matrices, where "completeness"
-for the 75% matrix means than, in a study of 100 taxa (total), all alignments
+for the 75% matrix means that, in a study of 100 taxa (total), all alignments
 will contain at least 75 of these 100 taxa.  Similarly, for the 95% matrix, in a
 study of 100 taxa, all alignments will contain 95 of these 100 taxa.
 
 .. attention:: Notice that this metric for completeness does not pay attention
     to which taxa are in which alignments - so the 75%, above, does **not** mean
-    that a given taxon will have data in 75 of 100 alignments.
+    that a given taxon will have data in all 75 of 100 alignments.
 
 To create a 75% data matrix, run the following.  Notice that the integer
 following `--taxa` is the **total** number of organisms in the study.
@@ -1324,19 +1347,20 @@ The output should look like the following:
 
 .. code-block:: bash
 
-    2015-04-12 14:17:37,589 - phyluce_align_get_only_loci_with_min_taxa - INFO - ======= Starting phyluce_align_get_only_loci_with_min_taxa ======
-    2015-04-12 14:17:37,589 - phyluce_align_get_only_loci_with_min_taxa - INFO - Version: git a6a957a
-    2015-04-12 14:17:37,589 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean
-    2015-04-12 14:17:37,589 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --cores: 12
-    2015-04-12 14:17:37,590 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --input_format: nexus
-    2015-04-12 14:17:37,590 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 14:17:37,590 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p
-    2015-04-12 14:17:37,590 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --percent: 0.75
-    2015-04-12 14:17:37,590 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --taxa: 4
-    2015-04-12 14:17:37,590 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --verbosity: INFO
-    2015-04-12 14:17:37,590 - phyluce_align_get_only_loci_with_min_taxa - INFO - Getting alignment files
-    2015-04-12 14:17:37,780 - phyluce_align_get_only_loci_with_min_taxa - INFO - Copied 913 alignments of 913 total containing ≥ 0.75 proportion of taxa (n = 3)
-    2015-04-12 14:17:37,780 - phyluce_align_get_only_loci_with_min_taxa - INFO - ====== Completed phyluce_align_get_only_loci_with_min_taxa ======
+    2021-03-01 16:06:56,294 - phyluce_align_get_only_loci_with_min_taxa - INFO - ======= Starting phyluce_align_get_only_loci_with_min_taxa ======
+    2021-03-01 16:06:56,294 - phyluce_align_get_only_loci_with_min_taxa - INFO - Version: 1.7.0
+    2021-03-01 16:06:56,294 - phyluce_align_get_only_loci_with_min_taxa - INFO - Commit: None
+    2021-03-01 16:06:56,295 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean
+    2021-03-01 16:06:56,295 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --cores: 12
+    2021-03-01 16:06:56,295 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --input_format: nexus
+    2021-03-01 16:06:56,295 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 16:06:56,295 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --output: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p
+    2021-03-01 16:06:56,295 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --percent: 0.75
+    2021-03-01 16:06:56,295 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --taxa: 4
+    2021-03-01 16:06:56,296 - phyluce_align_get_only_loci_with_min_taxa - INFO - Argument --verbosity: INFO
+    2021-03-01 16:06:56,296 - phyluce_align_get_only_loci_with_min_taxa - INFO - Getting alignment files
+    2021-03-01 16:06:56,534 - phyluce_align_get_only_loci_with_min_taxa - INFO - Copied 189 alignments of 189 total containing ≥ 0.75 proportion of taxa (n = 3)
+    2021-03-01 16:06:56,534 - phyluce_align_get_only_loci_with_min_taxa - INFO - ====== Completed phyluce_align_get_only_loci_with_min_taxa ======
 
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
@@ -1366,13 +1390,10 @@ branches in the tree):
     ...
     └── uce-search-results
 
-Preparing data for RAxML and ExaML
-==================================
+Preparing data for downstream analysis
+======================================
 
-Now that we have our `75p` data matrix completed, we can generate input files
-for subsequent phylogenetic analysis.  For the most part, I favor ExaBayes_,
-RAxML_, and ExaML_ (usually in that order).  Formatting our `75p` data into
-a phylip file for these programs is rather easy.  To do that, run:
+Now that we have our `75p` data matrix completed, we can generate input files for subsequent phylogenetic analysis.  For the most part, I use RAxML or IQTree, both of which will take a phylip-formatted file as input. Formatting our `75p` data into a phylip file for these programs is rather easy.  To do that, run:
 
 .. code-block:: bash
 
@@ -1390,24 +1411,24 @@ The output from this program will look like:
 
 .. code-block:: bash
 
-    2015-04-12 14:40:52,276 - phyluce_align_concatenate_alignments - INFO - ====== Starting phyluce_align_concatenate_alignments ======
-    2015-04-12 14:40:52,276 - phyluce_align_concatenate_alignments - INFO - Version: git a6a957a
-    2015-04-12 14:40:52,276 - phyluce_align_concatenate_alignments - INFO - Argument --alignments: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p
-    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --charsets: True
-    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --log_path: /scratch/uce-tutorial/taxon-sets/all/log
-    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --phylip: True
-    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --output: /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml
-    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Argument --verbosity: INFO
-    2015-04-12 14:40:52,277 - phyluce_align_concatenate_alignments - INFO - Reading input alignments in NEXUS format
-    2015-04-12 14:40:53,291 - phyluce_align_concatenate_alignments - INFO - Concatenating files
-    2015-04-12 14:40:54,242 - phyluce_align_concatenate_alignments - INFO - Writing charsets to /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml/mafft-nexus-internal-trimmed-gblocks-clean-75p.charsets
-    2015-04-12 14:40:54,242 - phyluce_align_concatenate_alignments - INFO - Writing concatenated PHYLIP alignment to /scratch/uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml/mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip
-    2015-04-12 14:40:54,245 - phyluce_align_concatenate_alignments - INFO - ====== Completed phyluce_align_concatenate_alignments =====
+    2021-03-01 16:09:01,391 - phyluce_align_concatenate_alignments - INFO - ========= Starting phyluce_align_concatenate_alignments =========
+    2021-03-01 16:09:01,391 - phyluce_align_concatenate_alignments - INFO - Version: 1.7.0
+    2021-03-01 16:09:01,391 - phyluce_align_concatenate_alignments - INFO - Commit: None
+    2021-03-01 16:09:01,392 - phyluce_align_concatenate_alignments - INFO - Argument --alignments: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p
+    2021-03-01 16:09:01,392 - phyluce_align_concatenate_alignments - INFO - Argument --input_format: nexus
+    2021-03-01 16:09:01,392 - phyluce_align_concatenate_alignments - INFO - Argument --log_path: /data/taxon-sets/all/log
+    2021-03-01 16:09:01,392 - phyluce_align_concatenate_alignments - INFO - Argument --nexus: False
+    2021-03-01 16:09:01,392 - phyluce_align_concatenate_alignments - INFO - Argument --output: /data/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml
+    2021-03-01 16:09:01,392 - phyluce_align_concatenate_alignments - INFO - Argument --phylip: True
+    2021-03-01 16:09:01,392 - phyluce_align_concatenate_alignments - INFO - Argument --verbosity: INFO
+    2021-03-01 16:09:01,393 - phyluce_align_concatenate_alignments - INFO - Reading input alignments in NEXUS format
+    2021-03-01 16:09:01,393 - phyluce_align_concatenate_alignments - INFO - Getting alignment files
+    2021-03-01 16:09:01,733 - phyluce_align_concatenate_alignments - INFO - Concatenating files
+    2021-03-01 16:09:01,796 - phyluce_align_concatenate_alignments - INFO - Writing concatenated alignment to PHYLIP format (with charsets)
+    2021-03-01 16:09:01,803 - phyluce_align_concatenate_alignments - INFO - ========= Completed phyluce_align_concatenate_alignments ========
 
-.. attention:: Notice that using the `--charsets` flag will output the charsets
-    as well as the concatenated PHYLIP file.  You generally want these and the
-    cost for them is low.  I would always run this option - even if you later
-    do not use them.
+.. attention:: Charsets are now output by default for all data sets.
+    You generally want these and the cost for them is low.
 
 The current directory structure should look like (I've collapsed a number of
 branches in the tree):
@@ -1435,123 +1456,23 @@ branches in the tree):
     ...
     └── uce-search-results
 
-Usually, I will create a separate directory to hold the alignment and
-input/output files for ExaBayes:
-
-.. code-block:: bash
-
-    cp -R mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml mafft-nexus-internal-trimmed-gblocks-clean-75p-exbayes
-
-RAxML
------
-
-The above data are ready to analysis in RAxML_.  I usually run RAxML_ in two
-pieces - first running the "best" tree search, then running the bootstrap
-replicates, and I almost always run these analyses on the HPC.
+If you need to output concatenated data in ``NEXUS`` format, you can simply run the same program as above, but change ``--phylip`` to ``--nexus``, like:
 
 .. code-block:: bash
 
     # make sure we are in the correct directory
-    cd uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml
+    cd uce-tutorial/taxon-sets/all
 
-    # get two random numbers
-    for i in 1 2; do echo $RANDOM; done
+    # build the concatenated data matrix
+    phyluce_align_concatenate_alignments \
+        --alignments mafft-nexus-internal-trimmed-gblocks-clean-75p \
+        --output mafft-nexus-internal-trimmed-gblocks-clean-75p-raxml \
+        --nexus \
+        --log-path log
 
-    # that output the following
-    # 19877
-    # 7175
+Downstream Analysis
+-------------------
 
-    # run the search for the "best" ML tree
-    raxmlHPC-PTHREADS-SSE3 \
-        -m GTRGAMMA \
-        -N 20 \
-        -p 19877 \
-        -n best \
-        -s mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip \
-        -T 12
+The above data are ready to analyze in a program like RAxML_ or IQTree_.  See the documentation for those programs to learn how to use them.  
 
-    # analyze boostrap data sets using the autoMRE function of RAxML
-    raxmlHPC-PTHREADS-SSE3 \
-        -m GTRGAMMA \
-        -N autoMRE \
-        -p 19877 \
-        -b 7175 \
-        -n bootreps \
-        -s mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip \
-        -T 12
-
-.. warning:: Note that I am using 12 physical CPU cores here (`-T 12`).  You
-    need to use the number of physical cores available on *your* machine.
-
-Once those are finished running, we need to reconcile the "best" tree with the
-ML bootstrap replicates:
-
-.. code-block:: bash
-
-    # reconcile the "best" ML tree with the bootreps
-    raxmlHPC-SSE3 \
-        -m GTRGAMMA \
-        -f b \
-        -t RAxML_bestTree.best \
-        -z RAxML_bootstrap.bootreps
-
-ExaBayes
---------
-
-I have not included ExaBayes_ in the conda package for phyluce_ because it
-generally requires MPI and should really be run on an HPC or a large local
-machine.  If you would like to run it on your machine, you'll need to get it
-installed on your own.
-
-To run data in ExaBayes_, you need the PHYLIP file you just created as well as
-2 other files in order to the the program - one giving partition information and
-another giving configuration options.  Create these.
-
-aln.part
-^^^^^^^^
-
-.. code-block:: bash
-
-    DNA, p1=1-499929
-
-config.nexus
-^^^^^^^^^^^^
-
-.. code-block:: bash
-
-    #NEXUS
-
-    begin run;
-     numruns 4
-     numgen 1e6
-    end;
-
-Run ExaBayes
-^^^^^^^^^^^^
-
-Now, we can run ExaBayes:
-
-.. code-block:: bash
-
-    # make sure we are in the correct directory
-    cd uce-tutorial/taxon-sets/all/mafft-nexus-internal-trimmed-gblocks-clean-75p-exabayes
-
-    # get a random number
-    echo $RANDOM
-
-    # this outputs
-    5341
-
-    # ensure the files we created above are in this directory, then
-    mpirun -np 12 exabayes -f mafft-nexus-internal-trimmed-gblocks-clean-75p.phylip -n run1 -q aln.part -s 5341 -c config.nexus -R 4
-
-.. warning:: Note that I am using 12 physical CPU cores here (`-T 12`).  You
-    need to use the number of physical cores available on *your* machine.
-
-Once those are finished running, we can summarize the posterior using the
-`consense` and `postProcParams` program:
-
-.. code-block:: bash
-
-    consense -f ExaBayes_topologies.run1.phylip.* -n some_descriptive_name_here
-    postProcParam -f ExaBayes_parameters.run1.phylip.* -n some_descriptive_name_here
+If you are performing locus-based inference (e.g. so-called gene-tree, species-tree methods, you can analyze the individual locus alignments present in the folder you created just prior to concatenation (e.g. ``mafft-nexus-internal-trimmed-gblocks-clean-75p``).  If you need to convert those files into another format (by default, they are in ``NEXUS`` format), you can use ``phyluce_align_convert_one_align_to_another``.  For performing analyses to infer a locus-tree from individual alignments, you might look into a program like pargenes_.  You can also reasonably script IQTree_ to do this on, for example, an HPC system (we do it using GNU Parallel to send each alignment to one compute core, where we run IQTree_ on that alignment).
