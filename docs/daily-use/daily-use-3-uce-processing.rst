@@ -6,7 +6,7 @@
 UCE Processing for Phylogenomics
 ********************************
 
-The workflow described below is meant for users who are  analyzing UCE in
+The process described below is meant for users who are analyzing UCE data in
 phylogenetic contexts - meaning that you are interested in addressing questions
 at or deeper than the species-level.
 
@@ -18,7 +18,7 @@ Once we have assembled our fastq data (see :ref:`Assembly`), we need to process
 those contigs to (a) determine which represent enrichend UCE loci and (b)
 remove any potential paralogs from the data set.  Before we can do that, we
 need to to a little preparatory work by downloading a FASTA file representing
-the probe set that we used.
+the bait/probe set that we used.
 
 Get the probe set FASTA
 -----------------------
@@ -62,8 +62,8 @@ process, the code will also remove any contigs that appear to be duplicates as a
 result of assembly/other problems **or** a biological event(s).
 
 The way that this process works is that phyluce_ aligns (using lastz_) the
-contigs you assembled to the probes you input on a taxon-by-taxon (or otu-by-
-otu) basis.  Then, the code parses the alignment file to determine which contigs
+contigs you assembled to the probes you input on a taxon-by-taxon (or otu-by-otu)
+ basis.  Then, the code parses the alignment file to determine which contigs
 matched which probes, whether any probes from a single locus matched multiple
 contigs or whether a single contig matched probes designed from muliple UCE
 loci.  Either of these latter two events suggests that the locus in question is
@@ -79,7 +79,8 @@ problematic.
     If you are using a custom probe file, then you will either need to ensure
     that your naming scheme conforms to this approach **OR** you will need to
     input a different regular expression to convert the probe names to locus
-    names using the ``--regex`` flag.
+    names using the ``--regex`` flag.  **It is up to you to determine what 
+    is the appropriate regular expression**.
 
 To identify which of your assembled contigs are UCE contigs, run:
 
@@ -473,7 +474,7 @@ easily generate an incomplete dataset using the following:
 This will generate a dataset that includes any loci enriched across the taxa
 in the `datasets.conf` file.
 
-.. note:: You do not determine the "completeness" of the finaly data matrix
+.. note:: You do not determine the "completeness" of the final data matrix
     that you want to create during this stage - that happens later, after
     alignment (see :ref:`finalize-matrix`).  As a result, we are alinging data
     from any and all UCE loci having >= 3 taxa, which allows us to flexibly
@@ -661,6 +662,8 @@ I would suggest sticking with MAFFT.
     trimming that you can tweak.  To view these, run
     ``phyluce_align_seqcap_align --help``.
 
+    Also see the :ref:`TutorialOne` for more info on trimming options. 
+
 Complete data matrix
 --------------------
 
@@ -755,7 +758,7 @@ Locus name removal
 
 For historical reasons, and also for users to ensure that the sequence data
 aligned together are from the same loci, each sequence line in the alignment
-file output by ``seqcap_align_2`` contains the ``genus_species1`` designator,
+file output by ``seqcap_align`` contains the ``genus_species1`` designator,
 but the ``genus_species1`` designator is also prepended with the locus name
 (e.g. ``uce-1005_genus_species1``).  We need to remove these if we plan to
 concatenate the loci (:ref:`raxml-concat`).  More generally, it is a good idea
@@ -864,7 +867,7 @@ Locus name removal
 
 For historical reasons, and also for users to ensure that the sequence data
 aligned together are from the same loci, each sequence line in the alignment
-file output by ``seqcap_align_2`` contains the ``genus_species1`` designator,
+file output by ``seqcap_align`` contains the ``genus_species1`` designator,
 but the ``genus_species1`` designator is also prepended with the locus name
 (e.g. ``uce-1005_genus_species1``).  We need to remove these if we plan to
 concatenate the loci (:ref:`raxml-concat`).  More generally, it is a good idea
@@ -898,8 +901,8 @@ following, while inputting the set of alignments just generated using:
         --output /path/to/uce/taxon-set1/mafft-nexus-min-25-taxa/ \
         --cores 12
 
-.. attention:: This program computes the floor(taxa * percent) and uses the
-    resulting number to determine the min(taxa) allowed in an alignment of
+.. attention:: This program computes the ``floor(taxa * percent)`` and uses the
+    resulting number to determine the ``min(taxa)`` allowed in an alignment of
     ``--percent`` completeness.
 
 This will produce output that looks similar to::
@@ -923,7 +926,8 @@ This will produce output that looks similar to::
 Add missing data designators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Finally, you will need to add missing data designators for taxa missing from
+**Sometimes**, depending on how you will handle the alignments, you will 
+need to add missing data designators for taxa missing from
 each alignment of a given locus. This will basically allow you to generate
 concatenated data sets and it may reduce error messages from other programs
 about files having unequal numbers of taxa. To do this, run:
@@ -973,6 +977,7 @@ You can convert from/to:
 #. fasta
 #. nexus
 #. phylip
+#. phylip-relaxed (probably the one you want)
 #. clustal
 #. emboss
 #. stockholm
@@ -1018,6 +1023,7 @@ This will filter alignments that do not contain the taxa requested, those
 alignments shorter than 100 bp, and those alignments having fewer than 5 taxa
 (taxa with only missing data are not counted).
 
+
 Extracting taxon data from alignments
 -------------------------------------
 
@@ -1035,8 +1041,8 @@ fasta results:
 
 .. _data-analysis:
 
-Preparing alignment data for analysis
-=====================================
+Preparing concatenated alignment data for analysis
+==================================================
 
 Formatting data for analysis generally involves slight differences from the
 steps described above.  There are several application-specific programs in
@@ -1049,7 +1055,7 @@ RAxML
 
 For RAxML, you need a concatenated phylip file.  This is pretty easily created
 if you have an input directory of nexus alignments.  To create a concatenated
-phylip file from run:
+phylip file from many input alignments, run:
 
 .. code-block:: bash
 
@@ -1059,169 +1065,21 @@ phylip file from run:
         --phylip
 
 This will output a concatenated file named ``mafft-raxml.phylip`` in
-``/path/to/uce/taxon-set1/mafft-raxml``.
-
-.. _strict-phylip:
-
-PHYLIP/CloudForest
-------------------
-
-PHYLIP, PhyML, and other programs like CloudForest_ require input files to be in
-strict phylip format for analysis.  Converting alignment files to this format
-was discussed above, and is simple a matter of:
-
-.. code-block:: bash
-
-    phyluce_align_convert_one_align_to_another \
-        --alignments /path/to/uce/taxon-set1/mafft-nexus \
-        --output /path/to/uce/taxon-set1/mafft-phylip-shortnames \
-        --input-format nexus \
-        --output-format phylip \
-        --cores 8 \
-        --shorten-names \
-        --log-path log
+``/path/to/uce/taxon-set1/mafft-raxml``.  It will also include a charset file, 
+``mafft-raxml.charsets``.
 
 .. _mrbayes:
 
-MrBayes
---------
+MrBayes (Nexus format)
+----------------------
 
-MrBayes is a little more challenging to run.  This is largely due to the fact
-that we usually estimate the substitution models for all loci, then we partition
-loci by substitution model, concatenate the data, and format an appropriate
-file to be input to MrBayes.
-
-The tricky part of this process is estimating the locus-specific substitution
-models.  Generally speaking, I do this with CloudForest_ now, then I strip the
-best-fitting substitution model from the CloudForest_ output, and input that
-file to the program that creates a nexus file for MrBayes.
-
-First, estimate the substitution models using cloudforest (this will also give
-you genetrees for all loci, as a bonus).  You will need your alignments in
-strict phylip format:
+You can create a Nexus-formatted file for programs like MrBayes and Paup_ with:
 
 .. code-block:: bash
 
-    python cloudforest/cloudforest_mpi.py \
-        /path/to/strict/phylip/alignments/ \
-        /path/to/store/cloudforest/output/ \
-        genetrees \
-        $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64 \
-        --parallelism multiprocessing \
-        --cores 8
+    phyluce_align_concanatenate_alignments \
+        --alignments /path/to/uce/taxon-set1/mafft-nexus \
+        --output /path/to/uce/taxon-set1/mafft-raxml \
+        --nexus
 
-In the above, `genetrees` is a keyword that tells CloudForest_ that you mean to
-estimate genetrees (instead of bootstraps).  Depending on the size of your
-dataset (and computer), this may take some time.  Once this is done:
-
-.. code-block:: bash
-
-    phyluce_genetrees_split_models_from_genetrees \
-        --genetrees /path/to/cloudforest/output/genetrees.tre \
-        --output /path/to/output_models.txt
-
-Now, you're ready to go with formatting for MrBayes - note that we're inputting
-the path of the models file created above (output_models.txt) on line 3:
-
-.. code-block:: bash
-
-    phyluce_align_format_nexus_files_for_mrbayes \
-        --alignments /path/to/input/nexus/ \
-        --models /path/to/output_models.txt \
-        --output /path/to/output/mrbayes.nexus \
-        --interleave \
-        --unlink
-
-This should create a partitioned data file for you. The partitioning will be by
-model, not by locus. Should you want to fully partition by locus (which may
-overparamterize), then you can run:
-
-.. code-block:: bash
-
-    phyluce_align_format_nexus_files_for_mrbayes \
-        /path/to/input/nexus/ \
-        /path/to/output_models.txt \
-        /path/to/output/mrbayes.nexus \
-        --interleave \
-        --unlink \
-        --fully-partition
-
-.. _cloudforest-genetrees:
-
-CloudForest (genetree/species tree)
------------------------------------
-
-CloudForest_ is a program written by Nick Crawford and myself that helps you
-estimate genetrees and perform bootstrap replicates for very large datasets.
-Data input to CloudForest should be in strict phylip format (see
-:ref:`strict-phylip`).  First, as above, run genetree analysis on your data (
-if you ran this above, you don't need to run it again).  This will estimate
-the genetrees for each locus in your dataset, using it's best fitting
-substitution model):
-
-.. code-block:: bash
-
-    python cloudforest/cloudforest_mpi.py \
-        /path/to/strict/phylip/alignments/ \
-        /path/to/store/cloudforest/output/ \
-        genetrees \
-        $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64 \
-        --parallelism multiprocessing \
-        --cores 8
-
-The, to generate bootstrap replicates, you can run:
-
-.. code-block:: bash
-
-    python cloudforest/cloudforest_mpi.py \
-        /path/to/strict/phylip/alignments/ \
-        /path/to/store/cloudforest/output/ \
-        bootstraps \
-        $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64 \
-        --parallelism multiprocessing \
-        --cores 8 \
-        --bootreps 1000 \
-        --genetrees /path/to/store/cloudforest/output/genetrees.tre
-
-**NOTE** that depending on your system, you may need to choose another value
-for the path to PhyML:
-
-.. code-block:: bash
-
-    $HOME/git/cloudforest/cloudforest/binaries/PhyML3linux64
-
-.. _raxml-genetrees:
-
-RaXML (genetree/species tree)
------------------------------
-
-We can also use RaXML to genrate gene trees to turn into a species tree. To keep
-the taxa names similar to what I run through CloudForest_, I usually input
-strict phylip formatted files to these runs (see :ref:`strict-phylip`).  Once
-that's done, you can generate genetrees with:
-
-.. code-block:: bash
-
-    phyluce_genetrees_run_raxml_genetrees \
-        --alignments /path/to/strict/phylip/alignments/ \
-        --output /path/to/store/raxml/output/ \
-        --outgroup genus_species1 \
-        --cores 12 \
-        --threads 1
-
-Number of `--cores` is the number of simultaneous trees to estimate, while
-`--threads` is the number of threads to use for each tree.  Although somewhat
-counterintuitive, I've found that 1 `--thread` per locus and many locis being
-processed at once is the fastest route to go.
-
-Once that's finished, you can generate bootstrap replicates for those same loci::
-
-.. code-block:: bash
-
-    phyluce_genetrees_run_raxml_bootstraps \
-        --alignments /path/to/strict/phylip/alignments/ \
-        --output /path/to/store/raxml/output/ \
-        --bootreps 100 \
-        --outgroup genus_species1 \
-        --cores 12 \
-        --threads 1
+The charsets will be included in the Nexus file.

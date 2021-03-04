@@ -66,3 +66,4 @@
 .. _spades: https://cab.spbu.ru/software/spades/
 .. _IQTree: http://www.iqtree.org
 .. _pargenes: https://github.com/BenoitMorel/ParGenes
+.. _Paup: https://www.google.com/search?client=safari&rls=en&q=paup&ie=UTF-8&oe=UTF-8
