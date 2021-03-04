@@ -15,7 +15,8 @@ MiSeq_, they may also have been trimmed of adapter contamination.
    Regardless, if your data are not demultiplexed fastq files, you will need to
    talk to your sequencing provider about how to accomplish demultiplexing.  I
    provide an **unsupported** guide to demultiplexing *BCL* files using Casava_
-   or bcl2fastq here: https://gist.github.com/brantfaircloth/3125885.
+   or bcl2fastq `here <https://gist.github.com/brantfaircloth/3125885>`_ and a 
+   guide to demultiplexing fastq data `here <http://protocols.faircloth-lab.org/en/latest/protocols-computer/sequencing/sequencing-demultiplex-a-run.html>`_ 
 
 Regardless, you need to do a fair bit of quality control on your read data.
 **At a minimum**, this includes:
@@ -24,12 +25,7 @@ Regardless, you need to do a fair bit of quality control on your read data.
 * trimming adapter contamination of reads
 * trimming low quality bases from reads
 
-Although the MiSeq may trim some adapter contamination, running your reads
-through an additional round of trimming won't hurt.  There is also `lots of
-evidence <http://scholar.google.com/scholar?q=sequence+quality+affects+short+rea
-d+assembly&btnG=&hl=en&as_sdt=0%2C5>`_ showing that quality control of your read
-data has a **large** effect on your overall success.  Bottom line is:  *garbage
-in, garbage out*.
+Although the MiSeq may trim some adapter contamination, running your reads through an additional round of trimming won't hurt.  There is also `lots of evidence <http://scholar.google.com/scholar?q=sequence+quality+affects+short+read+assembly&btnG=&hl=en&as_sdt=0%2C5>`_ showing that quality control of your read data has a **large** effect on your overall success, particularly for the most common way of working with data in phyluce_.  Bottom line is:  *garbage in, garbage out*.
 
 Read Counts
 ===========
@@ -37,7 +33,7 @@ Read Counts
 The first thing to do once you have your read data in hand is to to get an idea
 of the split of reads among your samples.  This does two things:
 
-#. Allows you to determine how well you split the run among your sequence tags
+#. Allows you to determine how well you split the run among your indexes/sequence tags
 #. Shows you which samples may be suboptimal (have very few reads)
 
 Really unequal read counts mean that you may want to switch up your library
@@ -131,7 +127,7 @@ gives details of your reads, how you want them processed, and what renaming
 options to use. There are **several** variations in formatting required
 depending on the library preparation method that you used.
 
-.. attention:: See the docuementation for illumiprocessor_ for configuration
+.. attention:: See the documentation for illumiprocessor_ for configuration
     information.
 
 You can run illumiprocessor against your data (in `demultiplexed`) with the
