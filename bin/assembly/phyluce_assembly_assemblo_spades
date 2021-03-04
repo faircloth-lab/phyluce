@@ -26,7 +26,9 @@ from phyluce.pth import get_user_path, get_user_param
 
 def get_args():
     """Get arguments from CLI"""
-    parser = argparse.ArgumentParser(description="""Assemble raw reads using SPAdes""")
+    parser = argparse.ArgumentParser(
+        description="""Assemble raw reads using SPAdes"""
+    )
     parser.add_argument(
         "--output",
         required=True,
@@ -53,6 +55,12 @@ def get_args():
         help="""A subdirectory, below the level of the group, containing the reads""",
     )
     parser.add_argument(
+        "--no-clean",
+        action="store_true",
+        default=False,
+        help="""Do not discard intermediate Spades files""",
+    )
+    parser.add_argument(
         "--verbosity",
         type=str,
         choices=["INFO", "WARN", "CRITICAL"],
@@ -65,12 +73,6 @@ def get_args():
         type=is_dir,
         default=None,
         help="""The path to a directory to hold logs.""",
-    )
-    parser.add_argument(
-        "--do-not-clean",
-        action="store_true",
-        default=False,
-        help="""Do not cleanup intermediate SPAdes files""",
     )
     # one of these is required.  The other will be set to None.
     input_data = parser.add_mutually_exclusive_group(required=True)
@@ -91,7 +93,7 @@ def get_args():
     return parser.parse_args()
 
 
-def run_spades_pe(spades, reads, sample_dir, memory, cores, do_not_clean, log):
+def run_spades_pe(spades, reads, sample_dir, memory, cores, log):
     log.info("Running SPAdes for PE data")
     # we're using "single-cell" mode here due to coverage variance
     # spades.py --careful
@@ -121,34 +123,17 @@ def run_spades_pe(spades, reads, sample_dir, memory, cores, do_not_clean, log):
         sample_dir,
     ]
     if reads.singleton:
-        cmd.extend(["--pe1-s", os.path.join(reads.singleton.dir, reads.singleton.file)])
+        cmd.extend(
+            [
+                "--pe1-s",
+                os.path.join(reads.singleton.dir, reads.singleton.file),
+            ]
+        )
     try:
-        with open(os.path.join(sample_dir, "spades.phyluce.log"), "w") as outf:
-            proc = subprocess.Popen(cmd, stdout=outf)
-            proc.communicate()
+        proc = subprocess.Popen(cmd)
+        proc.communicate()
     except:
         log.critical("Could not assemble {}".format(sample_dir))
-    if not do_not_clean:
-        try:
-            kmer_dirs = glob.glob(os.path.join(sample_dir, "K*"))
-            other_dirs = [
-                os.path.join(sample_dir, i) for i in ["corrected", "misc", "tmp"]
-            ]
-            all_dirs = kmer_dirs + other_dirs
-            # cleanup unnecessary directories
-            for f in all_dirs:
-                pass
-                shutil.rmtree(f)
-            other_files = [
-                os.path.join(sample_dir, i)
-                for i in ["assembly_graph.fastg", "before_rr.fasta"]
-            ]
-            for f in other_files:
-                pass
-                os.remove(f)
-
-        except:
-            log.warn("Did not clean all fastq/fasta files from {}".format(sample_dir))
     return sample_dir
 
 
@@ -161,7 +146,32 @@ def generate_symlinks(contig_dir, sample_dir, sample, reads, log):
         contig_lname = os.path.join(contig_dir, sample)
         os.symlink(relpth, "{}.contigs.fasta".format(contig_lname))
     except:
-        log.warn("Unable to symlink {} to {}".format(spades_fname, contig_lname))
+        log.warn(
+            "Unable to symlink {} to {}".format(spades_fname, contig_lname)
+        )
+
+
+def cleanup_assembly_directory(pth, log):
+    log.info("Removing extraneous assembly files")
+    files = glob.glob(os.path.join(pth, "*"))
+    # check the names to make sure we're not deleting something improperly
+    names = [os.path.basename(f) for f in files]
+    try:
+        assert "scaffolds.fasta" in names
+        assert "contigs.fasta" in names
+        assert "spades.log" in names
+        for file in files:
+            if not os.path.basename(file) in (
+                "scaffolds.fasta",
+                "contigs.fasta",
+                "spades.log",
+            ):
+                if os.path.isfile(file) or os.path.islink(file):
+                    os.remove(file)
+                elif os.path.isdir(file):
+                    shutil.rmtree(file)
+    except AssertionError:
+        log.critical("Expected assembly files were not found in output.")
 
 
 def main():
@@ -204,9 +214,11 @@ def main():
         # we don't need to combine singleton files here.  copy
         # the read data over and run the assembly for PE data
         if reads.r1 and reads.r2:
-            output = run_spades_pe(
-                spades, reads, sample_dir, args.memory, args.cores, args.do_not_clean, log
+            run_spades_pe(
+                spades, reads, sample_dir, args.memory, args.cores, log
             )
+            if args.no_clean != True:
+                cleanup_assembly_directory(sample_dir, log)
             # generate symlinks to assembled contigs
             generate_symlinks(contig_dir, sample_dir, sample, reads, log)
         elif reads.r1:
