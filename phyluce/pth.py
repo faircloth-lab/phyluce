@@ -28,10 +28,7 @@ def get_user_path(program, binary, package_only=False):
         config.read(__default_config__)
     else:
         config.read(
-            [
-                __default_config__,
-                os.path.expanduser("~/.phyluce.conf"),
-            ]
+            [__default_config__, os.path.expanduser("~/.phyluce.conf"),]
         )
     # ensure program is in list
     pth = config.get(program, binary)
@@ -55,10 +52,7 @@ def get_user_param(section, param):
     # make case sensitive
     config.optionxform = str
     config.read(
-        [
-            __default_config__,
-            os.path.expanduser("~/.phyluce.conf"),
-        ]
+        [__default_config__, os.path.expanduser("~/.phyluce.conf"),]
     )
     return config.get(section, param)
 
@@ -68,9 +62,6 @@ def get_all_user_params(section):
     # make case sensitive
     config.optionxform = str
     config.read(
-        [
-            __default_config__,
-            os.path.expanduser("~/.phyluce.conf"),
-        ]
+        [__default_config__, os.path.expanduser("~/.phyluce.conf"),]
     )
     return [item[1] for item in config.items(section)]

@@ -129,10 +129,7 @@ def get_input_files(dir, subfolder, log):
         regex = (
             r"(?:.*)[_-](?:READ|Read|R)(\d)*[_-]*(singleton|unpaired)*(?:.*)"
         )
-        match = re.search(
-            regex,
-            fname,
-        )
+        match = re.search(regex, fname,)
         try:
             if match.groups()[0] == "1":
                 assert fq.r1 is None
