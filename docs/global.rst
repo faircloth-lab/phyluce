@@ -67,3 +67,4 @@
 .. _IQTree: http://www.iqtree.org
 .. _pargenes: https://github.com/BenoitMorel/ParGenes
 .. _Paup: https://www.google.com/search?client=safari&rls=en&q=paup&ie=UTF-8&oe=UTF-8
+.. _Snakemake: https://snakemake.readthedocs.io/en/stable/ 
