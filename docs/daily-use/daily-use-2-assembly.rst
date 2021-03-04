@@ -208,6 +208,10 @@ Spades
         --cores 12 \
         --log-path log
 
+.. admonition:: Question: What is the –clean option?
+    :class: admonition tip
+    The ``--clean`` option removes all extraneous files produced by spades_.
+
 
 Results
 ^^^^^^^
@@ -229,12 +233,11 @@ Common questions
 .. admonition:: Question: Which assembly program do I pick?
     :class: admonition tip
 
-    Generally, I would suggest that you use Trinity.  In my hands, it produces
+    Generally, I would suggest that you use spades_.  It produces
     reasonable contig assemblies that are longer than the assemblies built by
-    either velvet_ or ABySS_.  There are some caveats, however.  If you want the
-    **most accurate** assemblies possibly, then it may be best to use ABySS_.
-    This is because ABySS_ runs read-based error correction prior to assembly
-    which results in more accurate contigs.
+    velvet_, ABySS_, or Trinity_ (now removed from phyluce_).  It arguable
+    produces assemblies that are more accurate than assemblies from
+    these other programs.
 
 
 .. admonition:: Question: For ABySS and velvet, what --kmer value do I use?
