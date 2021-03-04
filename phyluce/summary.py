@@ -192,8 +192,7 @@ def log_matrix_summary(log, percentages):
     for k in sorted(percentages.keys()):
         log.info(
             "[Matrix {0}%]\t\t{1} alignments".format(
-                int(k * 100),
-                percentages[k],
+                int(k * 100), percentages[k],
             )
         )
 
@@ -204,10 +203,7 @@ def log_taxa_dist(log, show_taxon_counts, t_cnt):
         log.info(text.center(65, "-"))
         for k in sorted(t_cnt.keys()):
             log.info(
-                "[Taxa] {0} alignments contain {1:,} taxa".format(
-                    t_cnt[k],
-                    k,
-                )
+                "[Taxa] {0} alignments contain {1:,} taxa".format(t_cnt[k], k,)
             )
 
 
@@ -218,14 +214,12 @@ def log_character_dist(log, all_bases):
         if k in ["A", "C", "G", "T", "a", "c", "g", "t", "-", "?"]:
             log.info(
                 "[Characters] '{0}' is present {1:,} times".format(
-                    k,
-                    all_bases[k],
+                    k, all_bases[k],
                 )
             )
         else:
             log.warn(
                 "[Characters] '{0}' is present {1:,} times".format(
-                    k,
-                    all_bases[k],
+                    k, all_bases[k],
                 )
             )
