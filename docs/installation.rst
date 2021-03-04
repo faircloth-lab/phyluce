@@ -7,7 +7,7 @@ Installation
 ************
 
 phyluce_ uses a number of tools that allow it to assemble data, search for UCE
-loci, align results reads, manipulate alignments, prepare alignments for
+loci, align resulting reads, manipulate alignments, prepare alignments for
 analysis, etc.  To accomplish these goals, phyluce_ uses wrappers around a
 number of programs that do each of these tasks (sometimes phyluce can use
 several different programs that accomplish the same task in different ways).
@@ -15,7 +15,7 @@ As a result, the
 `dependency chain <http://en.wikipedia.org/wiki/Dependency_hell>`_  (the
 programs that phyluce_ requires to run) is reasonably complex.
 
-In the current versions (> 1.7.x), **and we very strongly suggest** that 
+In the current versions (> 1.7.x), **we very strongly suggest** that 
 users install phyluce_ using the miniconda_ Python distribution.
 
 .. attention:: We do not support installing phyluce through means other than the
@@ -24,11 +24,19 @@ users install phyluce_ using the miniconda_ Python distribution.
     Although you can configure phyluce_ to use binaries
     of different provenance, this is not officially supported.
 
+.. attention:: We do not support phyluce_ on Windows, although you technically
+    should be able to install phyluce_ on Windows using the Windows Subsystem
+    for Linux (WSL) and installing Ubuntu 20.04 LTS from the Windows Store. 
+    You should also be able to use the docker_ image.
+
 .. note:: We build and test the binaries available through conda_ using
     64-bit operating systems that include:
 
     - MacOS 10.15
     - Ubuntu 20.04 LTS
+
+    We will officially support MacOS 10.16 when the github_ build system
+    offers this platform for automated tests.
 
 phyluce_ is also available for use as a docker_ image.  Underneath the hood
 the docker_ image runs Ubuntu 20.04 LTS and installs phyluce_ and related
@@ -38,21 +46,8 @@ packages using conda_.
 Install Process
 ===============
 
-.. attention:: We do not support phyluce_ on Windows, although you technically
-    should be able to install phyluce_ on Windows using the Windows Subsystem
-    for Linux (WSL) and installing Ubuntu 20.04 LTS from the Windows Store. 
-    You should also be able to use the docker_ image.
-
 Using Conda
 -----------
-
-.. note:: We build and test the binaries available through conda_ using
-    64-bit operating systems that include the following.  We will officially
-    support MacOS 10.16 when the github_ build system offers this platform
-    for automated tests.
-
-    - MacOS 10.15
-    - Ubuntu 20.04 LTS
 
 The installation process is a 2-step process.  You need to:
 
@@ -78,24 +73,24 @@ Install phyluce
 
 Current practice with conda_ is to keep all environments separate and **not**
 to use the base environment as a "default" environment.  So, we will be 
-installing phyluce_ into an environment named ``phyluce-vX.X`` where the 
-``X.x`` represents the version you choose.
+installing phyluce_ into an environment named ``phyluce-X.x.x`` where the 
+``X.x.x`` represents the version you choose.
 
 #. Go to the `phyluce github release page <https://github.com/faircloth-lab/phyluce/releases>`_
 #. Download the appropriate ``*.yml`` file for the phyluce_ version 
    you want and the **operating system you are using**
 #. Install that into an environment corresponding to the phyluce 
-   version, e.g. ``phyluce-1.7`` following the instructions on the phyluce_ release page
+   version, e.g. ``phyluce-1.7.0`` following the instructions on the phyluce_ release page
 
-This will create an environment named ``phyluce-X.x``, then download and install
-everything you need to run phyluce_ into this ``phyluce-X.x`` conda_ environment. 
+This will create an environment named ``phyluce-X.x.x``, then download and install
+everything you need to run phyluce_ into this ``phyluce-X.x.x`` conda_ environment. 
 
-To use your new phyluce_ environment, you **must** run (replace ``X.x`` with the
+To use your new phyluce_ environment, you **must** run (replace ``X.x.x`` with the
 correct version):
 
 .. code-block:: bash
 
-    conda activate phyluce-X.x
+    conda activate phyluce-X.x.x
 
 To stop using this phyluce environment, you **must** run:
 
@@ -115,7 +110,7 @@ From within the conda_ environment, you can also run
 
 .. code-block:: bash
 
-   conda activate phyluce-X.x
+   conda activate phyluce-X.x.x
    conda list
 
 Added benefits
@@ -126,7 +121,7 @@ binaries without worrying about setting the correct $PATH, etc.
 
 For example, phyluce_ requires MUSCLE for installation, and MUSCLE was installed
 by conda_ as a dependency of phyluce_. Because conda puts all of these binaries
-in our ``$PATH`` when the environment is activateed, we can also just run MUSCLE
+in your ``$PATH`` when the environment is activateed, we can also just run MUSCLE
 on the command-line, with, e.g.,:
 
 .. code-block:: bash
@@ -148,11 +143,11 @@ Although using docker_ is beyond the scope of this guide, you can run phyluce_ w
 
 .. code-block:: bash
 
-    docker run fairclothlab/phyluce:<tag> phyluce <phyluce_program_name>
+    docker run fairclothlab/phyluce:<version> phyluce <phyluce_program_name>
 
-Where ``<tag>`` corresponds to the version of phyluce you are using. When you run this, all commands are run in the default directory ``/work`` and the user within the container is named ``phyluce``.
+Where ``<version>`` corresponds to the version of phyluce you are using. When you run this, all commands are run in the default directory ``/work`` and the user within the container is named ``phyluce``.
 
-You will very likely want to mount a local directory (on your computer) to this ``/work`` directory in the docker container and make yourself the owner of the result files.  If you are working in ``/home/you/phyluce`` on your computer, you can accomplish all of by running phyluce like:
+You will very likely want to mount a local directory (on your computer) to this ``/work`` directory in the docker container and make yourself the owner of the result files.  If you are working in ``/home/you/phyluce`` on your computer, you can accomplish all of by running phyluce like (using phyluce 1.7.0 as an example):
 
 .. code-block:: bash
 
@@ -165,7 +160,7 @@ You will very likely want to mount a local directory (on your computer) to this 
         --config assembly.conf \
         --cores 12
 
-The ``-v /home/you/phyluce:/data`` maps your directory (``/home/you/phyluce``) onto the container working directory (``/work``), the ``--user $(id -u):$(id -g)`` makes the owner of the files in the container your user and group, the ``fairclothlab/phyluce:1.7.0`` is the name of the image to use, and the rest are standard phyluce command.
+The ``-v /home/you/phyluce:/data`` maps your directory (``/home/you/phyluce``) onto the container working directory (``/work``), the ``--user $(id -u):$(id -g)`` makes the owner of the files in the container your user and group, the ``fairclothlab/phyluce:1.7.0`` is the name of the image to use, and the rest are standard phyluce commands.
 
 Finally, you may want to run many commands in the docker_ container (e.g. as in an entire analysis run).  This can be accomplished by starting a bash_ shell in the container, and working from within the container's bash prompt, as in:
 
@@ -178,7 +173,7 @@ Finally, you may want to run many commands in the docker_ container (e.g. as in 
         /bin/bash
     
     # this drops you into the shell, where you can run commands, e.g.:
-    @d51aa2f2d565:/data$
+    @d51aa2f2d565:/data$ phyluce_assembly_assemblo_spades -h
 
 
 Using Singularity
@@ -208,14 +203,14 @@ with new binaries (e.g. for assembly), then you can change the paths in this
 file rather than deal with hard-coded paths.
 
 .. attention:: This **WILL NOT** work for the docker_ image by default.  You 
-    also do NOT **need** to to anything with this file - $PATHs should 
-    automatically resolve.
+    also do NOT **need** create this file unless you realy know what you are
+    doing.
 
 .. warning:: Changing the `$PATHs` in the config file can break things pretty
     substantially, so please use with caution. If you are making changes, 
     edit the copy at ``~/.phyluce.conf``) rather than the default copy.
 
-The format of the config file as of v1.7 looks similar to the following:
+The format of the config file as of v1.7.0 looks similar to the following:
 
 .. code-block:: bash
 
