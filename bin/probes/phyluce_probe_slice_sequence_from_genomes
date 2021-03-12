@@ -150,10 +150,10 @@ def slice_and_return_fasta(tb, name, min, max, flank, probes):
             ss = min - flank
         else:
             ss = 0
-        if max + flank < len(tb[name]):
+        if max + flank < len(tb[name.encode()]):
             se = max + flank
         else:
-            se = len(tb[name])
+            se = len(tb[name.encode()])
     else:
         length = abs(max - min)
         delta = probes - length
