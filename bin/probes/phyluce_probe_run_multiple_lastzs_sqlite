@@ -19,7 +19,7 @@ import argparse
 import subprocess
 
 from phyluce.log import setup_logging
-from phyluce.helpers import is_dir, is_file, FullPaths
+from phyluce.helpers import is_dir, is_file, FullPaths, CreateDir, CreateFile
 from phyluce.many_lastz import multi_lastz_runner
 
 from rich import print
@@ -36,13 +36,13 @@ def get_args():
     parser.add_argument(
         "--db",
         required=True,
-        action=FullPaths,
+        action=CreateFile,
         help="""The database in which to store results (also use --append if adding results to an existing database)""",
     )
     parser.add_argument(
         "--output",
         required=True,
-        action=FullPaths,
+        action=CreateDir,
         help="""The directory in which to store the LASTZ files""",
     )
     parser.add_argument(
@@ -118,26 +118,6 @@ def get_args():
         help="""The path to a directory to hold logs.""",
     )
     p = parser.parse_args()
-    if os.path.isfile(p.db) or os.path.isdir(p.output):
-        answer = input(
-            print(
-                "[bold orange_red1][WARNING] Output files exist, REMOVE [Y/n]?[/] "
-            )
-        )
-        if answer == "Y":
-            try:
-                shutil.rmtree(p.output)
-            except FileNotFoundError:
-                pass
-            try:
-                os.remove(p.db)
-            except FileNotFoundError:
-                pass
-            # create the new directory
-            os.makedirs(p.output)
-        else:
-            print("[QUIT]")
-            sys.exit()
     return p
 
 

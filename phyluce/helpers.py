@@ -40,10 +40,9 @@ class CreateDir(argparse.Action):
         d = os.path.abspath(os.path.expanduser(values))
         # check to see if directory exists
         if os.path.exists(d):
-            answer = prompt.Prompt.ask(
-                "[bold orange_red1][WARNING] Output directory exists, REMOVE [Y/n][/]"
-            )
-            if answer == "Y":
+            if prompt.Confirm.ask(
+                "[magenta][WARNING] Output directory exists, REMOVE[/magenta]"
+            ):
                 shutil.rmtree(d)
             else:
                 print("[QUIT]")
@@ -60,10 +59,9 @@ class CreateFile(argparse.Action):
         f = os.path.abspath(os.path.expanduser(values))
         # check to see if directory exists
         if os.path.exists(f):
-            answer = prompt.Prompt.ask(
-                "[bold orange_red1][WARNING] Output file exists, REMOVE [Y/n][/] "
-            )
-            if answer == "Y":
+            if prompt.Confirm.ask(
+                "[magenta][WARNING] Output file exists, REMOVE[/magenta]"
+            ):
                 os.remove(f)
             else:
                 print("[QUIT]")
