@@ -126,8 +126,8 @@ on the link or by:
     $ cd uce-genome
     $ mkdir allMis2
     $ cd allMis2
-   
-wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/541/155/GCA_001541155.1_Algmis_Hirise_1.0/GCA_001541155.1_Algmis_Hirise_1.0_genomic.fna.gz
+    # now download from NCBI
+    $ wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/541/155/GCA_001541155.1_Algmis_Hirise_1.0/GCA_001541155.1_Algmis_Hirise_1.0_genomic.fna.gz
 
 This put a gzipped fasta file in our `uce-genome/allMis2` directory, so that our
 directory structure looks like:
@@ -260,7 +260,7 @@ path to the probe file, and a number of compute cores to use:
         --output tutorial3-genome-lastz \
         --scaffoldlist galGal4 allMis2 \
         --genome-base-path ./ \
-        --probefile /nfs/data1/uce-probe-sets/uce-5k-probe-set/uce-5k-probes.fasta \
+        --probefile uce-5k-probes.fasta \
         --cores 12
 
 The program will create some output that looks like:
