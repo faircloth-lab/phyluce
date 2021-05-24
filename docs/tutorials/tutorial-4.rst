@@ -432,7 +432,7 @@ genome because of it's age (i.e., better-assembled) and level of annotation.
 
 We will perform the read alignments to `triCas1` using the permissive read
 aligner, stampy_, which works well when aligning sequences to a divergent
-reference sequence.  Hoever, before running the alignments, we need to prepare
+reference sequence.  However, before running the alignments, we need to prepare
 the base genome.  And, before we do that, let's create a direcetory to work in:
 
 .. code-block:: bash
@@ -445,7 +445,7 @@ Now, let's copy the base genome to this directory (for simplicity):
 
 .. code-block:: bash
 
-    > cp ../genomes/triCas1.fasta ./
+    > cp ../genomes/triCas1/triCas1.fasta ./
 
 If we take a look at our directory structure, it now looks like:
 
