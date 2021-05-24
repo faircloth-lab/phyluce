@@ -311,7 +311,7 @@ To run an assembly, we need to create a another configuration file.  The assembl
     alligator_mississippiensis:/path/to/the/uce-tutorial/clean-fastq/alligator_mississippiensis/split-adapter-quality-trimmed/
     anolis_carolinensis:/path/to/the/uce-tutorial/clean-fastq/anolis_carolinensis/split-adapter-quality-trimmed/
     gallus_gallus:/path/to/the/uce-tutorial/clean-fastq/gallus_gallus/split-adapter-quality-trimmed/
-    mus_musculus:/scratch/bfaircloth-uce-tutorial/clean-fastq/mus_musculus/split-adapter-quality-trimmed/
+    mus_musculus:/path/to/the/uce-tutorial/clean-fastq/mus_musculus/split-adapter-quality-trimmed/
 
 You need to modify this file to use the path to the clean read data **on your computer** (``/path/to/the/`` is a placeholder, here). You will save this into a file named ``assembly.conf`` at the top of our ``uce-tutorial`` directory:
 
