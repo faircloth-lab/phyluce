@@ -32,7 +32,7 @@ class Align(GenericAlign):
         super(Align, self).__init__(input)
 
     def run_alignment(self, clean=True):
-        """ muscle """
+        """muscle"""
         # create results file
         fd, aln = tempfile.mkstemp(suffix=".muscle")
         os.close(fd)
