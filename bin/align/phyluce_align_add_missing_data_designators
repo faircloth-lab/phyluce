@@ -142,6 +142,7 @@ def add_gaps_to_align(
     organisms,
     check_missing,
     missing,
+    aln_name,
     verbatim=False,
     min_taxa=3,
     missing_character="?",
@@ -160,14 +161,14 @@ def add_gaps_to_align(
                 new_align.append(record_formatter(str(seq.seq), new_seq_name))
                 local_organisms.remove(new_seq_name)
             else:
-                new_seq_name = seq.name.lower()
+                new_seq_name = seq.name
                 new_align.append(record_formatter(str(seq.seq), new_seq_name))
                 local_organisms.remove(seq.name)
         for org in local_organisms:
             if not verbatim:
                 loc = "_".join(seq.name.split("_")[:1])
             else:
-                loc = seq.name
+                loc = aln_name.split('.')[0]
             if check_missing and missing:
                 try:
                     assert loc in missing[org], "Locus missing"
@@ -200,11 +201,13 @@ def add_designators(work):
         missing_character,
     ) = work
     aln = AlignIO.read(file, input_format)
+    aln_name = os.path.basename(file)
     new_align = add_gaps_to_align(
         aln,
         organisms,
         check_missing,
         missing,
+        aln_name,
         verbatim,
         min_taxa,
         missing_character,
