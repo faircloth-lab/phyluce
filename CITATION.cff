@@ -1,0 +1,13 @@
+# YAML 1.2
+---
+abstract: "Targeted enrichment of conserved and ultraconserved genomic elements allows universal collection of phylogenomic data from hundreds of species at multiple time scales (<5 Ma to > 300 Ma). Prior to downstream inference, data from these types of targeted enrichment studies must undergo preprocessing to assemble contigs from sequence data; identify targeted, enriched loci from the off-target background data; align enriched contigs representing conserved loci to one another; and prepare and manipulate these alignments for subsequent phylogenomic inference. PHYLUCE is an efficient and easy-to-install software package that accomplishes these tasks across hundreds of taxa and thousands of enriched loci."
+authors: 
+  -
+    affiliation: "Louisiana State University"
+    family-names: Faircloth
+    given-names: Brant
+cff-version: "1.1.0"
+doi: "10.1093/bioinformatics/btv646"
+message: "If you use this software, please cite it using these metadata."
+title: "PHYLUCE is a software package for the analysis of conserved genomic loci"
+...
