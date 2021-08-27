@@ -13,6 +13,7 @@ exclude = '''
   | etc
   | dist
   | workflows
-  | .github
+  | \.github
+  | \.cff
 )/
 '''
