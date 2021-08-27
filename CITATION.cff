@@ -5,7 +5,7 @@ authors:
   -
     affiliation: "Louisiana State University"
     family-names: Faircloth
-    given-names: Brant
+    given-names: Brant Chipstead
 cff-version: "1.1.0"
 doi: "10.1093/bioinformatics/btv646"
 message: "If you use this software, please cite it using these metadata."
