@@ -128,13 +128,19 @@ def get_uce_names(log, c):
 
 
 def get_names_from_config(config, group):
-    try:
-        return [i[0].replace("-", "_") for i in config.items(group)]
-    except configparser.NoSectionError:
-        print(
-            "ERROR: Config [section] name incorrect or path to config file incorrect"
-        )
-        sys.exit()
+    if group != "Excludes":
+        try:
+            return [i[0].replace("-", "_") for i in config.items(group)]
+        except configparser.NoSectionError:
+            print(
+                "ERROR: Config [section] name incorrect or path to config file incorrect"
+            )
+            sys.exit()
+    else:
+        try:
+            return [i[0].replace("-", "_") for i in config.items(group)]
+        except configparser.NoSectionError:
+            return None
 
 
 def remove_duplicates_from(c, organism, matches):
