@@ -87,9 +87,14 @@ def get_args():
         action="store_true",
         help="Return optimum groups of probes by enumeration (default) or sampling.",
     )
-    parser.add_argument("--random", action="store_true", help="Optimize by sampling.")
     parser.add_argument(
-        "--samples", type=int, default=10, help="The number of samples to take."
+        "--random", action="store_true", help="Optimize by sampling."
+    )
+    parser.add_argument(
+        "--samples",
+        type=int,
+        default=10,
+        help="The number of samples to take.",
     )
     parser.add_argument(
         "--sample-size",
@@ -105,9 +110,14 @@ def get_args():
         help="An SQLlite database file holding probe matches to other targeted loci",
     )
     parser.add_argument(
-        "--silent", dest="silent", action="store_true", help="Don't print probe names."
+        "--silent",
+        dest="silent",
+        action="store_true",
+        help="Don't print probe names.",
     )
-    parser.add_argument("--keep-counts", dest="keep_counts", action="store_true")
+    parser.add_argument(
+        "--keep-counts", dest="keep_counts", action="store_true"
+    )
     return parser.parse_args()
 
 
@@ -121,17 +131,23 @@ def get_names_from_config(config, group):
     try:
         return [i[0].replace("-", "_") for i in config.items(group)]
     except configparser.NoSectionError:
-        return None
+        print(
+            "ERROR: Config [section] name incorrect or path to config file incorrect"
+        )
+        sys.exit()
 
 
 def remove_duplicates_from(c, organism, matches):
     if not organism.endswith("*"):
         st = "SELECT uce, {0} FROM match_map WHERE uce in ({1})"
-        query = st.format(organism, ",".join(["'{0}'".format(i) for i in matches]))
+        query = st.format(
+            organism, ",".join(["'{0}'".format(i) for i in matches])
+        )
     else:
         st = "SELECT uce, {0} FROM extended.match_map WHERE uce in ({1})"
         query = st.format(
-            organism.rstrip("*"), ",".join(["'{0}'".format(i) for i in matches])
+            organism.rstrip("*"),
+            ",".join(["'{0}'".format(i) for i in matches]),
         )
     c.execute(query)
     data = c.fetchall()
@@ -194,7 +210,9 @@ def optimize_group_match_runner(combos):
     organismal_matches, organisms, size, uces = combos
     mx = None
     for group in itertools.combinations(organisms, size):
-        group_uces, losses = return_complete_matrix(organismal_matches, group, uces)
+        group_uces, losses = return_complete_matrix(
+            organismal_matches, group, uces
+        )
         if len(group_uces) > mx:
             best = group
             mx = len(group_uces)
@@ -211,7 +229,9 @@ def optimize_group_matches(c, organisms, uces, random):
         for size in range(1, len(organisms) + 1):
             combos.append([organismal_matches, organisms, size, uces])
     else:
-        combos.append([organismal_matches, organisms, len(organisms) - 1, uces])
+        combos.append(
+            [organismal_matches, organisms, len(organisms) - 1, uces]
+        )
     if not random:
         sys.stdout.write("Processing")
         sys.stdout.flush()
@@ -244,9 +264,9 @@ def sample_match_groups(args, c, organisms, uces, all_counts=[]):
             # combinations of desired sample size (there is only 1
             # combination of all individuals)
             orgs = random.sample(organisms, args.sample_size + 1)
-            group, group_size, group_uces = optimize_group_matches(c, orgs, uces, True)[
-                0
-            ]
+            group, group_size, group_uces = optimize_group_matches(
+                c, orgs, uces, True
+            )[0]
             # sys.stdout.write("[{0}] ".format(group_size))
             # sys.stdout.flush()
             missing.extend([i for i in set(organisms).difference(set(group))])
@@ -267,7 +287,9 @@ def sample_match_groups(args, c, organisms, uces, all_counts=[]):
             )
         else:
             args.output.write(
-                "\n".join(["{},{}".format(str(i), str(j)) for i, j in all_counts])
+                "\n".join(
+                    ["{},{}".format(str(i), str(j)) for i, j in all_counts]
+                )
             )
     return best_uces, best_group
 
@@ -286,24 +308,38 @@ def dont_sample_match_groups(log, args, c, organisms, uces):
     """text"""
     organismal_matches = get_all_matches_by_organism(c, organisms)
     if not args.incomplete_matrix:
-        log.info("Getting UCE matches by organism to generate a COMPLETE matrix")
+        log.info(
+            "Getting UCE matches by organism to generate a COMPLETE matrix"
+        )
         shared_uces, losses = return_complete_matrix(
             organismal_matches, organisms, uces, fast=False
         )
         log.info(
-            "There are {} shared UCE loci in a COMPLETE matrix".format(len(shared_uces))
+            "There are {} shared UCE loci in a COMPLETE matrix".format(
+                len(shared_uces)
+            )
         )
     else:
-        log.info("Getting UCE matches by organism to generate a INCOMPLETE matrix")
-        shared_uces, losses = return_incomplete_matrix(organismal_matches, uces)
         log.info(
-            "There are {0} UCE loci in an INCOMPLETE matrix".format(len(shared_uces))
+            "Getting UCE matches by organism to generate a INCOMPLETE matrix"
+        )
+        shared_uces, losses = return_incomplete_matrix(
+            organismal_matches, uces
+        )
+        log.info(
+            "There are {0} UCE loci in an INCOMPLETE matrix".format(
+                len(shared_uces)
+            )
         )
     if losses:
-        sorted_losses = sorted(iter(losses.items()), key=operator.itemgetter(1))
+        sorted_losses = sorted(
+            iter(losses.items()), key=operator.itemgetter(1)
+        )
         sorted_losses.reverse()
         for loss in sorted_losses:
-            log.info("\tFailed to detect {} UCE loci in {}".format(loss[1], loss[0]))
+            log.info(
+                "\tFailed to detect {} UCE loci in {}".format(loss[1], loss[0])
+            )
     return shared_uces
 
 
@@ -325,12 +361,16 @@ def main():
                 os.path.basename(args.extend_locus_db)
             )
         )
-        query = "ATTACH DATABASE '{0}' AS extended".format(args.extend_locus_db)
+        query = "ATTACH DATABASE '{0}' AS extended".format(
+            args.extend_locus_db
+        )
         c.execute(query)
     organisms = get_taxa_from_config(config, args.taxon_group)
     log.info(
         "There are {} taxa in the taxon-group '[{}]' in the config file {}".format(
-            len(organisms), args.taxon_group, os.path.basename(args.taxon_list_config)
+            len(organisms),
+            args.taxon_group,
+            os.path.basename(args.taxon_list_config),
         )
     )
     uces = get_uce_names(log, c)
@@ -344,12 +384,15 @@ def main():
         shared_uces = dont_sample_match_groups(log, args, c, organisms, uces)
     if args.output and organisms and not args.silent:
         log.info(
-            "Writing the taxa and loci in the data matrix to {}".format(args.output)
+            "Writing the taxa and loci in the data matrix to {}".format(
+                args.output
+            )
         )
         with open(args.output, "w") as outf:
             outf.write(
                 "[Organisms]\n{0}\n[Loci]\n{1}\n".format(
-                    "\n".join(sorted(organisms)), "\n".join(sorted(shared_uces))
+                    "\n".join(sorted(organisms)),
+                    "\n".join(sorted(shared_uces)),
                 )
             )
     text = " Completed {} ".format(my_name)
