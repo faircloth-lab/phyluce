@@ -55,7 +55,8 @@ def setup_logging(args):
     console = logging.StreamHandler(sys.stdout)
     if args.log_path is not None:
         logfile = logging.FileHandler(
-            os.path.join(args.log_path, "{}.log".format(my_name))
+            os.path.join(args.log_path, "{}.log".format(my_name)),
+            encoding="utf8",
         )
     else:
         logfile = logging.FileHandler("{}.log".format(my_name))
@@ -72,7 +73,7 @@ def setup_logging(args):
         console.setLevel(logging.CRITICAL)
         logfile.setLevel(logging.CRITICAL)
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        u"%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     console.setFormatter(ColorFormatter())
     logfile.setFormatter(formatter)
