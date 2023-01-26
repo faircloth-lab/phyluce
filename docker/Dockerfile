@@ -28,7 +28,7 @@ RUN apt-get update -q && \
 # download conda - code from https://github.com/ContinuumIO/docker-images/blob/master/miniconda3/debian/Dockerfile
 RUN wget --quiet -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     mkdir -p /opt && \
-    sh miniconda.sh -b -p /opt/conda && \
+    bash miniconda.sh -b -p /opt/conda && \
     rm miniconda.sh && \
     ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
