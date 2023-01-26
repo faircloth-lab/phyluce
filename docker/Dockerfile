@@ -45,8 +45,8 @@ RUN /opt/conda/bin/conda config --add channels conda-forge
 RUN /opt/conda/bin/conda update conda
 
 # get gatk, setup, and cleanup
-RUN wget --quiet https://raw.githubusercontent.com/faircloth-lab/phyluce/main/distrib/phyluce-$PHYLUCE_VERSION-py36-Linux-conda.yml
-RUN /opt/conda/bin/conda env create -n phyluce --file phyluce-$PHYLUCE_VERSION-py36-Linux-conda.yml
+RUN wget --quiet https://raw.githubusercontent.com/faircloth-lab/phyluce/main/distrib/phyluce-${PHYLUCE_VERSION}-py36-Linux-conda.yml
+RUN /opt/conda/bin/conda env create -n phyluce --file phyluce-${PHYLUCE_VERSION}-py36-Linux-conda.yml
 
 # cleanup
 RUN /opt/conda/bin/conda clean --all --yes
