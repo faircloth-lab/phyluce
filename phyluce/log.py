@@ -73,7 +73,7 @@ def setup_logging(args):
         console.setLevel(logging.CRITICAL)
         logfile.setLevel(logging.CRITICAL)
     formatter = logging.Formatter(
-        u"%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     console.setFormatter(ColorFormatter())
     logfile.setFormatter(formatter)
