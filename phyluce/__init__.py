@@ -5,7 +5,7 @@ import os
 import sys
 import subprocess
 
-__version__ = "1.7.1"
+__version__ = "1.7.2"
 __default_config__ = os.path.join(sys.prefix, "phyluce/config/phyluce.conf")
 __default_workflow_dir__ = os.path.join(sys.prefix, "phyluce/workflows")
 
