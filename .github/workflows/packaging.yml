@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-20.04, macos-latest]
     # If we set the default shell here, it catches the activated conda
     # and we don't need to keep calling it.
     defaults:
@@ -49,7 +49,7 @@ jobs:
       - name: Add environment to file and commit
         run: |
           mkdir -p distrib
-          conda env export | grep -v "^channels:" | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
+          conda env export --no-builds | grep -v "^channels:" | grep -v "^name: " | grep -v "^prefix: " > temp-environment.yml
           echo "# `date`" > ${{ env.phyluce_outf }}
           echo "channels:" >> ${{ env.phyluce_outf }}
           cat temp-environment.yml >> ${{ env.phyluce_outf }}
@@ -67,7 +67,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-20.04, macos-latest]
     # If we set the default shell here, it catches the activated conda
     # and we don't need to keep calling it.
     defaults:
@@ -91,7 +91,7 @@ jobs:
   build-docker:
     name: Build docker image
     needs: [dependencies, build-package]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
