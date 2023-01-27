@@ -1,4 +1,4 @@
-# Thu Jan 26 21:44:31 UTC 2023
+# Fri Jan 27 16:02:13 UTC 2023
 channels:
   - faircloth-lab/label/phyluce
   - conda-forge
@@ -41,7 +41,7 @@ dependencies:
   - dendropy=4.5.2
   - docutils=0.17.1
   - expat=2.5.0
-  - fontconfig=2.14.1
+  - fontconfig=2.14.2
   - freetype=2.12.1
   - future=0.18.2
   - gblocks=0.91b
