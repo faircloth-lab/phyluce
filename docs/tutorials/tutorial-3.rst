@@ -398,13 +398,12 @@ The UCE contig sequence are in each respective file within
 Using the extracted sequences in downstream analyses
 ----------------------------------------------------
 
-The easiest way for you to use the extracted sequences is to symlink them into
-an appropriate `contigs` folder that resulted from a PHYLUCE_ assembly process
-and then proceed with the :ref:`UceExtraction` procedure.
-
-For more information on the structure of this folder, look at the
-:ref:`tutorial-assembly` section of :ref:`TutorialOne` for more information.
+The easiest way for you to use the extracted sequences is to basically pretend
+like they are "newly assembled contigs" and place the fasta files (`allmis2.fasta` 
+as in the above) into a `contigs` directory.  Alternatively, you can symlink them 
+into a new or existing `contigs` folder (that resulted from a PHYLUCE_ assembly 
+process) and then proceed with the :ref:`FindingUCELoci` procedure.
 
  .. attention:: Although we have already extracted the UCE loci from each genome
     sequence and even though it seems redundant to go back through the
-    :ref:`UceExtraction` process, this is the best path forward.
+    :ref:`FindingUCELoci` process, this is the best path forward.
