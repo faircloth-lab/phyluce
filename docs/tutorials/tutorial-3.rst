@@ -402,8 +402,8 @@ The easiest way for you to use the extracted sequences is to basically pretend
 like they are "newly assembled contigs" and place the fasta files (`allmis2.fasta` 
 as in the above) into a `contigs` directory.  Alternatively, you can symlink them 
 into a new or existing `contigs` folder (that resulted from a PHYLUCE_ assembly 
-process) and then proceed with the :ref:`FindingUCELoci` procedure.
+process) and then proceed with the :ref:`finding-uce-loci` procedure.
 
  .. attention:: Although we have already extracted the UCE loci from each genome
     sequence and even though it seems redundant to go back through the
-    :ref:`FindingUCELoci` process, this is the best path forward.
+    :ref:`finding-uce-loci` process, this is the best path forward.

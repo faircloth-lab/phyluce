@@ -485,7 +485,7 @@ There are many, many other assembly QC steps you can run other than simply
 looking at the stats of the assembled contigs.  We will not go into those here.
 
 
-.. _FindingUCELoci:
+.. _finding-uce-loci:
 
 Finding UCE loci
 ================
