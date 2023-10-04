@@ -162,6 +162,6 @@ def test_match_contigs_to_barcodes(o_dir, e_dir, request):
         re.search("(Best.*\n)", stdout.decode("utf-8")).groups()[0].strip()
     )
     assert (
-        "Best BOLD systems match for locus comp17283_c0_seq1: Anas poecilorhyncha [GBIR3505-13]"
+        "Best BOLD systems match for locus comp17283_c0_seq1: Anas platyrhynchos [TZBNA296-03]"
         in observed
     )
