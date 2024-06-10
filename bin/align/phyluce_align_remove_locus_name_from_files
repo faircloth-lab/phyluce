@@ -96,7 +96,8 @@ def worker(work):
             new_seq_name = re.sub("^(_R_)*{}_*".format(fname), "", seq.name)
             all_taxa.append(new_seq_name)
             seq.id = new_seq_name
-            seq.name = new_seq_name
+            seq.name = ""
+            seq.description = ""
             seq.annotations = {"molecule_type": "DNA"}
             new_align.append(seq)
     if args.taxa is not None:
