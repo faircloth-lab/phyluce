@@ -19,7 +19,7 @@ from phyluce.helpers import is_file, FullPaths
 
 import dendropy
 
-# import pdb
+#import pdb
 
 
 def get_args():
@@ -100,8 +100,8 @@ def main():
         names = dict([(name[0].replace("-", "_"), name[1]) for name in names])
     elif args.order == "right:left":
         names = dict([(name[1].replace("-", "_"), name[0]) for name in names])
-    trees = dendropy.TreeList(
-        stream=open(args.input), schema=args.input_format
+    trees = dendropy.TreeList.get(
+        file=open(args.input), schema=args.input_format
     )
     new_labels = []
     for tree in trees:
