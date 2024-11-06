@@ -181,7 +181,7 @@ This contains a section pointing to the location of the BAM files created during
 
     phyluce_workflow --config <path to your config file> \
         --output <path to some output folder name> \
-        --workflow mapping \
+        --workflow phasing \
         --cores 1
 
 This produces a folder of output containing BAMs and FASTAs for each haplotye that looks like the following (here, only showing the results for ``gallus-gallus`` versus all 4 taxa in the configuration file:
