@@ -134,7 +134,7 @@ def main():
                             "db": args.database,
                         }
                         r = requests.get(
-                            "http://boldsystems.org/index.php/Ids_xml",
+                            "http://v4.boldsystems.org/index.php/Ids_xml",
                             params=payload,
                         )
                         root = ElementTree.fromstring(r.content)
