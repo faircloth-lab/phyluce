@@ -25,7 +25,7 @@ from phyluce.log import setup_logging
 
 from Bio import SeqIO
 
-# import pdb
+import pdb
 
 
 def get_args():
@@ -137,7 +137,8 @@ def main():
                             "http://v4.boldsystems.org/index.php/Ids_xml",
                             params=payload,
                         )
-                        root = ElementTree.fromstring(r.content)
+                        parser = ElementTree.XMLParser(encoding="utf-8")
+                        root = ElementTree.fromstring(r.content, parser=parser)
                         id = [elem.text for elem in root.findall("match/ID")]
                         matches = [
                             elem.text
