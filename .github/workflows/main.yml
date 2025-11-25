@@ -23,7 +23,7 @@ on:
 jobs:
   run-linters:
     name: Run linters on phyluce
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
@@ -49,7 +49,7 @@ jobs:
   build-and-test:
     needs: run-linters
     name: Build and test phyluce
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     # If we set the default shell here, it catches the activated conda
     # and we don't need to keep calling it.
     defaults:

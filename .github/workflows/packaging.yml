@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     # If we set the default shell here, it catches the activated conda
     # and we don't need to keep calling it.
     defaults:
@@ -67,7 +67,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     # If we set the default shell here, it catches the activated conda
     # and we don't need to keep calling it.
     defaults:
@@ -91,7 +91,7 @@ jobs:
   build-docker:
     name: Build docker image
     needs: [dependencies, build-package]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
