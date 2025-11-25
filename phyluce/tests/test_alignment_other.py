@@ -636,13 +636,13 @@ def test_align_get_align_summary_data(o_dir, e_dir, request):
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     assert output, "There are no output files"
     output_dict = {}
-    with (open(output)) as output_file:
+    with open(output) as output_file:
         for line in output_file:
             ls = line.strip().split(",")
             output_dict[ls[0]] = ",".join(ls[1:])
     expected = os.path.join(e_dir, "gblocks-clean-align-summary.csv")
     expected_dict = {}
-    with (open(expected)) as expected_file:
+    with open(expected) as expected_file:
         for line in expected_file:
             ls = line.strip().split(",")
             expected_dict[ls[0]] = ",".join(ls[1:])
@@ -669,13 +669,13 @@ def test_align_get_informative_sites(o_dir, e_dir, request):
     assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
     assert output, "There are no output files"
     output_dict = {}
-    with (open(output)) as output_file:
+    with open(output) as output_file:
         for line in output_file:
             ls = line.strip().split(",")
             output_dict[ls[0]] = ",".join(ls[1:])
     expected = os.path.join(e_dir, "mafft-gblocks-clean-informative-sites.csv")
     expected_dict = {}
-    with (open(expected)) as expected_file:
+    with open(expected) as expected_file:
         for line in expected_file:
             ls = line.strip().split(",")
             expected_dict[ls[0]] = ",".join(ls[1:])
