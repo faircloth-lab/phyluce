@@ -48,7 +48,7 @@ for dir in ["phyluce/tests/test-expected"]:
 # that we need for workflows and tests
 def data_files(directory):
     paths = defaultdict(list)
-    for (path, directories, filenames) in os.walk(directory):
+    for path, directories, filenames in os.walk(directory):
         # skip hidden files and dirs
         filenames = [f for f in filenames if not f[0] == "."]
         directories[:] = [d for d in directories if not d[0] == "."]
