@@ -47,7 +47,7 @@ navigate with your browser to the URL and save the file):
     wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/master/uce-2.5k-probe-set/uce-2.5k-probes.fasta
 
     # to get the 5k, amniote probe set
-    wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/master/uce-5k-probe-set/uce-5k-probes.fasta
+    wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/refs/heads/master/uce-5k-probe-set/V1/uce-5k-probes.fasta
 
 
 .. _contigs-matching:

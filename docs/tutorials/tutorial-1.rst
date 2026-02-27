@@ -510,7 +510,7 @@ enrichments:
 
 .. code-block:: bash
 
-    wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/master/uce-5k-probe-set/uce-5k-probes.fasta
+    wget https://raw.githubusercontent.com/faircloth-lab/uce-probe-sets/refs/heads/master/uce-5k-probe-set/V1/uce-5k-probes.fasta
 
 Now, our directory structure looks like:
 
