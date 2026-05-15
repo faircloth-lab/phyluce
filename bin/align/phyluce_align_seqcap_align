@@ -171,8 +171,16 @@ def align(params):
     locus, opts = params
     name, sequences = locus
     # get additional params from params tuple
-    window, threshold, notrim, proportion, divergence, min_len = opts
+    aligner, window, threshold, notrim, proportion, divergence, min_len = opts
     fasta = create_locus_specific_fasta(sequences)
+    if aligner == "muscle":
+        from phyluce.muscle import Align
+    elif aligner == "mafft":
+        from phyluce.mafft import Align
+    elif aligner == "dialign":
+        from phyluce.dialign import Align
+    else:
+        raise ValueError("Unknown aligner: {}".format(aligner))
     aln = Align(fasta)
     aln.run_alignment()
     if notrim:
@@ -201,7 +209,7 @@ def get_fasta_dict(log, args):
     else:
         log.info("Removing ALL sequences with ambiguous bases...")
     loci = defaultdict(list)
-    with open(args.input, "rU") as infile:
+    with open(args.input, "r") as infile:
         for record in SeqIO.parse(infile, "fasta"):
             locus = record.description.split("|")[1].rstrip("_phased")
             loci = build_locus_dict(log, loci, locus, record, args.ambiguous)
@@ -232,8 +240,10 @@ def main(args):
     # create the fasta dictionary
     loci = get_fasta_dict(log, args)
     log.info("Aligning with {}".format(str(args.aligner).upper()))
+    aligner = args.aligner
     opts = [
         [
+            aligner,
             args.window,
             args.threshold,
             args.no_trim,
@@ -274,11 +284,4 @@ def main(args):
 
 if __name__ == "__main__":
     args = get_args()
-    # globally import Align method
-    if args.aligner == "muscle":
-        from phyluce.muscle import Align
-    elif args.aligner == "mafft":
-        from phyluce.mafft import Align
-    elif args.aligner == "dialign":
-        from phyluce.dialign import Align
     main(args)
