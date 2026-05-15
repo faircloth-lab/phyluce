@@ -131,7 +131,7 @@ class Reader:
     """read a lastz file and return an iterator over that file"""
 
     def __init__(self, lastz_file, long_format=False):
-        self.file = open(lastz_file, "rU")
+        self.file = open(lastz_file, "r")
         self.long_format = long_format
 
     def __del__(self):
@@ -139,9 +139,30 @@ class Reader:
         self.file.close()
 
     def __iter__(self):
-        """iterator"""
-        while True:
-            yield next(self)
+        for lastz_result in self.file:
+            if not self.long_format:
+                Lastz = namedtuple(
+                    "Lastz",
+                    "score,name1,strand1,zstart1,end1,length1,name2,"
+                    + "strand2,zstart2,end2,length2,diff,cigar,identity,percent_identity,"
+                    + "continuity,percent_continuity",
+                )
+            else:
+                Lastz = namedtuple(
+                    "Lastz",
+                    "score,name1,strand1,zstart1,end1,length1,name2,"
+                    + "strand2,zstart2,end2,length2,diff,cigar,identity,percent_identity,"
+                    + "continuity,percent_continuity,coverage,percent_coverage",
+                )
+            lastz_result_split = lastz_result.strip("\n").split("\t")
+            for k, v in enumerate(lastz_result_split):
+                if k in [3, 4, 5, 8, 9, 10]:
+                    lastz_result_split[k] = int(v)
+                elif "%" in v:
+                    lastz_result_split[k] = float(v.strip("%"))
+            lastz_result_split[1] = lastz_result_split[1].lstrip(">")
+            lastz_result_split[6] = lastz_result_split[6].lstrip(">")
+            yield Lastz._make(lastz_result_split)
 
     def __next__(self):
         """read next fastq sequence and return as named tuple"""
