@@ -140,7 +140,7 @@ def test_match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
     match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request)
     check_lastz_file(o_dir, e_dir)
 
-
+```
 def test_match_contigs_to_barcodes(o_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_match_contigs_to_barcodes"
     output = os.path.join(o_dir, "barcode-check")
@@ -165,3 +165,4 @@ def test_match_contigs_to_barcodes(o_dir, e_dir, request):
         "Best BOLD systems match for locus comp17283_c0_seq1: Anas platyrhynchos [TZBNA296-03]"
         in observed
     )
+```
