@@ -140,6 +140,7 @@ def test_match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request):
     match_contigs_to_probes(o_dir, e_dir, bait_pth, contig_pth, request)
     check_lastz_file(o_dir, e_dir)
 
+
 """
 def test_match_contigs_to_barcodes(o_dir, e_dir, request):
     program = "bin/assembly/phyluce_assembly_match_contigs_to_barcodes"
