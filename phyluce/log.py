@@ -59,7 +59,10 @@ def setup_logging(args):
             encoding="utf8",
         )
     else:
-        logfile = logging.FileHandler("{}.log".format(my_name))
+        logfile = logging.FileHandler(
+            "{}.log".format(my_name),
+            encoding="utf8",
+        )
     if args.verbosity == "INFO":
         log.setLevel(logging.INFO)
         console.setLevel(logging.INFO)
