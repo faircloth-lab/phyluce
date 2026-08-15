@@ -157,7 +157,7 @@ def test_match_contigs_to_barcodes(o_dir, e_dir, request):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
-    assert proc.returncode == 0, print("""{}""".format(stderr.decode("utf-8")))
+    assert proc.returncode == 0, print("{}".format(stderr.decode("utf-8")))
     observed = (
         re.search("(Best.*\n)", stdout.decode("utf-8")).groups()[0].strip()
     )
