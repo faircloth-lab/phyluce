@@ -113,22 +113,36 @@ def get_args():
 def get_and_trim_alignments(params):
     args, align_file = params
     name = os.path.splitext(os.path.basename(align_file))[0]
-    # determine the number of sequences in align
-    with open(align_file, "rU") as input_aln:
-        aln = AlignIO.read(input_aln, args.input_format)
-        taxa = len(aln)
+
+    if '-gb' in align_file:
+        print(f"Skipping -gb output as input: {align_file}")
+        return name, None
+
+    if not os.path.isfile(align_file):
+        print(f"[WARN] Input file does not exist: {align_file}. Skipping.")
+        return name, None
+
+    try:
+        with open(align_file, "r") as input_aln:
+            aln = AlignIO.read(input_aln, args.input_format)
+            taxa = len(aln)
+    except Exception as e:
+        print(f"[WARN] Failed to read alignment {align_file}: {e}")
+        return name, None
+
     b1 = int(round(args.b1 * taxa)) + 1
     b2 = int(round(args.b2 * taxa))
     if b2 < b1:
         b2 = b1
+
     cmd = [
         get_user_path("binaries", "gblocks"),
         align_file,
         "-t=DNA",
-        "-b1={}".format(b1),
-        "-b2={}".format(b2),
-        "-b3={}".format(args.b3),
-        "-b4={}".format(args.b4),
+        f"-b1={b1}",
+        f"-b2={b2}",
+        f"-b3={args.b3}",
+        f"-b4={args.b4}",
         "-b5=h",
         "-p=n",
     ]
@@ -136,14 +150,25 @@ def get_and_trim_alignments(params):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     stdout, stderr = proc.communicate()
-    # read new alignment
-    trimmed_aln_file = "{}-gb".format(align_file)
-    with open(trimmed_aln_file, "rU") as trimmed_aln:
-        aln = AlignIO.read(trimmed_aln, "fasta")
-        for seq in aln:
-            seq.annotations = {"molecule_type": "DNA"}
-    # remove the qblocks file
-    os.remove(trimmed_aln_file)
+
+    trimmed_aln_file = f"{align_file}-gb.fa"
+    if not os.path.isfile(trimmed_aln_file):
+        print(f"[WARN] Gblocks did not produce output for {align_file}")
+        print(f"STDOUT:\n{stdout.decode()}\nSTDERR:\n{stderr.decode()}")
+        return name, None
+
+    try:
+        with open(trimmed_aln_file, "r") as trimmed_aln:
+            aln = AlignIO.read(trimmed_aln, "fasta")
+            for seq in aln:
+                seq.annotations = {"molecule_type": "DNA"}
+        # remove the qblocks file
+        os.remove(trimmed_aln_file)
+    except Exception as e:
+        print(f"[WARN] Failed to read Gblocks output {trimmed_aln_file}: {e}")
+        os.remove(trimmed_aln_file)
+        return name, None
+
     sys.stdout.write(".")
     sys.stdout.flush()
     return name, aln
@@ -161,14 +186,12 @@ def write_gblocks_alignments_to_outdir(log, outdir, alignments, format):
             try:
                 with open(outname, "w") as outf:
                     AlignIO.write(aln, outf, format)
-            except ValueError:
-                os.remove(outname)
-                log.warn(
-                    "Unable to write {} - alignment too short".format(locus)
-                )
+            except Exception as e:
+                if os.path.exists(outname):
+                    os.remove(outname)
+                log.warn(f"Unable to write {locus} - reason: {e}")
         else:
-            log.warn("Missing information for locus {}".format(locus))
-
+            log.warn(f"Missing information for locus {locus}")
 
 def main():
     """
@@ -191,9 +214,10 @@ def main():
     alignments = []
     log.info("Getting aligned sequences for trimming")
     for ftype in get_file_extensions(args.input_format):
-        alignments.extend(
-            glob.glob(os.path.join(args.alignments, "*{}".format(ftype)))
-        )
+        aligns = glob.glob(os.path.join(args.alignments, f"*{ftype}"))
+        aligns = [f for f in aligns if '-gb' not in f]  # exclude *-gb files
+        alignments.extend(aligns)
+
     # package up needed arguments for map()
     params = [[args, aln] for aln in alignments]
     log.info("Alignment trimming begins.")
